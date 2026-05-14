@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useRef } from "react";
 import StatCard, { StatChip, StatBar } from "./StatCard";
 import StrikeRow from "./StrikeRow";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +44,14 @@ export default function InstrumentColumn({ inst, compact = false }) {
     const id = setInterval(load, 60_000);
     return () => { cancelled = true; clearInterval(id); };
   }, [symbol]);
+
+  const spotRef = useRef(null);
+
+  useEffect(() => {
+    if (spotRef.current) {
+      spotRef.current.scrollIntoView({ block: "center" });
+    }
+  }, [inst]);
 
   const [netGexSort, setNetGexSort] = useState(null); // null | "asc" | "desc"
 
@@ -166,7 +174,7 @@ export default function InstrumentColumn({ inst, compact = false }) {
                 compact={compact}
               />
               {d.is_spot && (
-                <div className="relative h-px z-10 overflow-visible">
+                <div ref={spotRef} className="relative h-px z-10 overflow-visible">
                   <div className="absolute inset-0 bg-amber opacity-60" />
                   <div className="absolute right-3 -top-[9px] font-mono text-[8px] text-amber bg-[var(--surface)] border border-amber/50 rounded px-1.5 py-px whitespace-nowrap tracking-wide">
                     SPOT {fmtSpot(symbol, spot)}
