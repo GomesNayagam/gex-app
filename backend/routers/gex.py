@@ -6,14 +6,15 @@ from backend.models import InstrumentGEX, GEXResponse
 router = APIRouter(prefix="/api", tags=["GEX"])
 
 
-async def _fetch_cached(request: Request, symbol: str) -> InstrumentGEX:
+async def _fetch_cached(request: Request, symbol: str, expiry: str | None = None) -> InstrumentGEX:
     from backend.services.cache import cache
-    cached = cache.get(symbol)
+    cache_key = f"{symbol}:{expiry}" if expiry else symbol
+    cached = cache.get(cache_key)
     if cached:
         return cached
     adapter = request.app.state.adapter
-    data = await adapter.fetch(symbol)
-    cache.set(symbol, data)
+    data = await adapter.fetch(symbol, expiry=expiry)
+    cache.set(cache_key, data)
     return data
 
 
@@ -52,9 +53,10 @@ async def get_gex_by_symbol(
     symbol: str,
     request: Request,
     strikes: Optional[int] = Query(default=None, ge=5, le=200),
+    expiry: Optional[str] = Query(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$|^0dte$"),
 ):
     try:
-        data = await _fetch_cached(request, symbol.upper())
+        data = await _fetch_cached(request, symbol.upper(), expiry=expiry)
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:

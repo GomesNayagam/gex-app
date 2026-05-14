@@ -15,8 +15,14 @@ class FlashAlphaAdapter:
             timeout=10.0,
         )
 
-    async def fetch(self, symbol: str) -> InstrumentGEX:
-        resp = await self._client.get(f"/flow/gex/{symbol.upper()}")
+    async def fetch(self, symbol: str, expiry: str | None = None) -> InstrumentGEX:
+        sym = symbol.upper()
+        # Route to /exposure/gex/{symbol}?expiration={expiry} for ISO date expiries
+        if expiry and expiry != "0dte":
+            params = {"expiration": expiry}
+            resp = await self._client.get(f"/exposure/gex/{sym}", params=params)
+        else:
+            resp = await self._client.get(f"/flow/gex/{sym}")
         resp.raise_for_status()
         data = resp.json()
 

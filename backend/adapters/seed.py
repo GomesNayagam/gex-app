@@ -119,7 +119,7 @@ _FACTORIES = {
 
 
 class SeedAdapter:
-    async def fetch(self, symbol: str) -> InstrumentGEX:
+    async def fetch(self, symbol: str, expiry: str | None = None) -> InstrumentGEX:
         sym = symbol.upper()
         if sym not in _FACTORIES:
             raise ValueError(f"Symbol '{sym}' not in seed data")
