@@ -14,11 +14,6 @@ export async function fetchGEXBySymbol(symbol, { strikes = 50, expiry = null } =
   return res.json()
 }
 
-export async function fetchExpirations(symbol) {
-  const res = await fetch(`${BASE}/api/expirations/${symbol.toUpperCase()}`)
-  if (!res.ok) throw new Error(`expirations fetch failed: ${res.status}`)
-  return res.json()
-}
 
 export async function fetchIntraday(symbol, lookback = 6) {
   const res = await fetch(`${BASE}/api/gex/${symbol}/intraday?lookback=${lookback}`)

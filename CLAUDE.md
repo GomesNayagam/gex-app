@@ -40,6 +40,24 @@ FLASH_ALPHA_API_KEY=<key>
 ```
 Default is `seed` (hardcoded SPX/SPY/QQQ data). Set to `flash_alpha` for live data.
 
+## Known API Shape Differences (Flash Alpha)
+
+The two Flash Alpha endpoints return **different field names** for the same data:
+
+| Field         | `/flow/gex/{symbol}`  | `/exposure/gex/{symbol}?expiration=` |
+|---------------|-----------------------|---------------------------------------|
+| Gamma flip    | `live_gamma_flip`     | `gamma_flip`                          |
+| Net GEX       | `live_net_gex`        | `net_gex`                             |
+| GEX label     | `live_net_gex_label`  | `net_gex_label`                       |
+| Spot price    | `underlying_price`    | `underlying_price`                    |
+| Strikes array | `strikes`             | `strikes`                             |
+
+The adapter (`backend/adapters/flash_alpha.py`) handles both with `.get()` fallbacks:
+```python
+flip = data.get("live_gamma_flip") or data["gamma_flip"]
+```
+**Never assume `/exposure` returns the same keys as `/flow`.** Always check both field names when adding new fields from Flash Alpha responses.
+
 ## Architecture
 
 ### Backend (`backend/`)

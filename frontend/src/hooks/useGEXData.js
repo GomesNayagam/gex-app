@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { fetchAllGEX } from "@/api"
 
-const REFRESH_INTERVAL = 30
+const REFRESH_INTERVAL = 300
 
 export function useGEXData() {
   const [data, setData] = useState(null)

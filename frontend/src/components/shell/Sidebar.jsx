@@ -18,42 +18,45 @@ export default function Sidebar() {
       "flex flex-col shrink-0 bg-[var(--surface-1)] border-r border-[var(--border)] transition-[width] duration-200 overflow-hidden",
       collapsed ? "w-14" : "w-56"
     )}>
-      {/* Logo area */}
-      <div className="h-12 flex items-center px-3 border-b border-[var(--border)] shrink-0">
-        <span className="font-mono text-[10px] tracking-widest text-[var(--text-3)] uppercase truncate">
-          {collapsed ? "GEX" : "GEX · Dashboard"}
-        </span>
+      {/* Logo area + collapse toggle */}
+      <div className="h-12 flex items-center justify-between px-3 border-b border-[var(--border)] shrink-0">
+        {!collapsed && (
+          <span className="font-mono text-[11px] font-semibold tracking-widest text-[var(--text-2)] uppercase truncate">
+            GEX · Dashboard
+          </span>
+        )}
+        <button
+          onClick={toggle}
+          className={cn(
+            "flex items-center justify-center w-7 h-7 rounded-sm text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-white/10 transition-colors",
+            collapsed && "mx-auto"
+          )}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
+        </button>
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 flex flex-col gap-0.5 p-1.5 overflow-y-auto">
+      <nav className="flex-1 flex flex-col gap-0.5 p-2 overflow-y-auto">
         {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
+            title={collapsed ? label : undefined}
             className={({ isActive }) => cn(
-              "flex items-center gap-3 px-3 py-2 font-mono text-[10px] tracking-wide transition-colors rounded-sm",
+              "flex items-center gap-3 px-3 py-2.5 font-mono text-[11px] tracking-wide transition-colors rounded-sm",
+              collapsed && "justify-center px-0",
               isActive
-                ? "border-l-2 border-blue bg-blue/10 text-[var(--text-1)]"
-                : "text-[var(--text-3)] hover:text-[var(--text-2)] hover:bg-white/5"
+                ? "border-l-2 border-blue bg-blue/10 text-white"
+                : "text-[var(--text-2)] hover:text-white hover:bg-white/8"
             )}
           >
-            <Icon size={14} className="shrink-0" />
+            <Icon size={16} className="shrink-0" />
             {!collapsed && <span className="truncate">{label}</span>}
           </NavLink>
         ))}
       </nav>
-
-      {/* Collapse toggle */}
-      <div className="p-1.5 border-t border-[var(--border)] shrink-0">
-        <button
-          onClick={toggle}
-          className="w-full flex items-center justify-center py-2 px-3 text-[var(--text-3)] hover:text-[var(--text-2)] hover:bg-white/5 rounded-sm transition-colors"
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-        </button>
-      </div>
     </div>
   )
 }

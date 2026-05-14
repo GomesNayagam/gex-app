@@ -59,8 +59,8 @@ export default function InstrumentColumn({ inst, compact = false }) {
 
   return (
     <div className={cn("flex flex-col animate-[fadeIn_0.35s_ease_both]", compact ? "gap-2" : "gap-3")}>
-      {/* Stat chips — single row */}
-      <div className="grid grid-cols-4 gap-1.5">
+      {/* Stat chips — single row, 5 columns when dealer risk available */}
+      <div className={cn("grid gap-1.5", dealerRisk ? "grid-cols-5" : "grid-cols-4")}>
         <StatChip
           type="call"
           label="Call Wall"
@@ -89,18 +89,16 @@ export default function InstrumentColumn({ inst, compact = false }) {
           sub1={fmtGex(pinS.net_gex)}
           sub2="Intraday magnet"
         />
+        {dealerRisk && (
+          <StatChip
+            type="dealer"
+            label="Dealer Risk"
+            value={dealerRisk.flow_direction.toUpperCase()}
+            sub1={`${(dealerRisk.flow_gex_pct_shift * 100).toFixed(1)}% GEX shift`}
+            sub2={dealerRisk.description}
+          />
+        )}
       </div>
-
-      {/* Dealer Risk bar */}
-      {dealerRisk && (
-        <StatBar
-          type="dealer"
-          label="Dealer Risk"
-          value={dealerRisk.flow_direction.toUpperCase()}
-          sub1={`${(dealerRisk.flow_gex_pct_shift * 100).toFixed(1)}% GEX shift · ${dealerRisk.contracts_with_flow.toLocaleString()} contracts`}
-          sub2={dealerRisk.description}
-        />
-      )}
 
       {/* Ladder card */}
       <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden flex flex-col">

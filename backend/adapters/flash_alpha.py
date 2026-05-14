@@ -27,9 +27,10 @@ class FlashAlphaAdapter:
         data = resp.json()
 
         spot = data["underlying_price"]
-        flip = data["live_gamma_flip"]
-        net_gex = data["live_net_gex"]
-        regime = data["live_net_gex_label"].capitalize()  # "positive" -> "Positive"
+        # /flow returns live_gamma_flip; /exposure returns gamma_flip
+        flip = data.get("live_gamma_flip") or data["gamma_flip"]
+        net_gex = data.get("live_net_gex") or data["net_gex"]
+        regime = (data.get("live_net_gex_label") or data["net_gex_label"]).capitalize()
 
         raw_strikes = data["strikes"]
         spot_strike = min(raw_strikes, key=lambda x: abs(x["strike"] - spot))["strike"]
