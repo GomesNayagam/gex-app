@@ -6,10 +6,17 @@ export async function fetchAllGEX() {
   return res.json()
 }
 
-export async function fetchGEXBySymbol(symbol, strikes) {
-  const params = strikes ? `?strikes=${strikes}` : ''
-  const res = await fetch(`${BASE}/api/gex/${symbol}${params}`)
+export async function fetchGEXBySymbol(symbol, { strikes = 50, expiry = null } = {}) {
+  const params = new URLSearchParams({ strikes })
+  if (expiry) params.set("expiry", expiry)
+  const res = await fetch(`${BASE}/api/gex/${symbol}?${params}`)
   if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`)
+  return res.json()
+}
+
+export async function fetchExpirations(symbol) {
+  const res = await fetch(`${BASE}/api/expirations/${symbol.toUpperCase()}`)
+  if (!res.ok) throw new Error(`expirations fetch failed: ${res.status}`)
   return res.json()
 }
 
