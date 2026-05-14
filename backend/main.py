@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.config import settings
 from backend.routers import gex, intraday, system
+from backend.routers import dealer_risk
 from backend.services import snapshots
 
 
@@ -72,3 +73,4 @@ app.add_middleware(
 app.include_router(system.router)
 app.include_router(gex.router)
 app.include_router(intraday.router)
+app.include_router(dealer_risk.router)

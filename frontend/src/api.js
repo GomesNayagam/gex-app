@@ -24,3 +24,9 @@ export async function fetchHealth() {
   if (!res.ok) throw new Error(`Health check failed`)
   return res.json()
 }
+
+export async function fetchDealerRisk(symbol) {
+  const res = await fetch(`${BASE}/api/dealer-risk/${symbol}`)
+  if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`)
+  return res.json()
+}

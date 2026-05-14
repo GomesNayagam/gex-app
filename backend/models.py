@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 
 class Strike(BaseModel):
@@ -60,3 +61,17 @@ class GEXSnapshot(BaseModel):
 class IntradaySeries(BaseModel):
     symbol: str
     snapshots: list[GEXSnapshot]
+
+
+class DealerRisk(BaseModel):
+    symbol: str
+    as_of: datetime
+    underlying_price: float
+    live_net_gex: float
+    flow_gex_pct_shift: float
+    live_net_dex: float
+    flow_dex_pct_shift: float
+    total_abs_delta_contracts: int
+    contracts_with_flow: int
+    flow_direction: str  # "neutral" | "bullish" | "bearish"
+    description: str
