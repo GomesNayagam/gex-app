@@ -87,7 +87,18 @@ export default function ExpiryMode() {
   const { watchlist } = useWatchlist();
   const [symbol, setSymbol] = useState("SPX");
   const [date, setDate] = useState("");
-  const [panels, setPanels] = useState([]); // [{ id, symbol, date, pinned }]
+  const [panels, setPanels] = useState(() => {
+    try {
+      const saved = localStorage.getItem("expiry-panels");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem("expiry-panels", JSON.stringify(panels));
+  }, [panels]);
 
   function handleAdd() {
     if (!symbol.trim() || !date) return;
