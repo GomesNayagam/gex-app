@@ -13,20 +13,18 @@ export default function StrikeRow({ d, symbol, maxNet, maxCall, maxPut, compact 
     <div className={cn(
       "group grid items-center min-h-[28px] px-3 border-b border-[var(--border-soft)] overflow-x-hidden",
       compact && "min-h-[20px] py-0.5",
-      "grid-cols-[56px_72px_1fr_48px] gap-x-0 transition-colors duration-100",
+      "grid-cols-[minmax(80px,auto)_1fr_48px] gap-x-0 transition-colors duration-100",
       d.is_flip ? "bg-amber/5 hover:bg-amber/10" : "hover:bg-white/[0.015]",
     )}>
-      {/* Strike label */}
-      <span className={cn(
-        "font-mono tabular-nums text-[10px] font-medium tracking-wide text-right",
-        "text-[var(--text-2)]",
-        d.is_spot && "text-[var(--text-1)] font-semibold",
-      )}>
-        {fmtStrike(symbol, d.strike)}
-      </span>
-
-      {/* Key level tags */}
-      <div className="flex items-center gap-1 min-w-0">
+      {/* Strike + tags */}
+      <div className="flex items-center gap-1.5 min-w-0">
+        <span className={cn(
+          "font-mono tabular-nums text-[10px] font-medium tracking-wide flex-none",
+          "text-[var(--text-2)]",
+          d.is_spot && "text-[var(--text-1)] font-semibold",
+        )}>
+          {fmtStrike(symbol, d.strike)}
+        </span>
         {tags.map((t) => (
           <span
             key={t.label}
