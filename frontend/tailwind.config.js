@@ -4,21 +4,28 @@ export default {
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      fontSize: {
+        "2xs": "8px",
+        "3xs": "9px",
+        "4xs": "10px",
+        "5xs": "11px",
+        xs:    "13px",
+        sm:    "15px",
+      },
       colors: {
-        // Map existing CSS palette into Tailwind tokens
-        bg:        "#0b0e13",
-        surface:   "#111520",
-        "surface-2": "#161c28",
-        "surface-3": "#1a2235",
-        border:    "#1e2736",
-        "border-soft": "#161d2b",
-        green:     "#2dc88a",
-        red:       "#e05252",
-        blue:      "#4d8fea",
-        amber:     "#d4a843",
-        "text-1":  "#e8eaf0",
-        "text-2":  "#8b9ab5",
-        "text-3":  "#4a5568",
+        // Map CSS vars to Tailwind tokens
+        bg:          "#0a0b0d",
+        surface:     "#0f1117",
+        "surface-1": "#0f1117",
+        "surface-2": "#131720",
+        "surface-3": "#181e2a",
+        green:       "#22c55e",
+        red:         "#ef4444",
+        blue:        "#3b82f6",
+        amber:       "#f59e0b",
+        "text-1":    "rgba(255,255,255,0.90)",
+        "text-2":    "rgba(255,255,255,0.55)",
+        "text-3":    "rgba(255,255,255,0.30)",
         // shadcn semantic tokens (CSS var–driven)
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",

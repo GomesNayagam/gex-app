@@ -11,15 +11,16 @@ export default function StrikeRow({ d, symbol, maxNet, maxCall, maxPut, compact 
 
   return (
     <div className={cn(
-      `group grid items-center ${compact ? "min-h-[20px] py-0.5" : "min-h-[28px]"} px-3 border-b border-[var(--border-soft)]`,
+      "group grid items-center min-h-[28px] px-3 border-b border-[var(--border-soft)] overflow-x-hidden",
+      compact && "min-h-[20px] py-0.5",
       "grid-cols-[56px_1fr_64px] transition-colors duration-100",
       d.is_flip ? "bg-amber/5 hover:bg-amber/10" : "hover:bg-white/[0.015]",
     )}>
       {/* Strike label */}
       <span className={cn(
-        "font-mono text-[11px] font-medium tracking-wide",
-        d.is_flip ? "text-amber" : "text-text-2",
-        d.is_spot && "text-text-1 font-semibold",
+        "font-mono tabular-nums text-[10px] font-medium tracking-wide text-right",
+        d.is_flip ? "text-amber" : "text-[var(--text-2)]",
+        d.is_spot && "text-[var(--text-1)] font-semibold",
       )}>
         {fmtStrike(symbol, d.strike)}
       </span>
@@ -66,7 +67,7 @@ export default function StrikeRow({ d, symbol, maxNet, maxCall, maxPut, compact 
 
       {/* Net GEX value */}
       <span className={cn(
-        "font-mono text-[9px] text-right tracking-wide",
+        "font-mono tabular-nums text-[10px] text-right tracking-wide",
         isPos ? "text-green" : "text-red",
       )}>
         {fmtGex(d.net_gex)}
