@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { X, Pin, PinOff, RefreshCw } from "lucide-react";
 
 // ── Single expiry panel ───────────────────────────────────────────────────────
-function ExpiryPanel({ id, symbol, date, pinned, onClose, onTogglePin }) {
+function ExpiryPanel({ id, symbol, date, pinned, onClose, onTogglePin, refreshKey }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -27,7 +27,7 @@ function ExpiryPanel({ id, symbol, date, pinned, onClose, onTogglePin }) {
     }
     load();
     return () => { cancelled = true; };
-  }, [symbol, date]);
+  }, [symbol, date, refreshKey]);
 
   return (
     <div
@@ -83,7 +83,7 @@ function ExpiryPanel({ id, symbol, date, pinned, onClose, onTogglePin }) {
 }
 
 // ── ExpiryMode ────────────────────────────────────────────────────────────────
-export default function ExpiryMode() {
+export default function ExpiryMode({ refreshKey = 0 }) {
   const { watchlist } = useWatchlist();
   const [symbol, setSymbol] = useState("SPX");
   const [date, setDate] = useState("");
@@ -203,6 +203,7 @@ export default function ExpiryMode() {
               <ExpiryPanel
                 key={p.id}
                 {...p}
+                refreshKey={refreshKey}
                 onClose={handleClose}
                 onTogglePin={handleTogglePin}
               />

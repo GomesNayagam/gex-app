@@ -6,7 +6,7 @@ import { fetchGEXBySymbol } from "@/api";
 import InstrumentColumn from "@/components/InstrumentColumn";
 
 // ── Single watchlist panel ────────────────────────────────────────────────────
-function WatchPanel({ id, symbol, zeroDTE, pinned, onClose, onTogglePin }) {
+function WatchPanel({ id, symbol, zeroDTE, pinned, onClose, onTogglePin, refreshKey }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -30,7 +30,7 @@ function WatchPanel({ id, symbol, zeroDTE, pinned, onClose, onTogglePin }) {
     }
     load();
     return () => { cancelled = true; };
-  }, [symbol, zeroDTE]);
+  }, [symbol, zeroDTE, refreshKey]);
 
   return (
     <div
@@ -90,7 +90,7 @@ function WatchPanel({ id, symbol, zeroDTE, pinned, onClose, onTogglePin }) {
 }
 
 // ── WatchlistMode ─────────────────────────────────────────────────────────────
-export default function WatchlistMode() {
+export default function WatchlistMode({ refreshKey = 0 }) {
   const { watchlist, addTicker, removeTicker } = useWatchlist();
   const [zeroDTE, setZeroDTE] = useState(false);
   const [input, setInput] = useState("");
@@ -242,6 +242,7 @@ export default function WatchlistMode() {
                 key={p.id}
                 {...p}
                 zeroDTE={zeroDTE}
+                refreshKey={refreshKey}
                 onClose={handleClose}
                 onTogglePin={handleTogglePin}
               />

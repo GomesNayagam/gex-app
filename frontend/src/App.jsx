@@ -13,8 +13,8 @@ export default function App() {
       <AppShell gexData={gexData}>
         <Routes>
           <Route path="/b3" element={<B3Mode gexData={gexData} />} />
-          <Route path="/watch" element={<WatchlistMode />} />
-          <Route path="/expiry" element={<ExpiryMode />} />
+          <Route path="/watch" element={<WatchlistMode refreshKey={gexData.refreshKey} />} />
+          <Route path="/expiry" element={<ExpiryMode refreshKey={gexData.refreshKey} />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/b3" replace />} />
         </Routes>
