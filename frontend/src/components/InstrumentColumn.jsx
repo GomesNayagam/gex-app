@@ -56,13 +56,17 @@ export default function InstrumentColumn({ inst, compact = false, resizable = fa
       : DEFAULT_HEIGHT;
   });
 
+  const ladderHeightRef = useRef(ladderHeight);
+  useEffect(() => { ladderHeightRef.current = ladderHeight; }, [ladderHeight]);
+
   const dragState = useRef(null);
 
   const handleDragMouseDown = useCallback(
     (e) => {
       if (!resizable || compact) return;
       e.preventDefault();
-      dragState.current = { startY: e.clientY, startHeight: ladderHeight };
+      document.body.style.userSelect = "none";
+      dragState.current = { startY: e.clientY, startHeight: ladderHeightRef.current };
 
       function onMouseMove(ev) {
         const dy = ev.clientY - dragState.current.startY;
@@ -73,18 +77,30 @@ export default function InstrumentColumn({ inst, compact = false, resizable = fa
       function onMouseUp(ev) {
         const dy = ev.clientY - dragState.current.startY;
         const next = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, dragState.current.startHeight + dy));
-        setLadderHeight(next);
         localStorage.setItem(storageKey, String(next));
+        document.body.style.userSelect = "";
         document.removeEventListener("mousemove", onMouseMove);
         document.removeEventListener("mouseup", onMouseUp);
         dragState.current = null;
       }
 
+      dragState.current._onMouseMove = onMouseMove;
+      dragState.current._onMouseUp = onMouseUp;
+
       document.addEventListener("mousemove", onMouseMove);
       document.addEventListener("mouseup", onMouseUp);
     },
-    [resizable, compact, ladderHeight, storageKey],
+    [resizable, compact, storageKey],
   );
+
+  useEffect(() => {
+    return () => {
+      if (dragState.current) {
+        document.removeEventListener("mousemove", dragState.current._onMouseMove);
+        document.removeEventListener("mouseup", dragState.current._onMouseUp);
+      }
+    };
+  }, []);
 
   const [netGexSort, setNetGexSort] = useState(null); // null | "asc" | "desc"
 
