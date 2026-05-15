@@ -56,6 +56,36 @@ export default function InstrumentColumn({ inst, compact = false, resizable = fa
       : DEFAULT_HEIGHT;
   });
 
+  const dragState = useRef(null);
+
+  const handleDragMouseDown = useCallback(
+    (e) => {
+      if (!resizable || compact) return;
+      e.preventDefault();
+      dragState.current = { startY: e.clientY, startHeight: ladderHeight };
+
+      function onMouseMove(ev) {
+        const dy = ev.clientY - dragState.current.startY;
+        const next = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, dragState.current.startHeight + dy));
+        setLadderHeight(next);
+      }
+
+      function onMouseUp(ev) {
+        const dy = ev.clientY - dragState.current.startY;
+        const next = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, dragState.current.startHeight + dy));
+        setLadderHeight(next);
+        localStorage.setItem(storageKey, String(next));
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+        dragState.current = null;
+      }
+
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+    },
+    [resizable, compact, ladderHeight, storageKey],
+  );
+
   const [netGexSort, setNetGexSort] = useState(null); // null | "asc" | "desc"
 
   const sortedStrikes = [...strikes].sort((a, b) => {
@@ -154,6 +184,22 @@ export default function InstrumentColumn({ inst, compact = false, resizable = fa
             </Fragment>
           ))}
         </div>
+        {/* Drag handle — only shown when resizable and not compact */}
+        {resizable && !compact && (
+          <div
+            onMouseDown={handleDragMouseDown}
+            className="flex-none flex items-center justify-center h-3 border-t border-[var(--border)] cursor-ns-resize select-none group"
+            style={{ background: "var(--surface-2)" }}
+            title="Drag to resize"
+          >
+            <span
+              className="font-mono text-[10px] tracking-widest text-[var(--border)] group-hover:text-[var(--text-3)] transition-colors leading-none"
+              style={{ letterSpacing: "0.25em" }}
+            >
+              ⋯
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
