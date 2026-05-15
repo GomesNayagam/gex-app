@@ -11,6 +11,10 @@ const TAG_COLOR = {
   pin:  "#f59e0b",
 };
 
+const DEFAULT_HEIGHT = 420;
+const MIN_HEIGHT = 120;
+const MAX_HEIGHT = 700;
+
 export default function InstrumentColumn({ inst, compact = false, resizable = false }) {
   const { symbol, spot, flip, net_gex, strikes } = inst;
 
@@ -41,9 +45,6 @@ export default function InstrumentColumn({ inst, compact = false, resizable = fa
     }
   }, [inst]);
 
-  const DEFAULT_HEIGHT = 420;
-  const MIN_HEIGHT = 120;
-  const MAX_HEIGHT = 700;
   const storageKey = `gex:ladder-height:${symbol}`;
 
   const [ladderHeight, setLadderHeight] = useState(() => {
