@@ -76,7 +76,7 @@ function ExpiryPanel({ id, symbol, date, pinned, onClose, onTogglePin }) {
             <span className="font-mono text-[10px] text-[var(--text-3)]">loading…</span>
           </div>
         )}
-        {data && <InstrumentColumn inst={data} compact />}
+        {data && <InstrumentColumn inst={data} resizable />}
       </div>
     </div>
   );
