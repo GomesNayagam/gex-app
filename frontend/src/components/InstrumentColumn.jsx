@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect, useRef } from "react";
+import { Fragment, useState, useEffect, useRef, useCallback } from "react";
 import StrikeRow from "./StrikeRow";
 import { Badge } from "@/components/ui/badge";
 import { fmtGex, fmtSpot, fmtStrike } from "@/lib/format";
@@ -11,7 +11,7 @@ const TAG_COLOR = {
   pin:  "#f59e0b",
 };
 
-export default function InstrumentColumn({ inst, compact = false }) {
+export default function InstrumentColumn({ inst, compact = false, resizable = false }) {
   const { symbol, spot, flip, net_gex, strikes } = inst;
 
   const isPos = spot >= flip;
@@ -40,6 +40,20 @@ export default function InstrumentColumn({ inst, compact = false }) {
       spotRef.current.scrollIntoView({ block: "center" });
     }
   }, [inst]);
+
+  const DEFAULT_HEIGHT = 420;
+  const MIN_HEIGHT = 120;
+  const MAX_HEIGHT = 700;
+  const storageKey = `gex:ladder-height:${symbol}`;
+
+  const [ladderHeight, setLadderHeight] = useState(() => {
+    if (!resizable) return DEFAULT_HEIGHT;
+    const saved = localStorage.getItem(storageKey);
+    const parsed = parseInt(saved, 10);
+    return !isNaN(parsed) && parsed >= MIN_HEIGHT && parsed <= MAX_HEIGHT
+      ? parsed
+      : DEFAULT_HEIGHT;
+  });
 
   const [netGexSort, setNetGexSort] = useState(null); // null | "asc" | "desc"
 
@@ -113,7 +127,10 @@ export default function InstrumentColumn({ inst, compact = false }) {
         </div>
 
         {/* Scrollable strike rows */}
-        <div className={cn("overflow-y-auto", compact ? "max-h-[240px]" : "max-h-[420px]")}>
+        <div
+          className="overflow-y-auto"
+          style={{ height: compact ? 240 : ladderHeight, minHeight: compact ? 240 : MIN_HEIGHT }}
+        >
           {sortedStrikes.map((d) => (
             <Fragment key={d.strike}>
               <StrikeRow
