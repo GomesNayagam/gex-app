@@ -2,6 +2,7 @@ import httpx
 from datetime import datetime, timezone
 from backend.models import InstrumentGEX, Strike, KeyLevel
 from backend.config import settings
+from datetime import date, timedelta
 
 
 class FlashAlphaAdapter:
@@ -22,7 +23,12 @@ class FlashAlphaAdapter:
             params = {"expiration": expiry}
             resp = await self._client.get(f"/exposure/gex/{sym}", params=params)
         else:
-            resp = await self._client.get(f"/flow/gex/{sym}")
+            if expiry:
+                # lets check is weekend, if so pass next monday
+                today = datetime.today().date().isoformat() if datetime.today().date().isoweekday() < 6 else get_next_monday().isoformat()
+                #params = {"expiry": (datetime.today().date().isoformat())}
+                params = {"expiry": today}
+            resp = await self._client.get(f"/flow/gex/{sym}", params=params)
         resp.raise_for_status()
         data = resp.json()
 
@@ -90,3 +96,11 @@ def _find_put_wall(strikes: list[Strike], spot: float) -> KeyLevel:
         below = strikes
     best = min(below, key=lambda s: s.put_gex)  # most negative
     return KeyLevel(strike=best.strike, gex=best.put_gex, oi=best.put_oi)
+
+def get_next_monday():
+    today = date.today()
+    # weekday() returns 0 for Monday, 6 for Sunday
+    days_ahead = 0 - today.weekday()
+    if days_ahead <= 0: # Target is today or has passed this week
+        days_ahead += 7
+    return today + timedelta(days_ahead)

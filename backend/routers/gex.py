@@ -37,10 +37,10 @@ async def get_all_gex(
     instruments = []
     for sym in symbols[:3]:  # cap at 3 for the main grid
         try:
-            data = await _fetch_cached(request, sym)
+            data = await _fetch_cached(request, sym, expiry="0dte")
             instruments.append(_filter_strikes(data, strikes))
-        except Exception:
-            pass
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"Upstream error: {e}")
     return GEXResponse(
         instruments=instruments,
         as_of=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
