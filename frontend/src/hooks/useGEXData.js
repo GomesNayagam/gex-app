@@ -51,5 +51,9 @@ export function useGEXData() {
     )
   }, [load])
 
-  return { data, loading, error, elapsed, refresh, REFRESH_INTERVAL, refreshKey }
+  const bumpRefreshKey = useCallback(() => {
+    setRefreshKey(k => k + 1)
+  }, [])
+
+  return { data, loading, error, elapsed, refresh, bumpRefreshKey, REFRESH_INTERVAL, refreshKey }
 }

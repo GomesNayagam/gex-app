@@ -18,10 +18,12 @@ class FlashAlphaAdapter:
 
     async def fetch(self, symbol: str, expiry: str | None = None) -> InstrumentGEX:
         sym = symbol.upper()
+        summaryResp = None
         # Route to /exposure/gex/{symbol}?expiration={expiry} for ISO date expiries
         if expiry and expiry != "0dte":
             params = {"expiration": expiry}
             resp = await self._client.get(f"/exposure/gex/{sym}", params=params)
+            resp.raise_for_status()
         else:
             if expiry and expiry == "0dte":
                 # lets check is weekend, if so pass next monday
@@ -30,12 +32,12 @@ class FlashAlphaAdapter:
                 params = {"expiry": today}
             else:
                 params = {"expiry": None}
-        resp = await self._client.get(f"/flow/gex/{sym}", params=params)
-        summaryResp = await self._client.get(f"/flow/summary/{sym}", params=params)
-        resp.raise_for_status()
-        data = resp.json()
-        data2 = summaryResp.json()
+            resp = await self._client.get(f"/flow/gex/{sym}", params=params)
+            summaryResp = await self._client.get(f"/flow/summary/{sym}", params=params)
+            resp.raise_for_status()
 
+
+        data = resp.json()
         spot = data["underlying_price"]
         # /flow returns live_gamma_flip; /exposure returns gamma_flip
         flip = data.get("live_gamma_flip") or data["gamma_flip"]
@@ -43,7 +45,7 @@ class FlashAlphaAdapter:
         flip = int(flip * 10) / 10
         net_gex = data.get("live_net_gex") or data["net_gex"]
         regime = (data.get("live_net_gex_label") or data["net_gex_label"]).capitalize()
-        flow_direction = data2["flow_direction"]
+        flow_direction =  summaryResp.json().get("flow_direction") if summaryResp else "na"
 
         raw_strikes = data["strikes"]
         spot_strike = min(raw_strikes, key=lambda x: abs(x["strike"] - spot))["strike"]
@@ -84,7 +86,7 @@ class FlashAlphaAdapter:
 
     async def available_symbols(self) -> list[str]:
         # Flash Alpha supports any symbol; return common defaults
-        return ["SPX", "SPY", "QQQ"]
+        return ["SPX","SPY","QQQ"]
 
     async def aclose(self):
         await self._client.aclose()
