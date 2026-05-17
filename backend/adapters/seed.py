@@ -36,10 +36,11 @@ def _seed_spx() -> InstrumentGEX:
     return InstrumentGEX(
         symbol="SPX", spot=7420.0, flip=7400.273, net_gex=53277292807,
         regime="Positive",
-        call_wall=KeyLevel(strike=7400, gex=17447411310, oi=66639),
+        call_wall=KeyLevel(strike=7450, gex=17447411310, oi=66639),
         put_wall=KeyLevel(strike=7405, gex=-18119681918, oi=4757),
         strikes=_make_strikes(raw),
         updated_at=datetime.now(timezone.utc).isoformat(),
+        flow_direction="amplification"
     )
 
 
@@ -74,6 +75,7 @@ def _seed_spy() -> InstrumentGEX:
         put_wall=KeyLevel(strike=733, gex=-810242418, oi=50138),
         strikes=_make_strikes(raw),
         updated_at=datetime.now(timezone.utc).isoformat(),
+        flow_direction='neutral'
     )
 
 
@@ -104,10 +106,11 @@ def _seed_qqq() -> InstrumentGEX:
     return InstrumentGEX(
         symbol="QQQ", spot=711.91, flip=706.678, net_gex=677834355,
         regime="Positive",
-        call_wall=KeyLevel(strike=706, gex=1041003542, oi=10960),
-        put_wall=KeyLevel(strike=666, gex=-246915062, oi=109212),
+        call_wall=KeyLevel(strike=717, gex=1041003542, oi=10960),
+        put_wall=KeyLevel(strike=707, gex=-246915062, oi=109212),
         strikes=_make_strikes(raw),
         updated_at=datetime.now(timezone.utc).isoformat(),
+        flow_direction="no_flow"
     )
 
 

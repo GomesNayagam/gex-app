@@ -6,6 +6,9 @@ Built with **FastAPI** (Python) + **React + Vite + Tailwind CSS**.
 
 ---
 
+<img width="1095" height="606" alt="B3_mode" src="https://github.com/user-attachments/assets/afe38bc8-ba12-4b0f-b455-3d8d3ed178e7" />
+
+
 ## Features
 
 - **GEX Ladder** — strike-by-strike net GEX bars with call/put overlays
