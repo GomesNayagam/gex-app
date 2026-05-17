@@ -19,9 +19,19 @@ export default function InstrumentColumn({
   compact = false,
   resizable = false,
 }) {
-  const { symbol, spot, flip, net_gex, strikes, call_wall, put_wall } = inst;
+  const {
+    symbol,
+    spot,
+    flip,
+    net_gex,
+    strikes,
+    call_wall,
+    put_wall,
+    regime,
+    flow_direction,
+  } = inst;
 
-  const isPos = spot >= flip;
+  const isPos = regime.toLowerCase();
 
   const callWallStrike = call_wall?.strike;
   const putWallStrike = put_wall?.strike;
@@ -170,9 +180,9 @@ export default function InstrumentColumn({
           {/* Sub-header */}
           <div className="flex items-center justify-between px-4 py-1.5 bg-[var(--surface-2)] border-b border-[var(--border)]">
             <span className="font-mono text-[8px] uppercase tracking-widest text-text-2">
-              {strikes.length} strikes · all expirations
+              {strikes.length} strikes
             </span>
-            <span className="font-mono text-[8px] text-text-2">
+            <span className="font-mono text-[9px] text-text-2">
               Net:{" "}
               <span
                 className={cn(
@@ -180,7 +190,10 @@ export default function InstrumentColumn({
                   isPos ? "text-green" : "text-red",
                 )}
               >
-                {fmtGex(net_gex)}
+                {fmtGex(net_gex)}{" "}
+              </span>
+              <span className="font-semibold uppercase text-[10px] text-pink-600">
+                {flow_direction}
               </span>
             </span>
           </div>

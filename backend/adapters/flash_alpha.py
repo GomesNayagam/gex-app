@@ -31,8 +31,10 @@ class FlashAlphaAdapter:
             else:
                 params = {"expiry": None}
         resp = await self._client.get(f"/flow/gex/{sym}", params=params)
+        summaryResp = await self._client.get(f"/flow/summary/{sym}", params=params)
         resp.raise_for_status()
         data = resp.json()
+        data2 = summaryResp.json()
 
         spot = data["underlying_price"]
         # /flow returns live_gamma_flip; /exposure returns gamma_flip
@@ -41,6 +43,7 @@ class FlashAlphaAdapter:
         flip = int(flip * 10) / 10
         net_gex = data.get("live_net_gex") or data["net_gex"]
         regime = (data.get("live_net_gex_label") or data["net_gex_label"]).capitalize()
+        flow_direction = data2["flow_direction"]
 
         raw_strikes = data["strikes"]
         spot_strike = min(raw_strikes, key=lambda x: abs(x["strike"] - spot))["strike"]
@@ -76,6 +79,7 @@ class FlashAlphaAdapter:
             put_wall=put_wall,
             strikes=strikes,
             updated_at=data.get("as_of") or datetime.now(timezone.utc).isoformat(),
+            flow_direction=flow_direction
         )
 
     async def available_symbols(self) -> list[str]:

@@ -35,6 +35,7 @@ class InstrumentGEX(BaseModel):
     max_pain: Optional[float] = None
     strikes: list[Strike]
     updated_at: str
+    flow_direction: str
 
 
 class GEXResponse(BaseModel):
