@@ -19,10 +19,14 @@ class FlashAlphaAdapter:
     async def fetch(self, symbol: str, expiry: str | None = None) -> InstrumentGEX:
         sym = symbol.upper()
         summaryResp = None
+        chexResp = None
+        vexResp = None
         # Route to /exposure/gex/{symbol}?expiration={expiry} for ISO date expiries
         if expiry and expiry != "0dte":
             params = {"expiration": expiry}
             resp = await self._client.get(f"/exposure/gex/{sym}", params=params)
+            chexResp = await self._client.get(f"/exposure/chex/{sym}", params=params)
+            vexResp = await self._client.get(f"/exposure/vex/{sym}", params=params)
             resp.raise_for_status()
         else:
             if expiry and expiry == "0dte":
@@ -42,10 +46,12 @@ class FlashAlphaAdapter:
         # /flow returns live_gamma_flip; /exposure returns gamma_flip
         flip = data.get("live_gamma_flip") or data["gamma_flip"]
         # round flip to 1 decimal for option
-        flip = int(flip * 10) / 10
+        flip = int(flip * 10) / 10 if flip else 0.0
         net_gex = data.get("live_net_gex") or data["net_gex"]
         regime = (data.get("live_net_gex_label") or data["net_gex_label"]).capitalize()
         flow_direction =  summaryResp.json().get("flow_direction") if summaryResp else "na"
+        l_net_chex = chexResp.json().get("net_chex") if chexResp else 0.0
+        l_net_vex = vexResp.json().get("net_vex") if vexResp else 0.0
 
         raw_strikes = data["strikes"]
         spot_strike = min(raw_strikes, key=lambda x: abs(x["strike"] - spot))["strike"]
@@ -81,12 +87,14 @@ class FlashAlphaAdapter:
             put_wall=put_wall,
             strikes=strikes,
             updated_at=data.get("as_of") or datetime.now(timezone.utc).isoformat(),
-            flow_direction=flow_direction
+            flow_direction=flow_direction,
+            net_chex = l_net_chex,
+            net_vex = l_net_vex
         )
 
     async def available_symbols(self) -> list[str]:
         # Flash Alpha supports any symbol; return common defaults
-        return ["SPX","SPY","QQQ"]
+        return ["SPX", "SPY", "QQQ"]
 
     async def aclose(self):
         await self._client.aclose()

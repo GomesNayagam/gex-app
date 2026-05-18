@@ -29,6 +29,8 @@ export default function InstrumentColumn({
     put_wall,
     regime,
     flow_direction,
+    net_chex,
+    net_vex,
   } = inst;
 
   const isPos = regime.toLowerCase();
@@ -183,7 +185,7 @@ export default function InstrumentColumn({
               {strikes.length} strikes
             </span>
             <span className="font-mono text-[9px] text-text-2">
-              Net:{" "}
+              Gex:{" "}
               <span
                 className={cn(
                   "font-semibold",
@@ -192,9 +194,31 @@ export default function InstrumentColumn({
               >
                 {fmtGex(net_gex)}{" "}
               </span>
-              <span className="font-semibold uppercase text-[10px] text-pink-600">
-                {flow_direction}
+            </span>
+            <span className="font-mono text-[9px] text-text-2">
+              Vex:{" "}
+              <span
+                className={cn(
+                  "font-semibold",
+                  net_vex > 0.0 ? "text-green" : "text-red",
+                )}
+              >
+                {fmtGex(net_vex)}{" "}
               </span>
+            </span>
+            <span className="font-mono text-[9px] text-text-2">
+              Chex:{" "}
+              <span
+                className={cn(
+                  "font-semibold",
+                  net_chex > 0.0 ? "text-green" : "text-red",
+                )}
+              >
+                {fmtGex(net_chex)}{" "}
+              </span>
+            </span>
+            <span className="font-semibold uppercase text-[10px] text-pink-600">
+              {flow_direction}
             </span>
           </div>
 

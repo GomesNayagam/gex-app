@@ -36,6 +36,8 @@ class InstrumentGEX(BaseModel):
     strikes: list[Strike]
     updated_at: str
     flow_direction: str
+    net_chex: float
+    net_vex:float
 
 
 class GEXResponse(BaseModel):

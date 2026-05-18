@@ -40,7 +40,9 @@ def _seed_spx() -> InstrumentGEX:
         put_wall=KeyLevel(strike=7405, gex=-18119681918, oi=4757),
         strikes=_make_strikes(raw),
         updated_at=datetime.now(timezone.utc).isoformat(),
-        flow_direction="amplification"
+        flow_direction="amplification",
+        net_chex=123.45,
+        net_vex=-123.45
     )
 
 
@@ -75,7 +77,9 @@ def _seed_spy() -> InstrumentGEX:
         put_wall=KeyLevel(strike=733, gex=-810242418, oi=50138),
         strikes=_make_strikes(raw),
         updated_at=datetime.now(timezone.utc).isoformat(),
-        flow_direction='neutral'
+        flow_direction='neutral',
+        net_chex=-123.45,
+        net_vex=123.45
     )
 
 
@@ -110,7 +114,9 @@ def _seed_qqq() -> InstrumentGEX:
         put_wall=KeyLevel(strike=707, gex=-246915062, oi=109212),
         strikes=_make_strikes(raw),
         updated_at=datetime.now(timezone.utc).isoformat(),
-        flow_direction="no_flow"
+        flow_direction="no_flow",
+        net_chex=123.45,
+        net_vex=123.45
     )
 
 
