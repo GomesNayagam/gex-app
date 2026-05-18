@@ -46,7 +46,7 @@ class FlashAlphaAdapter:
         # /flow returns live_gamma_flip; /exposure returns gamma_flip
         flip = data.get("live_gamma_flip") or data["gamma_flip"]
         # round flip to 1 decimal for option
-        flip = int(flip * 10) / 10 if flip else 0.0
+        flip = round_flip(sym=sym, n=flip) if flip else 0.0
         net_gex = data.get("live_net_gex") or data["net_gex"]
         regime = (data.get("live_net_gex_label") or data["net_gex_label"]).capitalize()
         flow_direction =  summaryResp.json().get("flow_direction") if summaryResp else "na"
@@ -122,3 +122,9 @@ def get_next_monday():
     if days_ahead <= 0: # Target is today or has passed this week
         days_ahead += 7
     return today + timedelta(days_ahead)
+
+def round_flip(sym, n):
+    if sym == "SPX":
+        return 5 * round(n / 5)
+    else:
+        return round(n, ndigits=None)
