@@ -18,6 +18,9 @@ frontend/.env.local
 frontend/dist
 frontend/node_modules
 
+# Intraday snapshot data (ephemeral, per-day)
+backend/data/
+
 # Claude Code editor settings (local only)
 .claude/settings.json
 .claude/settings.local.json
