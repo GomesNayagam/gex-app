@@ -30,15 +30,15 @@ const CustomTooltip = ({ active, payload, label }) => {
           {p.dataKey === "net_gex"
             ? fmtGex(p.value)
             : p.dataKey === "spot"
-            ? p.value?.toFixed(2)
-            : p.value?.toFixed(2)}
+              ? p.value?.toFixed(2)
+              : p.value?.toFixed(2)}
         </p>
       ))}
     </div>
   );
 };
 
-export default function IntradayChart({ symbol, instrument, height = 200 }) {
+export default function IntradayChart({ symbol, instrument, height = 150 }) {
   const { series, loading } = useIntraday(symbol);
   const c = useThemeColors();
 
