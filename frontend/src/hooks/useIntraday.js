@@ -17,7 +17,7 @@ export function useIntraday(symbol, lookback = 6) {
       fetchIntraday(symbol, lookback)
         .then(setSeries)
         .catch(() => {})
-    }, 60_000)
+    }, 300_000)
     return () => clearInterval(id)
   }, [symbol, lookback])
 
