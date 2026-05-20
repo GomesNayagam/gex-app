@@ -1,25 +1,25 @@
 import { useState, useEffect } from "react"
 import { fetchIntraday } from "@/api"
 
-export function useIntraday(symbol, lookback = 6) {
+export function useIntraday(symbol) {
   const [series, setSeries] = useState(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (!symbol) return
     setLoading(true)
-    fetchIntraday(symbol, lookback)
+    fetchIntraday(symbol)
       .then(setSeries)
       .catch(() => setSeries(null))
       .finally(() => setLoading(false))
 
     const id = setInterval(() => {
-      fetchIntraday(symbol, lookback)
+      fetchIntraday(symbol)
         .then(setSeries)
         .catch(() => {})
-    }, 300_000)
+    }, 60_000)
     return () => clearInterval(id)
-  }, [symbol, lookback])
+  }, [symbol])
 
   return { series, loading }
 }
