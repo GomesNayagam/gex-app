@@ -38,6 +38,16 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
+function isMarketHours() {
+  const now = new Date();
+  // Convert to ET
+  const et = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
+  const day = et.getDay();
+  if (day === 0 || day === 6) return false;
+  const mins = et.getHours() * 60 + et.getMinutes();
+  return mins >= 9 * 60 + 30 && mins < 16 * 60;
+}
+
 export default function IntradayChart({ symbol, instrument, height = 150 }) {
   const { series, loading } = useIntraday(symbol);
   const c = useThemeColors();
@@ -45,36 +55,39 @@ export default function IntradayChart({ symbol, instrument, height = 150 }) {
   if (loading) return <Skeleton className="h-48 w-full rounded-xl" />;
 
   const snapshots = series?.snapshots ?? [];
+  const inSession = isMarketHours();
 
-  // If no intraday data yet, show a placeholder with current values
-  const chartData =
-    snapshots.length > 0
-      ? snapshots.map((s) => ({
-          time: fmt(s.timestamp),
-          net_gex: s.net_gex,
-          flip: s.flip,
-          call_wall: s.call_wall_strike,
-          put_wall: s.put_wall_strike,
-          spot: s.spot,
-        }))
-      : [
-          {
-            time: "now",
-            net_gex: instrument?.net_gex ?? 0,
-            flip: instrument?.flip ?? 0,
-            spot: instrument?.spot ?? 0,
-          },
-        ];
+  const chartData = snapshots.map((s) => ({
+    time: fmt(s.timestamp),
+    net_gex: s.net_gex,
+    flip: s.flip,
+    call_wall: s.call_wall_strike,
+    put_wall: s.put_wall_strike,
+    spot: s.spot,
+  }));
 
   const isPos = (instrument?.net_gex ?? 0) >= 0;
 
   return (
     <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-      {snapshots.length === 0 && (
-        <p className="font-mono text-[9px] text-text-3 mb-3 text-center">
-          Intraday snapshots accumulate as the session progresses (60s interval)
+      <div className="flex items-center justify-between mb-2">
+        <span className="font-mono text-[9px] text-text-3">
+          Session · 6:30 AM – 1:00 PM PT
+        </span>
+        <span
+          className={`font-mono text-[9px] ${inSession ? "text-green-400" : "text-text-3"}`}
+        >
+          {inSession ? "● live" : "● closed"}
+        </span>
+      </div>
+      {snapshots.length === 0 ? (
+        <p className="font-mono text-[9px] text-text-3 py-8 text-center">
+          {inSession
+            ? "Snapshots accumulate during the session (60s interval)"
+            : "No session data — market is closed"}
         </p>
-      )}
+      ) : null}
+      {snapshots.length === 0 ? null : (
       <ResponsiveContainer width="100%" height={height}>
         <LineChart
           data={chartData}
@@ -151,6 +164,7 @@ export default function IntradayChart({ symbol, instrument, height = 150 }) {
           />
         </LineChart>
       </ResponsiveContainer>
+      )}
     </div>
   );
 }

@@ -15,8 +15,8 @@ export async function fetchGEXBySymbol(symbol, { strikes = 50, expiry = null } =
 }
 
 
-export async function fetchIntraday(symbol, lookback = 6) {
-  const res = await fetch(`${BASE}/api/gex/${symbol}/intraday?lookback=${lookback}`)
+export async function fetchIntraday(symbol) {
+  const res = await fetch(`${BASE}/api/gex/${symbol}/intraday`)
   if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`)
   return res.json()
 }
