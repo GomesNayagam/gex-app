@@ -115,15 +115,6 @@ export default function IntradayChart({ symbol, instrument, height = 150 }) {
             width={52}
           />
           <YAxis
-            yAxisId="price"
-            orientation="right"
-            tick={{ fontFamily: "IBM Plex Mono", fontSize: 9, fill: c.axis }}
-            axisLine={false}
-            tickLine={false}
-            width={52}
-            domain={["auto", "auto"]}
-          />
-          <YAxis
             yAxisId="spot"
             orientation="right"
             hide
@@ -142,16 +133,6 @@ export default function IntradayChart({ symbol, instrument, height = 150 }) {
             activeDot={{ r: 3, fill: isPos ? c.pos : c.neg }}
           />
           <Line
-            yAxisId="price"
-            type="monotone"
-            dataKey="flip"
-            name="Gamma Flip"
-            stroke={c.flip}
-            strokeWidth={1.5}
-            strokeDasharray="4 2"
-            dot={false}
-          />
-          <Line
             yAxisId="spot"
             type="monotone"
             dataKey="spot"
@@ -160,6 +141,7 @@ export default function IntradayChart({ symbol, instrument, height = 150 }) {
             strokeWidth={2}
             dot={false}
             connectNulls
+            strokeDasharray={2,3}
             activeDot={{ r: 3 }}
           />
         </LineChart>
