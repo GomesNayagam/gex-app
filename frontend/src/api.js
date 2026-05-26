@@ -32,3 +32,28 @@ export async function fetchDealerRisk(symbol) {
   if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`)
   return res.json()
 }
+
+export async function fetchFlowSignals(symbol, { windowMinutes = 240, minScore = 60, intent = null, structure = null, expiry = null, limit = 50 } = {}) {
+  const params = new URLSearchParams({ window_minutes: windowMinutes, min_score: minScore, limit })
+  if (intent) params.set("intent", intent)
+  if (structure) params.set("structure", structure)
+  if (expiry) params.set("expiry", expiry)
+  const res = await fetch(`${BASE}/api/flow/signals/${symbol}?${params}`)
+  if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`)
+  return res.json()
+}
+
+export async function fetchFlowSummary(symbol, { windowMinutes = 240, expiry = null } = {}) {
+  const params = new URLSearchParams({ window_minutes: windowMinutes })
+  if (expiry) params.set("expiry", expiry)
+  const res = await fetch(`${BASE}/api/flow/signals/${symbol}/summary?${params}`)
+  if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`)
+  return res.json()
+}
+
+export async function fetchFlowWatchlist(symbols, { windowMinutes = 240 } = {}) {
+  const params = new URLSearchParams({ symbols: symbols.join(","), window_minutes: windowMinutes })
+  const res = await fetch(`${BASE}/api/flow/signals/watchlist?${params}`)
+  if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`)
+  return res.json()
+}

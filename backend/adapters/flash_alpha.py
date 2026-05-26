@@ -1,6 +1,10 @@
 import httpx
 from datetime import datetime, timezone
-from backend.models import InstrumentGEX, Strike, KeyLevel
+from backend.models import (
+    InstrumentGEX, Strike, KeyLevel,
+    FlowSignalsResponse, FlowSignalsSummary, FlowSignal,
+    ScoreBreakdown, SignalEnrichment, ChainContext,
+)
 from backend.config import settings
 from datetime import date, timedelta
 
@@ -97,8 +101,66 @@ class FlashAlphaAdapter:
         )
 
     async def available_symbols(self) -> list[str]:
-        # Flash Alpha supports any symbol; return common defaults
         return ["SPX", "SPY", "QQQ"]
+
+    async def fetch_flow_signals(
+        self, symbol: str, *, window_minutes: int, min_score: int,
+        intent: str | None, structure: str | None, expiry: str | None, limit: int
+    ) -> FlowSignalsResponse:
+        sym = symbol.upper()
+        params: dict = {"window_minutes": window_minutes, "min_score": min_score, "limit": limit}
+        if intent:
+            params["intent"] = intent
+        if structure:
+            params["structure"] = structure
+        if expiry:
+            params["expiry"] = expiry
+        resp = await self._client.get(f"/flow/signals/{sym}", params=params)
+        resp.raise_for_status()
+        data = resp.json()
+        chain_raw = data.get("chain") or {}
+        chain = ChainContext(
+            call_wall=chain_raw.get("call_wall"),
+            put_wall=chain_raw.get("put_wall"),
+            max_pain=chain_raw.get("max_pain"),
+            gamma_flip=chain_raw.get("gamma_flip"),
+        )
+        signals = [_parse_signal(s) for s in (data.get("signals") or [])]
+        return FlowSignalsResponse(
+            symbol=data.get("symbol", sym),
+            as_of=data.get("as_of", datetime.now(timezone.utc).isoformat()),
+            underlying_price=data.get("underlying_price", 0.0),
+            window_minutes=window_minutes,
+            chain=chain,
+            count=len(signals),
+            signals=signals,
+        )
+
+    async def fetch_flow_signals_summary(
+        self, symbol: str, *, window_minutes: int, expiry: str | None
+    ) -> FlowSignalsSummary:
+        sym = symbol.upper()
+        params: dict = {"window_minutes": window_minutes}
+        if expiry:
+            params["expiry"] = expiry
+        resp = await self._client.get(f"/flow/signals/{sym}/summary", params=params)
+        resp.raise_for_status()
+        data = resp.json()
+        top_signals = [_parse_signal(s) for s in (data.get("top_signals") or [])]
+        return FlowSignalsSummary(
+            symbol=data.get("symbol", sym),
+            as_of=data.get("as_of", datetime.now(timezone.utc).isoformat()),
+            window_minutes=window_minutes,
+            expiry=expiry,
+            underlying_price=data.get("underlying_price", 0.0),
+            signal_count=data.get("signal_count", 0),
+            bullish_premium=data.get("bullish_premium", 0.0),
+            bearish_premium=data.get("bearish_premium", 0.0),
+            net_directional_premium=data.get("net_directional_premium", 0.0),
+            opening_premium=data.get("opening_premium", 0.0),
+            closing_premium=data.get("closing_premium", 0.0),
+            top_signals=top_signals,
+        )
 
     async def aclose(self):
         await self._client.aclose()
@@ -126,6 +188,48 @@ def get_next_monday():
     if days_ahead <= 0: # Target is today or has passed this week
         days_ahead += 7
     return today + timedelta(days_ahead)
+
+def _parse_signal(s: dict) -> FlowSignal:
+    bd = s.get("score_breakdown") or {}
+    en = s.get("enrichment") or {}
+    return FlowSignal(
+        ts=s.get("ts", ""),
+        expiry=s.get("expiry", ""),
+        strike=s.get("strike", 0.0),
+        right=s.get("right", ""),
+        side=s.get("side", ""),
+        price=s.get("price", 0.0),
+        size=s.get("size", 0),
+        premium=s.get("premium", 0.0),
+        dte=s.get("dte", 0),
+        structure=s.get("structure", ""),
+        aggressor=s.get("aggressor", ""),
+        open_close_bias=s.get("open_close_bias", ""),
+        open_close_confidence=s.get("open_close_confidence", 0.0),
+        contract_net_oi_delta=s.get("contract_net_oi_delta", 0.0),
+        intent=s.get("intent", ""),
+        score=s.get("score", 0.0),
+        conviction=s.get("conviction", ""),
+        tags=s.get("tags") or [],
+        score_breakdown=ScoreBreakdown(
+            premium=bd.get("premium", 0.0),
+            size_vs_oi=bd.get("size_vs_oi", 0.0),
+            aggressor=bd.get("aggressor", 0.0),
+            sweep=bd.get("sweep", 0.0),
+            opening_bias=bd.get("opening_bias", 0.0),
+            tenor=bd.get("tenor", 0.0),
+        ),
+        enrichment=SignalEnrichment(
+            iv=en.get("iv"),
+            delta=en.get("delta"),
+            gamma=en.get("gamma"),
+            iv_vs_atm=en.get("iv_vs_atm"),
+            moneyness=en.get("moneyness"),
+            estimated_delta_notional=en.get("estimated_delta_notional"),
+            hypothetical_gex_impact_if_opening=en.get("hypothetical_gex_impact_if_opening"),
+        ),
+    )
+
 
 def round_flip(sym, n):
     if sym == "SPX":

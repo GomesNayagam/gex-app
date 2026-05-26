@@ -78,3 +78,77 @@ class DealerRisk(BaseModel):
     contracts_with_flow: int
     flow_direction: str  # "neutral" | "bullish" | "bearish"
     description: str
+
+
+class ScoreBreakdown(BaseModel):
+    premium: float = 0.0
+    size_vs_oi: float = 0.0
+    aggressor: float = 0.0
+    sweep: float = 0.0
+    opening_bias: float = 0.0
+    tenor: float = 0.0
+
+
+class SignalEnrichment(BaseModel):
+    iv: Optional[float] = None
+    delta: Optional[float] = None
+    gamma: Optional[float] = None
+    iv_vs_atm: Optional[float] = None
+    moneyness: Optional[str] = None
+    estimated_delta_notional: Optional[float] = None
+    hypothetical_gex_impact_if_opening: Optional[float] = None
+
+
+class ChainContext(BaseModel):
+    call_wall: Optional[float] = None
+    put_wall: Optional[float] = None
+    max_pain: Optional[float] = None
+    gamma_flip: Optional[float] = None
+
+
+class FlowSignal(BaseModel):
+    ts: str
+    expiry: str
+    strike: float
+    right: str
+    side: str
+    price: float
+    size: int
+    premium: float
+    dte: int
+    structure: str
+    aggressor: str
+    open_close_bias: str
+    open_close_confidence: float
+    contract_net_oi_delta: float
+    intent: str
+    score: float
+    conviction: str
+    tags: list[str]
+    score_breakdown: ScoreBreakdown
+    enrichment: SignalEnrichment
+
+
+class FlowSignalsResponse(BaseModel):
+    symbol: str
+    as_of: str
+    underlying_price: float
+    window_minutes: int
+    chain: ChainContext
+    count: int
+    signals: list[FlowSignal]
+
+
+class FlowSignalsSummary(BaseModel):
+    symbol: str
+    as_of: str
+    window_minutes: int
+    expiry: Optional[str] = None
+    underlying_price: float
+    signal_count: int
+    bullish_premium: float
+    bearish_premium: float
+    net_directional_premium: float
+    opening_premium: float
+    closing_premium: float
+    top_signals: list[FlowSignal] = []

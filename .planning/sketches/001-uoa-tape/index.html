@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>001 — UOA Tape</title>
+<link rel="stylesheet" href="../themes/default.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: var(--text-base);
+  min-height: 100vh;
+}
+
+/* ── Variant nav ─────────────────────────── */
+#variant-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 9998;
+  background: #0d0d14;
+  border-bottom: 1px solid var(--color-border);
+  padding: 6px 12px;
+  display: flex; gap: 6px; align-items: center;
+  font-family: var(--font-sans); font-size: 11px;
+}
+#variant-nav span { color: var(--color-text-muted); margin-right: 4px; }
+.variant-tab {
+  padding: 4px 10px; border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: transparent; color: var(--color-text-muted);
+  cursor: pointer; font-family: var(--font-sans); font-size: 11px;
+  transition: all 0.15s;
+}
+.variant-tab:hover { color: var(--color-text); border-color: #333348; }
+.variant-tab.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+
+.variant { display: none; padding-top: 36px; }
+.variant.active { display: block; }
+
+/* ── TOP BAR ─────────────────────────────── */
+.top-bar {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 8px 12px;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.top-bar-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  color: var(--color-text-muted); text-transform: uppercase; margin-right: 4px;
+}
+
+/* symbol pill */
+.sym-pill {
+  display: flex; align-items: center; gap: 4px;
+  background: var(--color-surface-2); border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm); padding: 3px 8px;
+  font-size: var(--text-base); font-weight: 700; cursor: pointer;
+  color: var(--color-text); transition: border-color 0.15s;
+}
+.sym-pill:hover { border-color: var(--color-primary); }
+.sym-pill .caret { font-size: 9px; color: var(--color-text-muted); }
+
+/* window pills */
+.pill-group { display: flex; gap: 2px; }
+.pill {
+  padding: 3px 8px; font-size: var(--text-sm); border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border); background: transparent;
+  color: var(--color-text-muted); cursor: pointer; transition: all 0.15s;
+  font-family: var(--font-mono);
+}
+.pill:hover { color: var(--color-text); }
+.pill.active { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+
+/* min-score slider */
+.score-wrap {
+  display: flex; align-items: center; gap: 6px;
+  font-size: var(--text-sm); color: var(--color-text-muted);
+}
+.score-wrap input[type=range] {
+  width: 80px; accent-color: var(--color-primary);
+}
+.score-val { color: var(--color-text); font-weight: 600; min-width: 20px; }
+
+/* intent/structure toggles */
+.toggle-group { display: flex; gap: 1px; }
+.toggle {
+  padding: 3px 8px; font-size: var(--text-xs); border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border); background: transparent;
+  color: var(--color-text-muted); cursor: pointer; font-family: var(--font-mono);
+  transition: all 0.15s; letter-spacing: 0.03em;
+}
+.toggle:hover { color: var(--color-text); }
+.toggle.active-bull { background: var(--color-bull-muted); color: var(--color-bull); border-color: var(--color-bull-muted); }
+.toggle.active-bear { background: var(--color-bear-muted); color: var(--color-bear); border-color: var(--color-bear-muted); }
+.toggle.active-all { background: var(--color-surface-2); color: var(--color-text); border-color: #333348; }
+.toggle.active-swp { background: #1e3a5f; color: var(--color-primary); border-color: #1e3a5f; }
+
+/* 0DTE toggle */
+.dte-toggle {
+  padding: 3px 8px; font-size: var(--text-xs); font-weight: 700;
+  border: 1px solid var(--color-border); background: transparent;
+  color: var(--color-text-muted); cursor: pointer; border-radius: var(--radius-sm);
+  transition: all 0.15s;
+}
+.dte-toggle.on { background: #2d1b4e; color: #c084fc; border-color: #4a2080; }
+
+/* refresh btn + clock */
+.refresh-btn {
+  padding: 3px 8px; border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border); background: transparent;
+  color: var(--color-text-muted); cursor: pointer; font-size: var(--text-sm);
+  transition: all 0.15s;
+}
+.refresh-btn:hover { color: var(--color-text); border-color: #333348; }
+.clock { font-size: var(--text-sm); color: var(--color-text-muted); margin-left: auto; }
+
+/* ── SUMMARY STRIP ───────────────────────── */
+.summary-strip {
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+  padding: 6px 12px;
+  display: flex; align-items: center; gap: 16px;
+  font-size: var(--text-sm);
+}
+.s-sym { font-weight: 700; font-size: var(--text-base); color: var(--color-text); }
+.s-spot { color: var(--color-text); font-weight: 600; }
+.s-divider { color: var(--color-text-dim); }
+.s-count { color: var(--color-text-muted); }
+.s-count strong { color: var(--color-text); }
+
+.prem-bar-wrap { display: flex; align-items: center; gap: 6px; }
+.prem-label { color: var(--color-text-muted); font-size: var(--text-xs); }
+.prem-bar {
+  width: 90px; height: 6px; border-radius: var(--radius-full);
+  background: var(--color-border); overflow: hidden; position: relative;
+}
+.prem-bar-bull { height: 100%; background: var(--color-bull); border-radius: var(--radius-full); }
+.prem-amt { font-size: var(--text-xs); color: var(--color-text-muted); }
+.prem-amt.bull { color: var(--color-bull); }
+.prem-amt.bear { color: var(--color-bear); }
+
+.net-val { font-weight: 700; }
+.net-val.pos { color: var(--color-bull); }
+.net-val.neg { color: var(--color-bear); }
+.s-updated { color: var(--color-text-dim); font-size: var(--text-xs); margin-left: auto; }
+
+/* ── TABLE HEADER ────────────────────────── */
+.tape-header {
+  display: grid;
+  grid-template-columns: 52px 72px 1fr 160px 120px;
+  gap: 0; padding: 5px 12px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--text-xs); color: var(--color-text-dim);
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+
+/* ── SIGNAL ROWS ─────────────────────────── */
+.signal-row {
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding: 7px 12px 6px;
+  cursor: pointer;
+  transition: background 0.1s;
+  display: grid;
+  grid-template-columns: 52px 72px 1fr 160px 120px;
+  gap: 0; align-items: start;
+}
+.signal-row:hover { background: var(--color-surface); }
+
+/* score chip */
+.score-chip {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.score-num {
+  font-size: 15px; font-weight: 700; line-height: 1;
+  display: flex; align-items: center; gap: 3px;
+}
+.score-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  display: inline-block; flex-shrink: 0;
+}
+.score-intent {
+  font-size: var(--text-xs); font-weight: 700; letter-spacing: 0.04em;
+}
+.intent-bull { color: var(--color-bull); }
+.intent-bear { color: var(--color-bear); }
+.intent-neut { color: var(--color-neut); }
+
+/* time col */
+.time-col { font-size: var(--text-xs); color: var(--color-text-muted); padding-top: 2px; }
+
+/* contract col */
+.contract-col { padding: 0 8px; }
+.contract-main {
+  font-size: var(--text-base); font-weight: 600; color: var(--color-text);
+  white-space: nowrap;
+}
+.contract-main .right-call { color: var(--color-bull); }
+.contract-main .right-put { color: var(--color-bear); }
+.contract-sub {
+  font-size: var(--text-xs); color: var(--color-text-muted); margin-top: 2px;
+}
+.contract-sub .prem-highlight { color: var(--color-text); }
+
+/* tags row */
+.tags-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 5px; }
+.tag {
+  font-size: 10px; padding: 1px 5px; border-radius: var(--radius-sm);
+  border: 1px solid; letter-spacing: 0.03em; white-space: nowrap;
+}
+.tag-whale { border-color: var(--color-tag-whale); color: var(--color-tag-whale); }
+.tag-golden { background: var(--color-tag-golden); color: #000; border-color: var(--color-tag-golden); }
+.tag-sweep { border-color: var(--color-tag-sweep); color: var(--color-tag-sweep); }
+.tag-block { border-color: #4b5563; color: #6b7280; }
+.tag-opening { border-color: #2d4a2d; color: #4ade80; }
+.tag-closing { border-color: #4a2d2d; color: #f87171; }
+
+/* flow col */
+.flow-col { font-size: var(--text-sm); }
+.flow-struct {
+  font-weight: 700; font-size: var(--text-xs); letter-spacing: 0.06em;
+}
+.flow-struct.sweep { color: var(--color-primary); }
+.flow-struct.block { color: var(--color-text-muted); }
+.flow-agg { color: var(--color-text-muted); font-size: var(--text-xs); margin-top: 2px; }
+.flow-oc { display: flex; align-items: center; gap: 5px; margin-top: 3px; font-size: var(--text-xs); color: var(--color-text-muted); }
+.flow-oc .oc-badge { font-weight: 700; }
+.oc-open { color: var(--color-bull); }
+.oc-close { color: var(--color-bear); }
+.flow-conf {
+  display: inline-block; width: 40px; height: 3px;
+  background: var(--color-border); border-radius: var(--radius-full); overflow: hidden;
+  vertical-align: middle; margin-left: 4px;
+}
+.flow-conf-fill { height: 100%; background: var(--color-primary); border-radius: var(--radius-full); }
+.flow-oi { color: var(--color-text-dim); font-size: 10px; margin-top: 2px; }
+
+/* breakdown bar */
+.breakdown-col {}
+.breakdown-bar {
+  display: flex; gap: 1px; height: 14px;
+}
+.bd-seg {
+  border-radius: 1px; transition: opacity 0.15s;
+  position: relative; cursor: help;
+}
+.bd-seg:hover { opacity: 0.7; }
+.bd-legend {
+  display: flex; gap: 0; margin-top: 3px;
+  font-size: 9px; color: var(--color-text-dim);
+  letter-spacing: 0.02em;
+}
+.bd-lbl { width: 14px; text-align: center; font-weight: 600; }
+
+/* ── DRAWER ──────────────────────────────── */
+.drawer-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.5);
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.drawer-overlay.open { opacity: 1; pointer-events: all; }
+
+/* Docked mode: overlay gone, tape area insets */
+body.docked .drawer-overlay { display: none !important; }
+body.docked .tape-inset { margin-right: 380px; transition: margin-right 0.25s ease; }
+
+.drawer {
+  position: fixed; top: 36px; right: 0; bottom: 0; z-index: 501;
+  width: 380px;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  transform: translateX(100%); transition: transform 0.25s ease;
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.drawer.open { transform: translateX(0); }
+
+.drawer-header {
+  padding: 10px 12px 10px 16px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex; justify-content: space-between; align-items: flex-start;
+}
+.drawer-title { font-size: var(--text-lg); font-weight: 700; }
+.drawer-sub { font-size: var(--text-xs); color: var(--color-text-muted); margin-top: 2px; }
+.drawer-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.drawer-pin {
+  background: none; border: 1px solid var(--color-border); color: var(--color-text-muted);
+  font-size: 13px; cursor: pointer; padding: 3px 6px; border-radius: var(--radius-sm); line-height: 1;
+  transition: all 0.15s; display: flex; align-items: center; gap: 4px;
+  font-family: var(--font-sans); font-size: 10px; white-space: nowrap;
+}
+.drawer-pin:hover { color: var(--color-text); border-color: #333348; }
+.drawer-pin.pinned { background: #1e2a3a; color: var(--color-primary); border-color: var(--color-primary); }
+.drawer-close {
+  background: none; border: none; color: var(--color-text-muted);
+  font-size: 18px; cursor: pointer; padding: 0 2px; line-height: 1;
+  transition: color 0.15s;
+}
+.drawer-close:hover { color: var(--color-text); }
+
+/* pin indicator badge in tape header when docked */
+.pin-badge {
+  display: none; align-items: center; gap: 4px;
+  font-size: 10px; color: var(--color-primary);
+  border: 1px solid var(--color-primary); border-radius: var(--radius-sm);
+  padding: 2px 6px; margin-left: auto;
+}
+body.docked .pin-badge { display: flex; }
+
+.drawer-section { padding: 12px 16px; border-bottom: 1px solid var(--color-border-subtle); }
+.drawer-section:last-child { border-bottom: none; }
+.drawer-section-title {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--color-text-dim); margin-bottom: 10px;
+}
+
+.score-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
+}
+.score-big { font-size: 28px; font-weight: 700; }
+.conviction-badge {
+  padding: 3px 8px; border-radius: var(--radius-sm);
+  font-size: var(--text-xs); font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.conviction-high { background: #14532d; color: var(--color-bull); }
+
+.bd-detail-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 6px; font-size: var(--text-sm);
+}
+.bd-detail-label { color: var(--color-text-muted); width: 90px; flex-shrink: 0; font-size: var(--text-xs); }
+.bd-detail-val { color: var(--color-text); width: 24px; text-align: right; font-weight: 600; font-size: var(--text-xs); }
+.bd-detail-bar {
+  flex: 1; height: 6px; background: var(--color-border); border-radius: var(--radius-full); overflow: hidden;
+}
+.bd-detail-fill { height: 100%; border-radius: var(--radius-full); }
+
+.greek-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+}
+.greek-cell { display: flex; flex-direction: column; gap: 2px; }
+.greek-label { font-size: 10px; color: var(--color-text-dim); text-transform: uppercase; letter-spacing: 0.06em; }
+.greek-val { font-size: var(--text-base); font-weight: 600; color: var(--color-text); }
+
+.notional-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.notional-label { font-size: var(--text-xs); color: var(--color-text-muted); }
+.notional-val { font-size: var(--text-sm); font-weight: 600; color: var(--color-text); }
+
+.chain-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.chain-label { font-size: var(--text-xs); color: var(--color-text-muted); }
+.chain-val { font-size: var(--text-sm); font-weight: 600; font-family: var(--font-mono); }
+.chain-val.at-strike { color: var(--color-accent); }
+.chain-spot { color: var(--color-text); }
+
+.raw-toggle {
+  width: 100%; padding: 8px; text-align: left;
+  background: var(--color-surface-2); border: 1px solid var(--color-border);
+  color: var(--color-text-muted); cursor: pointer; border-radius: var(--radius-sm);
+  font-family: var(--font-mono); font-size: var(--text-xs); transition: all 0.15s;
+}
+.raw-toggle:hover { color: var(--color-text); }
+.raw-json {
+  margin-top: 8px; background: var(--color-surface-2); border: 1px solid var(--color-border);
+  padding: 10px; border-radius: var(--radius-sm);
+  font-size: 10px; color: var(--color-text-muted);
+  white-space: pre; overflow-x: auto; display: none;
+}
+
+/* ── COMPACT (variant B) ─────────────────── */
+.signal-row.compact {
+  grid-template-columns: 44px 60px 1fr 140px 100px;
+  padding: 4px 12px;
+}
+.signal-row.compact .score-num { font-size: 13px; }
+.signal-row.compact .tags-row { display: none; }
+.signal-row.compact .flow-oi { display: none; }
+.signal-row.compact .breakdown-bar { height: 10px; }
+
+/* ── EMPTY STATE ─────────────────────────── */
+.empty-state {
+  padding: 48px 12px; text-align: center;
+  color: var(--color-text-muted); font-size: var(--text-base);
+}
+.empty-state strong { color: var(--color-text); display: block; margin-bottom: 6px; font-size: var(--text-lg); }
+
+/* ── SKELETON ────────────────────────────── */
+@keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 0.7; } }
+.skel { background: var(--color-surface-2); border-radius: var(--radius-sm); animation: pulse 1.5s infinite; }
+
+/* ── Variant C — card layout ─────────────── */
+.card-grid { display: flex; flex-direction: column; gap: 6px; padding: 8px 12px; }
+.signal-card {
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); padding: 12px;
+  cursor: pointer; transition: border-color 0.15s;
+}
+.signal-card:hover { border-color: #333348; }
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.card-contract { font-size: var(--text-lg); font-weight: 700; }
+.card-score-chip {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--color-surface-2); border-radius: var(--radius-sm);
+  padding: 4px 8px;
+}
+.card-score-num { font-size: 15px; font-weight: 700; }
+.card-meta { display: flex; gap: 12px; font-size: var(--text-xs); color: var(--color-text-muted); margin-bottom: 8px; }
+.card-footer { display: flex; justify-content: space-between; align-items: center; }
+
+/* ── Scrollable content area ─────────────── */
+.tape-content { height: calc(100vh - 36px - 42px - 38px - 27px); overflow-y: auto; }
+.variant-a .tape-content, .variant-b .tape-content { /* handled per variant */ }
+</style>
+</head>
+<body>
+
+<!-- Variant Nav -->
+<div id="variant-nav">
+  <span>001 UOA Tape</span>
+  <button class="variant-tab active" onclick="showVariant('a', this)">A: Tape (2-line density)</button>
+  <button class="variant-tab" onclick="showVariant('b', this)">B: Compact (1-line)</button>
+  <button class="variant-tab" onclick="showVariant('c', this)">C: Card layout</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- VARIANT A — Standard tape, 2-line rows                  -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="variant-a" class="variant active">
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <span class="top-bar-label">Flow Signals</span>
+
+    <div class="sym-pill" onclick="cycleSym(this)">
+      <span id="sym-a">SPX</span>
+      <span class="caret">▾</span>
+    </div>
+
+    <div class="pill-group">
+      <button class="pill" onclick="setPill(this, 'win-a')">60m</button>
+      <button class="pill active" id="win-a-def" onclick="setPill(this, 'win-a')">240m</button>
+      <button class="pill" onclick="setPill(this, 'win-a')">1d</button>
+    </div>
+
+    <div class="score-wrap">
+      <span>minScore</span>
+      <input type="range" min="0" max="100" value="60" oninput="document.getElementById('sv-a').textContent=this.value">
+      <span class="score-val" id="sv-a">60</span>
+    </div>
+
+    <div class="toggle-group">
+      <button class="toggle active-all" onclick="setIntent(this, 'all-a')">ALL</button>
+      <button class="toggle" onclick="setIntent(this, 'all-a')">▲BULL</button>
+      <button class="toggle" onclick="setIntent(this, 'all-a')">▼BEAR</button>
+    </div>
+
+    <div class="toggle-group">
+      <button class="toggle active-all" onclick="setStruct(this, 'str-a')">ALL</button>
+      <button class="toggle" onclick="setStruct(this, 'str-a')">SWEEP</button>
+      <button class="toggle" onclick="setStruct(this, 'str-a')">BLOCK</button>
+    </div>
+
+    <button class="dte-toggle" onclick="this.classList.toggle('on')">0DTE</button>
+    <button class="refresh-btn" onclick="doRefresh('a')">⟳</button>
+    <span class="clock" id="clock-a">12:04 ET</span>
+  </div>
+
+  <!-- Summary strip -->
+  <div class="summary-strip">
+    <span class="s-sym">SPX</span>
+    <span class="s-spot">5,832.40</span>
+    <span class="s-divider">·</span>
+    <span class="s-count">Signals <strong>14</strong></span>
+    <span class="s-divider">·</span>
+    <div class="prem-bar-wrap">
+      <span class="prem-label">Bull</span>
+      <div class="prem-bar"><div class="prem-bar-bull" style="width:74%"></div></div>
+      <span class="prem-amt bull">$18.2M</span>
+    </div>
+    <div class="prem-bar-wrap">
+      <span class="prem-label">Bear</span>
+      <div class="prem-bar"><div class="prem-bar-bull" style="width:26%;background:var(--color-bear)"></div></div>
+      <span class="prem-amt bear">$6.4M</span>
+    </div>
+    <span class="s-divider">·</span>
+    <span>Net <span class="net-val pos">+$11.8M</span></span>
+    <span class="s-divider">·</span>
+    <span style="font-size:var(--text-xs);color:var(--color-text-muted)">Opening <span style="color:var(--color-text)">$21.3M</span></span>
+    <span style="font-size:var(--text-xs);color:var(--color-text-muted)">Closing <span style="color:var(--color-text)">$3.4M</span></span>
+    <span class="s-updated">updated 12:04:08 ET</span>
+  </div>
+
+  <!-- Table header -->
+  <div class="tape-header tape-inset">
+    <div>SCORE</div>
+    <div>TIME</div>
+    <div>CONTRACT</div>
+    <div>FLOW</div>
+    <div>BREAKDOWN</div>
+    <div class="pin-badge">◫ PINNED</div>
+  </div>
+
+  <!-- Tape -->
+  <div class="tape-content tape-inset" style="height:calc(100vh - 36px - 42px - 38px - 27px); overflow-y:auto">
+    <!-- Row 1 — 92, BULL, SWEEP, whale+golden -->
+    <div class="signal-row" onclick="openDrawer('a', 0)">
+      <div class="score-chip">
+        <div class="score-num" style="color:var(--color-score-elite)">
+          <span class="score-dot" style="background:var(--color-score-elite)"></span>92
+        </div>
+        <div class="score-intent intent-bull">▲BULL</div>
+      </div>
+      <div class="time-col">12:03:14</div>
+      <div class="contract-col">
+        <div class="contract-main">SPX 5850 <span class="right-call">C</span>&nbsp;06-21 28d</div>
+        <div class="contract-sub">$4.20 × 1,200 = <span class="prem-highlight">$504K</span></div>
+        <div class="tags-row">
+          <span class="tag tag-whale">whale</span>
+          <span class="tag tag-golden">golden</span>
+          <span class="tag tag-sweep">sweep</span>
+          <span class="tag tag-opening">opening</span>
+        </div>
+      </div>
+      <div class="flow-col">
+        <div class="flow-struct sweep">SWEEP ⇧⇧</div>
+        <div class="flow-agg">above_ask · at_ask</div>
+        <div class="flow-oc">
+          <span class="oc-badge oc-open">OPEN</span>
+          <span>0.92</span>
+          <span class="flow-conf"><span class="flow-conf-fill" style="width:92%"></span></span>
+        </div>
+        <div class="flow-oi">+OI 850</div>
+      </div>
+      <div class="breakdown-col">
+        <div class="breakdown-bar" id="bd-a-0"></div>
+        <div class="bd-legend">
+          <span class="bd-lbl">P</span><span class="bd-lbl">S</span>
+          <span class="bd-lbl">A</span><span class="bd-lbl">W</span>
+          <span class="bd-lbl">O</span><span class="bd-lbl">T</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2 — 84, BEAR -->
+    <div class="signal-row" onclick="openDrawer('a', 1)">
+      <div class="score-chip">
+        <div class="score-num" style="color:var(--color-score-elite)">
+          <span class="score-dot" style="background:var(--color-score-elite)"></span>84
+        </div>
+        <div class="score-intent intent-bear">▼BEAR</div>
+      </div>
+      <div class="time-col">12:01:58</div>
+      <div class="contract-col">
+        <div class="contract-main">SPX 5800 <span class="right-put">P</span>&nbsp;05-31 7d</div>
+        <div class="contract-sub">$9.10 × 600 = <span class="prem-highlight">$546K</span></div>
+        <div class="tags-row">
+          <span class="tag tag-golden">golden</span>
+          <span class="tag tag-sweep">sweep</span>
+          <span class="tag tag-opening">opening</span>
+        </div>
+      </div>
+      <div class="flow-col">
+        <div class="flow-struct sweep">SWEEP ⇧</div>
+        <div class="flow-agg">at_ask</div>
+        <div class="flow-oc">
+          <span class="oc-badge oc-open">OPEN</span>
+          <span>0.78</span>
+          <span class="flow-conf"><span class="flow-conf-fill" style="width:78%"></span></span>
+        </div>
+        <div class="flow-oi">+OI 410</div>
+      </div>
+      <div class="breakdown-col">
+        <div class="breakdown-bar" id="bd-a-1"></div>
+        <div class="bd-legend">
+          <span class="bd-lbl">P</span><span class="bd-lbl">S</span>
+          <span class="bd-lbl">A</span><span class="bd-lbl">W</span>
+          <span class="bd-lbl">O</span><span class="bd-lbl">T</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3 — 71, BULL, BLOCK -->
+    <div class="signal-row" onclick="openDrawer('a', 2)">
+      <div class="score-chip">
+        <div class="score-num" style="color:var(--color-score-high)">
+          <span class="score-dot" style="background:var(--color-score-high)"></span>71
+        </div>
+        <div class="score-intent intent-bull">▲BULL</div>
+      </div>
+      <div class="time-col">11:58:42</div>
+      <div class="contract-col">
+        <div class="contract-main">SPX 5900 <span class="right-call">C</span>&nbsp;06-21 28d</div>
+        <div class="contract-sub">$2.80 × 800 = <span class="prem-highlight">$224K</span></div>
+        <div class="tags-row">
+          <span class="tag tag-block">block</span>
+          <span class="tag tag-closing">closing</span>
+        </div>
+      </div>
+      <div class="flow-col">
+        <div class="flow-struct block">BLOCK ⇧</div>
+        <div class="flow-agg">at_ask</div>
+        <div class="flow-oc">
+          <span class="oc-badge oc-close">CLOSE</span>
+          <span>0.65</span>
+          <span class="flow-conf"><span class="flow-conf-fill" style="width:65%;background:var(--color-bear)"></span></span>
+        </div>
+        <div class="flow-oi">−OI 120</div>
+      </div>
+      <div class="breakdown-col">
+        <div class="breakdown-bar" id="bd-a-2"></div>
+        <div class="bd-legend">
+          <span class="bd-lbl">P</span><span class="bd-lbl">S</span>
+          <span class="bd-lbl">A</span><span class="bd-lbl">W</span>
+          <span class="bd-lbl">O</span><span class="bd-lbl">T</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 4 — 68, BEAR -->
+    <div class="signal-row" onclick="openDrawer('a', 3)">
+      <div class="score-chip">
+        <div class="score-num" style="color:var(--color-score-high)">
+          <span class="score-dot" style="background:var(--color-score-high)"></span>68
+        </div>
+        <div class="score-intent intent-bear">▼BEAR</div>
+      </div>
+      <div class="time-col">11:47:22</div>
+      <div class="contract-col">
+        <div class="contract-main">SPX 5750 <span class="right-put">P</span>&nbsp;05-28 4d</div>
+        <div class="contract-sub">$5.60 × 400 = <span class="prem-highlight">$224K</span></div>
+        <div class="tags-row">
+          <span class="tag tag-sweep">sweep</span>
+          <span class="tag tag-opening">opening</span>
+        </div>
+      </div>
+      <div class="flow-col">
+        <div class="flow-struct sweep">SWEEP ⇧</div>
+        <div class="flow-agg">at_ask · mid</div>
+        <div class="flow-oc">
+          <span class="oc-badge oc-open">OPEN</span>
+          <span>0.71</span>
+          <span class="flow-conf"><span class="flow-conf-fill" style="width:71%"></span></span>
+        </div>
+        <div class="flow-oi">+OI 290</div>
+      </div>
+      <div class="breakdown-col">
+        <div class="breakdown-bar" id="bd-a-3"></div>
+        <div class="bd-legend">
+          <span class="bd-lbl">P</span><span class="bd-lbl">S</span>
+          <span class="bd-lbl">A</span><span class="bd-lbl">W</span>
+          <span class="bd-lbl">O</span><span class="bd-lbl">T</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 5 — 63, BULL, mid-score -->
+    <div class="signal-row" onclick="openDrawer('a', 4)">
+      <div class="score-chip">
+        <div class="score-num" style="color:var(--color-score-mid)">
+          <span class="score-dot" style="background:var(--color-score-mid)"></span>63
+        </div>
+        <div class="score-intent intent-bull">▲BULL</div>
+      </div>
+      <div class="time-col">11:39:05</div>
+      <div class="contract-col">
+        <div class="contract-main">QQQ 480 <span class="right-call">C</span>&nbsp;06-07 14d</div>
+        <div class="contract-sub">$1.45 × 950 = <span class="prem-highlight">$138K</span></div>
+        <div class="tags-row">
+          <span class="tag tag-block">block</span>
+          <span class="tag tag-opening">opening</span>
+        </div>
+      </div>
+      <div class="flow-col">
+        <div class="flow-struct block">BLOCK ◆</div>
+        <div class="flow-agg">mid</div>
+        <div class="flow-oc">
+          <span class="oc-badge oc-open">OPEN</span>
+          <span>0.61</span>
+          <span class="flow-conf"><span class="flow-conf-fill" style="width:61%"></span></span>
+        </div>
+        <div class="flow-oi">+OI 180</div>
+      </div>
+      <div class="breakdown-col">
+        <div class="breakdown-bar" id="bd-a-4"></div>
+        <div class="bd-legend">
+          <span class="bd-lbl">P</span><span class="bd-lbl">S</span>
+          <span class="bd-lbl">A</span><span class="bd-lbl">W</span>
+          <span class="bd-lbl">O</span><span class="bd-lbl">T</span>
+        </div>
+      </div>
+    </div>
+  </div><!-- /tape-content -->
+
+</div><!-- /variant-a -->
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- VARIANT B — Compact 1-line tape                          -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="variant-b" class="variant">
+
+  <div class="top-bar">
+    <span class="top-bar-label">Flow Signals</span>
+    <div class="sym-pill"><span>SPX</span><span class="caret">▾</span></div>
+    <div class="pill-group">
+      <button class="pill" onclick="setPill(this, 'win-b')">60m</button>
+      <button class="pill active" onclick="setPill(this, 'win-b')">240m</button>
+      <button class="pill" onclick="setPill(this, 'win-b')">1d</button>
+    </div>
+    <div class="score-wrap">
+      <span>min</span>
+      <input type="range" min="0" max="100" value="60" oninput="document.getElementById('sv-b').textContent=this.value">
+      <span class="score-val" id="sv-b">60</span>
+    </div>
+    <div class="toggle-group">
+      <button class="toggle active-all" onclick="setIntent(this,'int-b')">ALL</button>
+      <button class="toggle" onclick="setIntent(this,'int-b')">▲</button>
+      <button class="toggle" onclick="setIntent(this,'int-b')">▼</button>
+    </div>
+    <div class="toggle-group">
+      <button class="toggle active-all" onclick="setStruct(this,'str-b')">ALL</button>
+      <button class="toggle" onclick="setStruct(this,'str-b')">SWP</button>
+      <button class="toggle" onclick="setStruct(this,'str-b')">BLK</button>
+    </div>
+    <button class="dte-toggle" onclick="this.classList.toggle('on')">0DTE</button>
+    <button class="refresh-btn">⟳</button>
+    <span class="clock">12:04 ET</span>
+  </div>
+
+  <div class="summary-strip">
+    <span class="s-sym">SPX</span>
+    <span class="s-spot">5,832.40</span>
+    <span class="s-divider">·</span>
+    <span class="s-count">14 signals</span>
+    <span class="s-divider">·</span>
+    <span class="prem-amt bull">Bull $18.2M</span>
+    <span class="prem-amt bear">Bear $6.4M</span>
+    <span class="s-divider">·</span>
+    <span>Net <span class="net-val pos">+$11.8M</span></span>
+    <span class="s-updated">12:04:08</span>
+  </div>
+
+  <!-- compact header -->
+  <div class="tape-inset" style="display:grid;grid-template-columns:44px 60px 1fr 140px 100px;gap:0;padding:4px 12px;background:var(--color-surface);border-bottom:1px solid var(--color-border);font-size:9px;color:var(--color-text-dim);letter-spacing:.06em;text-transform:uppercase">
+    <div>SCR</div><div>TIME</div><div>CONTRACT</div><div>FLOW</div><div>BREAKDOWN</div>
+  </div>
+
+  <div class="tape-inset" style="height:calc(100vh - 36px - 42px - 38px - 24px);overflow-y:auto">
+    <!-- compact rows -->
+    <div class="signal-row compact" onclick="openDrawer('b', 0)">
+      <div class="score-chip">
+        <div class="score-num" style="color:var(--color-score-elite)"><span class="score-dot" style="background:var(--color-score-elite)"></span>92</div>
+        <div class="score-intent intent-bull" style="font-size:9px">▲BULL</div>
+      </div>
+      <div class="time-col">12:03:14</div>
+      <div class="contract-col">
+        <div class="contract-main" style="font-size:var(--text-sm)">SPX 5850 <span class="right-call">C</span> 06-21&nbsp;<span style="color:var(--color-text-dim)">28d</span>&nbsp;<span class="tag tag-whale" style="vertical-align:middle">whale</span>&nbsp;<span class="tag tag-golden" style="vertical-align:middle">golden</span></div>
+        <div class="contract-sub">$4.20 × 1,200 = <span class="prem-highlight">$504K</span></div>
+      </div>
+      <div class="flow-col" style="font-size:10px">
+        <span class="flow-struct sweep" style="font-size:10px">SWEEP ⇧⇧</span>&nbsp;<span class="flow-agg" style="font-size:10px">above_ask</span>
+        <div class="flow-oc" style="font-size:10px;margin-top:2px"><span class="oc-badge oc-open">OPEN</span>&nbsp;0.92</div>
+      </div>
+      <div class="breakdown-col">
+        <div class="breakdown-bar" style="height:10px" id="bd-b-0"></div>
+        <div class="bd-legend"><span class="bd-lbl">P</span><span class="bd-lbl">S</span><span class="bd-lbl">A</span><span class="bd-lbl">W</span><span class="bd-lbl">O</span><span class="bd-lbl">T</span></div>
+      </div>
+    </div>
+
+    <div class="signal-row compact" onclick="openDrawer('b', 1)">
+      <div class="score-chip">
+        <div class="score-num" style="color:var(--color-score-elite)"><span class="score-dot" style="background:var(--color-score-elite)"></span>84</div>
+        <div class="score-intent intent-bear" style="font-size:9px">▼BEAR</div>
+      </div>
+      <div class="time-col">12:01:58</div>
+      <div class="contract-col">
+        <div class="contract-main" style="font-size:var(--text-sm)">SPX 5800 <span class="right-put">P</span> 05-31&nbsp;<span style="color:var(--color-text-dim)">7d</span>&nbsp;<span class="tag tag-golden" style="vertical-align:middle">golden</span></div>
+        <div class="contract-sub">$9.10 × 600 = <span class="prem-highlight">$546K</span></div>
+      </div>
+      <div class="flow-col" style="font-size:10px">
+        <span class="flow-struct sweep" style="font-size:10px">SWEEP ⇧</span>&nbsp;<span class="flow-agg" style="font-size:10px">at_ask</span>
+        <div class="flow-oc" style="font-size:10px;margin-top:2px"><span class="oc-badge oc-open">OPEN</span>&nbsp;0.78</div>
+      </div>
+      <div class="breakdown-col">
+        <div class="breakdown-bar" style="height:10px" id="bd-b-1"></div>
+        <div class="bd-legend"><span class="bd-lbl">P</span><span class="bd-lbl">S</span><span class="bd-lbl">A</span><span class="bd-lbl">W</span><span class="bd-lbl">O</span><span class="bd-lbl">T</span></div>
+      </div>
+    </div>
+
+    <div class="signal-row compact" onclick="openDrawer('b', 2)">
+      <div class="score-chip">
+        <div class="score-num" style="color:var(--color-score-high)"><span class="score-dot" style="background:var(--color-score-high)"></span>71</div>
+        <div class="score-intent intent-bull" style="font-size:9px">▲BULL</div>
+      </div>
+      <div class="time-col">11:58:42</div>
+      <div class="contract-col">
+        <div class="contract-main" style="font-size:var(--text-sm)">SPX 5900 <span class="right-call">C</span> 06-21&nbsp;<span style="color:var(--color-text-dim)">28d</span>&nbsp;<span class="tag tag-block" style="vertical-align:middle">block</span></div>
+        <div class="contract-sub">$2.80 × 800 = <span class="prem-highlight">$224K</span></div>
+      </div>
+      <div class="flow-col" style="font-size:10px">
+        <span class="flow-struct block" style="font-size:10px">BLOCK ⇧</span>&nbsp;<span class="flow-agg" style="font-size:10px">at_ask</span>
+        <div class="flow-oc" style="font-size:10px;margin-top:2px"><span class="oc-badge oc-close">CLOSE</span>&nbsp;0.65</div>
+      </div>
+      <div class="breakdown-col">
+        <div class="breakdown-bar" style="height:10px" id="bd-b-2"></div>
+        <div class="bd-legend"><span class="bd-lbl">P</span><span class="bd-lbl">S</span><span class="bd-lbl">A</span><span class="bd-lbl">W</span><span class="bd-lbl">O</span><span class="bd-lbl">T</span></div>
+      </div>
+    </div>
+
+    <div class="signal-row compact" onclick="openDrawer('b', 3)">
+      <div class="score-chip">
+        <div class="score-num" style="color:var(--color-score-high)"><span class="score-dot" style="background:var(--color-score-high)"></span>68</div>
+        <div class="score-intent intent-bear" style="font-size:9px">▼BEAR</div>
+      </div>
+      <div class="time-col">11:47:22</div>
+      <div class="contract-col">
+        <div class="contract-main" style="font-size:var(--text-sm)">SPX 5750 <span class="right-put">P</span> 05-28&nbsp;<span style="color:var(--color-text-dim)">4d</span></div>
+        <div class="contract-sub">$5.60 × 400 = <span class="prem-highlight">$224K</span></div>
+      </div>
+      <div class="flow-col" style="font-size:10px">
+        <span class="flow-struct sweep" style="font-size:10px">SWEEP ⇧</span>&nbsp;<span class="flow-agg" style="font-size:10px">at_ask</span>
+        <div class="flow-oc" style="font-size:10px;margin-top:2px"><span class="oc-badge oc-open">OPEN</span>&nbsp;0.71</div>
+      </div>
+      <div class="breakdown-col">
+        <div class="breakdown-bar" style="height:10px" id="bd-b-3"></div>
+        <div class="bd-legend"><span class="bd-lbl">P</span><span class="bd-lbl">S</span><span class="bd-lbl">A</span><span class="bd-lbl">W</span><span class="bd-lbl">O</span><span class="bd-lbl">T</span></div>
+      </div>
+    </div>
+
+    <div class="signal-row compact" onclick="openDrawer('b', 4)">
+      <div class="score-chip">
+        <div class="score-num" style="color:var(--color-score-mid)"><span class="score-dot" style="background:var(--color-score-mid)"></span>63</div>
+        <div class="score-intent intent-bull" style="font-size:9px">▲BULL</div>
+      </div>
+      <div class="time-col">11:39:05</div>
+      <div class="contract-col">
+        <div class="contract-main" style="font-size:var(--text-sm)">QQQ 480 <span class="right-call">C</span> 06-07&nbsp;<span style="color:var(--color-text-dim)">14d</span></div>
+        <div class="contract-sub">$1.45 × 950 = <span class="prem-highlight">$138K</span></div>
+      </div>
+      <div class="flow-col" style="font-size:10px">
+        <span class="flow-struct block" style="font-size:10px">BLOCK ◆</span>&nbsp;<span class="flow-agg" style="font-size:10px">mid</span>
+        <div class="flow-oc" style="font-size:10px;margin-top:2px"><span class="oc-badge oc-open">OPEN</span>&nbsp;0.61</div>
+      </div>
+      <div class="breakdown-col">
+        <div class="breakdown-bar" style="height:10px" id="bd-b-4"></div>
+        <div class="bd-legend"><span class="bd-lbl">P</span><span class="bd-lbl">S</span><span class="bd-lbl">A</span><span class="bd-lbl">W</span><span class="bd-lbl">O</span><span class="bd-lbl">T</span></div>
+      </div>
+    </div>
+  </div>
+</div><!-- /variant-b -->
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- VARIANT C — Card layout                                 -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="variant-c" class="variant">
+
+  <div class="top-bar">
+    <span class="top-bar-label">Flow Signals</span>
+    <div class="sym-pill"><span>SPX</span><span class="caret">▾</span></div>
+    <div class="pill-group">
+      <button class="pill active" onclick="setPill(this,'win-c')">240m</button>
+      <button class="pill" onclick="setPill(this,'win-c')">1d</button>
+    </div>
+    <div class="score-wrap">
+      <span>minScore</span>
+      <input type="range" min="0" max="100" value="60" oninput="document.getElementById('sv-c').textContent=this.value">
+      <span class="score-val" id="sv-c">60</span>
+    </div>
+    <div class="toggle-group">
+      <button class="toggle active-all" onclick="setIntent(this,'int-c')">ALL</button>
+      <button class="toggle" onclick="setIntent(this,'int-c')">▲BULL</button>
+      <button class="toggle" onclick="setIntent(this,'int-c')">▼BEAR</button>
+    </div>
+    <button class="dte-toggle" onclick="this.classList.toggle('on')">0DTE</button>
+    <button class="refresh-btn">⟳</button>
+    <span class="clock">12:04 ET</span>
+  </div>
+
+  <div class="summary-strip">
+    <span class="s-sym">SPX</span><span class="s-spot">5,832.40</span>
+    <span class="s-divider">·</span>
+    <span class="s-count">Signals <strong>14</strong></span>
+    <span class="s-divider">·</span>
+    <span class="prem-amt bull">$18.2M</span>
+    <div class="prem-bar" style="width:60px"><div class="prem-bar-bull" style="width:74%"></div></div>
+    <span class="prem-amt bear">$6.4M</span>
+    <span class="s-divider">·</span>
+    <span>Net <span class="net-val pos">+$11.8M</span></span>
+    <span class="s-updated">12:04:08 ET</span>
+  </div>
+
+  <div class="tape-inset" style="height:calc(100vh - 36px - 42px - 38px);overflow-y:auto;padding:8px 12px">
+    <!-- Card 1 -->
+    <div class="signal-card" onclick="openDrawer('c', 0)" style="border-left:3px solid var(--color-bull)">
+      <div class="card-top">
+        <div>
+          <div class="card-contract">SPX 5850 <span class="right-call">C</span> Jun-21</div>
+          <div style="font-size:var(--text-xs);color:var(--color-text-muted);margin-top:2px">28 DTE · $4.20 × 1,200</div>
+        </div>
+        <div class="card-score-chip">
+          <span class="score-dot" style="background:var(--color-score-elite)"></span>
+          <span class="card-score-num" style="color:var(--color-score-elite)">92</span>
+          <span class="score-intent intent-bull">▲</span>
+        </div>
+      </div>
+      <div class="card-meta">
+        <span class="flow-struct sweep">SWEEP ⇧⇧</span>
+        <span>above_ask</span>
+        <span class="oc-open">OPEN 0.92</span>
+        <span style="color:var(--color-text-dim)">+OI 850</span>
+      </div>
+      <div style="margin-bottom:8px">
+        <div class="breakdown-bar" id="bd-c-0" style="height:10px"></div>
+        <div class="bd-legend"><span class="bd-lbl">P</span><span class="bd-lbl">S</span><span class="bd-lbl">A</span><span class="bd-lbl">W</span><span class="bd-lbl">O</span><span class="bd-lbl">T</span></div>
+      </div>
+      <div class="card-footer">
+        <div class="tags-row">
+          <span class="tag tag-whale">whale</span>
+          <span class="tag tag-golden">golden</span>
+          <span class="tag tag-sweep">sweep</span>
+          <span class="tag tag-opening">opening</span>
+        </div>
+        <span style="font-size:10px;color:var(--color-text-muted)">12:03:14 · <span class="prem-highlight" style="color:var(--color-text)">$504K</span></span>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="signal-card" onclick="openDrawer('c', 1)" style="border-left:3px solid var(--color-bear);margin-top:6px">
+      <div class="card-top">
+        <div>
+          <div class="card-contract">SPX 5800 <span class="right-put">P</span> May-31</div>
+          <div style="font-size:var(--text-xs);color:var(--color-text-muted);margin-top:2px">7 DTE · $9.10 × 600</div>
+        </div>
+        <div class="card-score-chip">
+          <span class="score-dot" style="background:var(--color-score-elite)"></span>
+          <span class="card-score-num" style="color:var(--color-score-elite)">84</span>
+          <span class="score-intent intent-bear">▼</span>
+        </div>
+      </div>
+      <div class="card-meta">
+        <span class="flow-struct sweep">SWEEP ⇧</span>
+        <span>at_ask</span>
+        <span class="oc-open">OPEN 0.78</span>
+        <span style="color:var(--color-text-dim)">+OI 410</span>
+      </div>
+      <div style="margin-bottom:8px">
+        <div class="breakdown-bar" id="bd-c-1" style="height:10px"></div>
+        <div class="bd-legend"><span class="bd-lbl">P</span><span class="bd-lbl">S</span><span class="bd-lbl">A</span><span class="bd-lbl">W</span><span class="bd-lbl">O</span><span class="bd-lbl">T</span></div>
+      </div>
+      <div class="card-footer">
+        <div class="tags-row">
+          <span class="tag tag-golden">golden</span>
+          <span class="tag tag-sweep">sweep</span>
+          <span class="tag tag-opening">opening</span>
+        </div>
+        <span style="font-size:10px;color:var(--color-text-muted)">12:01:58 · <span class="prem-highlight" style="color:var(--color-text)">$546K</span></span>
+      </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="signal-card" onclick="openDrawer('c', 2)" style="border-left:3px solid var(--color-bull);margin-top:6px">
+      <div class="card-top">
+        <div>
+          <div class="card-contract">SPX 5900 <span class="right-call">C</span> Jun-21</div>
+          <div style="font-size:var(--text-xs);color:var(--color-text-muted);margin-top:2px">28 DTE · $2.80 × 800</div>
+        </div>
+        <div class="card-score-chip">
+          <span class="score-dot" style="background:var(--color-score-high)"></span>
+          <span class="card-score-num" style="color:var(--color-score-high)">71</span>
+          <span class="score-intent intent-bull">▲</span>
+        </div>
+      </div>
+      <div class="card-meta">
+        <span class="flow-struct block">BLOCK ⇧</span>
+        <span>at_ask</span>
+        <span class="oc-close">CLOSE 0.65</span>
+        <span style="color:var(--color-text-dim)">−OI 120</span>
+      </div>
+      <div style="margin-bottom:8px">
+        <div class="breakdown-bar" id="bd-c-2" style="height:10px"></div>
+        <div class="bd-legend"><span class="bd-lbl">P</span><span class="bd-lbl">S</span><span class="bd-lbl">A</span><span class="bd-lbl">W</span><span class="bd-lbl">O</span><span class="bd-lbl">T</span></div>
+      </div>
+      <div class="card-footer">
+        <div class="tags-row">
+          <span class="tag tag-block">block</span>
+          <span class="tag tag-closing">closing</span>
+        </div>
+        <span style="font-size:10px;color:var(--color-text-muted)">11:58:42 · <span class="prem-highlight" style="color:var(--color-text)">$224K</span></span>
+      </div>
+    </div>
+  </div>
+</div><!-- /variant-c -->
+
+<!-- ════════════════════════════════════════ -->
+<!-- DETAIL DRAWER (shared)                   -->
+<!-- ════════════════════════════════════════ -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<!-- note: overlay click only fires when not pinned (overlay hidden when docked) -->
+<div class="drawer" id="signal-drawer">
+  <div class="drawer-header">
+    <div style="flex:1;min-width:0">
+      <div class="drawer-title" id="drawer-title">SPX 5850 C  Jun-21 (28 DTE)</div>
+      <div class="drawer-sub" id="drawer-sub">12:03:14 ET · SWEEP · above_ask</div>
+    </div>
+    <div class="drawer-actions">
+      <button class="drawer-pin" id="pin-btn" onclick="togglePin()" title="Dock drawer alongside tape">
+        <span id="pin-icon">◫</span>
+        <span id="pin-label">Dock</span>
+      </button>
+      <button class="drawer-close" id="close-btn" onclick="forceCloseDrawer()">✕</button>
+    </div>
+  </div>
+
+  <!-- Score section -->
+  <div class="drawer-section">
+    <div class="drawer-section-title">Score</div>
+    <div class="score-row">
+      <div class="score-big" id="drawer-score" style="color:var(--color-score-elite)">
+        <span class="score-dot" style="background:var(--color-score-elite);width:10px;height:10px;display:inline-block;border-radius:50%;margin-right:6px"></span>92
+      </div>
+      <span class="conviction-badge conviction-high">HIGH</span>
+    </div>
+    <div class="drawer-section-title" style="margin-bottom:8px">Breakdown</div>
+    <div class="bd-detail-row">
+      <span class="bd-detail-label">premium</span>
+      <span class="bd-detail-val">18</span>
+      <div class="bd-detail-bar"><div class="bd-detail-fill" style="width:90%;background:#3b82f6"></div></div>
+    </div>
+    <div class="bd-detail-row">
+      <span class="bd-detail-label">size_vs_oi</span>
+      <span class="bd-detail-val">16</span>
+      <div class="bd-detail-bar"><div class="bd-detail-fill" style="width:80%;background:#22c55e"></div></div>
+    </div>
+    <div class="bd-detail-row">
+      <span class="bd-detail-label">aggressor</span>
+      <span class="bd-detail-val">14</span>
+      <div class="bd-detail-bar"><div class="bd-detail-fill" style="width:70%;background:#f59e0b"></div></div>
+    </div>
+    <div class="bd-detail-row">
+      <span class="bd-detail-label">sweep</span>
+      <span class="bd-detail-val">20</span>
+      <div class="bd-detail-bar"><div class="bd-detail-fill" style="width:100%;background:#a78bfa"></div></div>
+    </div>
+    <div class="bd-detail-row">
+      <span class="bd-detail-label">opening_bias</span>
+      <span class="bd-detail-val">14</span>
+      <div class="bd-detail-bar"><div class="bd-detail-fill" style="width:70%;background:#34d399"></div></div>
+    </div>
+    <div class="bd-detail-row">
+      <span class="bd-detail-label">tenor</span>
+      <span class="bd-detail-val">10</span>
+      <div class="bd-detail-bar"><div class="bd-detail-fill" style="width:50%;background:#94a3b8"></div></div>
+    </div>
+  </div>
+
+  <!-- Greeks -->
+  <div class="drawer-section">
+    <div class="drawer-section-title">Greeks</div>
+    <div class="greek-grid">
+      <div class="greek-cell"><span class="greek-label">IV</span><span class="greek-val">18.2%</span></div>
+      <div class="greek-cell"><span class="greek-label">δ delta</span><span class="greek-val">0.42</span></div>
+      <div class="greek-cell"><span class="greek-label">γ gamma</span><span class="greek-val">0.012</span></div>
+      <div class="greek-cell"><span class="greek-label">IV vs ATM</span><span class="greek-val" style="color:var(--color-bull)">+1.4 vol</span></div>
+      <div class="greek-cell"><span class="greek-label">Moneyness</span><span class="greek-val" style="color:var(--color-text-muted)">OTM</span></div>
+    </div>
+  </div>
+
+  <!-- Notional -->
+  <div class="drawer-section">
+    <div class="drawer-section-title">Notional</div>
+    <div class="notional-row">
+      <span class="notional-label">δ-notional</span>
+      <span class="notional-val">$50.4M</span>
+    </div>
+    <div class="notional-row">
+      <span class="notional-label">GEX impact (if opening)</span>
+      <span class="notional-val" style="color:var(--color-bull)">+$1.8M γ$</span>
+    </div>
+  </div>
+
+  <!-- Chain context -->
+  <div class="drawer-section">
+    <div class="drawer-section-title">Chain Context</div>
+    <div class="chain-row">
+      <span class="chain-label">spot</span>
+      <span class="chain-val chain-spot">5,832.40</span>
+    </div>
+    <div class="chain-row">
+      <span class="chain-label">call wall</span>
+      <span class="chain-val at-strike">5,850 ← at strike</span>
+    </div>
+    <div class="chain-row">
+      <span class="chain-label">put wall</span>
+      <span class="chain-val" style="color:var(--color-bear)">5,780</span>
+    </div>
+    <div class="chain-row">
+      <span class="chain-label">γ flip</span>
+      <span class="chain-val" style="color:var(--color-text-muted)">5,820</span>
+    </div>
+  </div>
+
+  <!-- Tags -->
+  <div class="drawer-section">
+    <div class="drawer-section-title">Tags</div>
+    <div class="tags-row">
+      <span class="tag tag-whale">whale</span>
+      <span class="tag tag-golden">golden</span>
+      <span class="tag tag-sweep">sweep</span>
+      <span class="tag tag-opening">opening</span>
+    </div>
+  </div>
+
+  <!-- Raw JSON -->
+  <div class="drawer-section">
+    <button class="raw-toggle" onclick="toggleRaw()">▶ Show raw JSON</button>
+    <div class="raw-json" id="raw-json">{
+  "ts": "2026-05-25T12:03:14-04:00",
+  "symbol": "SPX",
+  "expiry": "2026-06-21",
+  "strike": 5850,
+  "right": "C",
+  "side": "BUY",
+  "price": 4.20,
+  "size": 1200,
+  "premium": 504000,
+  "dte": 28,
+  "structure": "sweep",
+  "aggressor": "above_ask",
+  "open_close_bias": "open",
+  "open_close_confidence": 0.92,
+  "intent": "bullish",
+  "score": 92,
+  "conviction": "high",
+  "tags": ["whale","golden","sweep","opening"],
+  "score_breakdown": {
+    "premium": 18,
+    "size_vs_oi": 16,
+    "aggressor": 14,
+    "sweep": 20,
+    "opening_bias": 14,
+    "tenor": 10
+  }
+}</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SKETCH TOOLBAR                           -->
+<!-- ════════════════════════════════════════ -->
+<div id="sketch-tools" style="position:fixed;bottom:12px;right:12px;z-index:9999;font-family:system-ui;font-size:12px;background:rgba(0,0,0,0.8);color:white;padding:8px 12px;border-radius:8px;opacity:0.35;transition:opacity 0.2s;display:flex;flex-direction:column;gap:6px" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.35'">
+  <div style="font-size:10px;color:#888;margin-bottom:2px">001 UOA Tape</div>
+  <select style="background:#222;color:white;border:1px solid #444;border-radius:4px;padding:2px 6px;font-size:11px" onchange="document.querySelector('link[href*=themes]').href='../themes/'+this.value+'.css'">
+    <option value="default">Dark Terminal</option>
+  </select>
+  <div style="display:flex;gap:4px">
+    <button onclick="setViewport(375)" style="background:#333;color:white;border:none;border-radius:4px;padding:3px 6px;cursor:pointer;font-size:10px">📱</button>
+    <button onclick="setViewport(768)" style="background:#333;color:white;border:none;border-radius:4px;padding:3px 6px;cursor:pointer;font-size:10px">⬜</button>
+    <button onclick="setViewport(null)" style="background:#333;color:white;border:none;border-radius:4px;padding:3px 6px;cursor:pointer;font-size:10px">🖥</button>
+  </div>
+  <div style="display:flex;gap:4px">
+    <button onclick="cycleState('a')" style="background:#333;color:white;border:none;border-radius:4px;padding:3px 6px;cursor:pointer;font-size:10px">cycle states</button>
+  </div>
+</div>
+
+<script>
+// ── Variant switching ──────────────────────
+function showVariant(id, btn) {
+  document.querySelectorAll('.variant').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.variant-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('variant-' + id).classList.add('active');
+  btn.classList.add('active');
+  closeDrawer();
+}
+
+// ── Breakdown bars ─────────────────────────
+const SIGNALS = [
+  { premium: 18, size_vs_oi: 16, aggressor: 14, sweep: 20, opening_bias: 14, tenor: 10 }, // 92 BULL
+  { premium: 14, size_vs_oi: 12, aggressor: 16, sweep: 22, opening_bias: 12, tenor: 8  }, // 84 BEAR
+  { premium: 12, size_vs_oi: 10, aggressor: 14, sweep:  0, opening_bias: 12, tenor: 13 }, // 71 BULL BLOCK
+  { premium: 10, size_vs_oi: 14, aggressor: 12, sweep: 18, opening_bias: 10, tenor: 4  }, // 68 BEAR
+  { premium:  8, size_vs_oi:  8, aggressor: 10, sweep:  0, opening_bias: 14, tenor: 13 }, // 63 BULL BLOCK
+];
+const SEG_COLORS = ['#3b82f6','#22c55e','#f59e0b','#a78bfa','#34d399','#94a3b8'];
+const SEG_KEYS   = ['premium','size_vs_oi','aggressor','sweep','opening_bias','tenor'];
+
+function renderBars() {
+  ['a','b','c'].forEach(v => {
+    SIGNALS.forEach((sig, i) => {
+      const el = document.getElementById(`bd-${v}-${i}`);
+      if (!el) return;
+      el.innerHTML = '';
+      const total = SEG_KEYS.reduce((s,k) => s + sig[k], 0);
+      const parentW = el.parentElement.offsetWidth || 100;
+      SEG_KEYS.forEach((k, j) => {
+        const seg = document.createElement('div');
+        seg.className = 'bd-seg';
+        seg.style.background = SEG_COLORS[j];
+        seg.style.width = ((sig[k] / (total || 1)) * 100) + '%';
+        seg.title = `${k}: ${sig[k]}`;
+        el.appendChild(seg);
+      });
+    });
+  });
+}
+
+// ── Pill toggles ──────────────────────────
+function setPill(btn, group) {
+  btn.closest('.pill-group').querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Intent toggles ────────────────────────
+function setIntent(btn, group) {
+  const grp = btn.closest('.toggle-group');
+  grp.querySelectorAll('.toggle').forEach(t => { t.className = 'toggle'; });
+  const txt = btn.textContent.trim();
+  if (txt.includes('BULL') || txt === '▲') btn.classList.add('active-bull');
+  else if (txt.includes('BEAR') || txt === '▼') btn.classList.add('active-bear');
+  else btn.classList.add('active-all');
+}
+
+// ── Structure toggles ─────────────────────
+function setStruct(btn, group) {
+  btn.closest('.toggle-group').querySelectorAll('.toggle').forEach(t => { t.className = 'toggle'; });
+  const txt = btn.textContent.trim();
+  if (txt.includes('SWEEP') || txt === 'SWP') btn.classList.add('active-swp');
+  else btn.classList.add('active-all');
+}
+
+// ── Symbol cycling ────────────────────────
+const SYMS = ['SPX','SPY','QQQ','AAPL','NVDA'];
+let symIdx = 0;
+function cycleSym(pill) {
+  symIdx = (symIdx + 1) % SYMS.length;
+  pill.querySelector('span').textContent = SYMS[symIdx];
+}
+
+// ── Refresh simulation ─────────────────────
+function doRefresh(v) {
+  const rows = document.querySelectorAll(`#variant-${v} .signal-row`);
+  rows.forEach(r => { r.style.opacity = '0.4'; });
+  setTimeout(() => rows.forEach(r => { r.style.opacity = '1'; }), 600);
+}
+
+// ── Drawer ────────────────────────────────
+let isPinned = false;
+
+function openDrawer(v, idx) {
+  document.getElementById('signal-drawer').classList.add('open');
+  if (!isPinned) {
+    document.getElementById('drawer-overlay').classList.add('open');
+  }
+  // highlight active row
+  document.querySelectorAll('.signal-row').forEach(r => r.style.background = '');
+  const rows = document.querySelectorAll(`#variant-${v} .signal-row`);
+  if (rows[idx]) rows[idx].style.background = 'var(--color-surface-2)';
+}
+
+function closeDrawer() {
+  if (isPinned) return; // pinned drawer can only be closed via ✕ after unpinning
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('signal-drawer').classList.remove('open');
+  document.querySelectorAll('.signal-row').forEach(r => r.style.background = '');
+}
+
+function forceCloseDrawer() {
+  if (isPinned) { isPinned = false; applyPinState(); }
+  document.getElementById('drawer-overlay').classList.remove('open');
+  document.getElementById('signal-drawer').classList.remove('open');
+  document.querySelectorAll('.signal-row').forEach(r => r.style.background = '');
+}
+
+function togglePin() {
+  isPinned = !isPinned;
+  applyPinState();
+}
+
+function applyPinState() {
+  const btn = document.getElementById('pin-btn');
+  const icon = document.getElementById('pin-icon');
+  const label = document.getElementById('pin-label');
+  const closeBtn = document.getElementById('close-btn');
+  if (isPinned) {
+    document.body.classList.add('docked');
+    btn.classList.add('pinned');
+    icon.textContent = '◧';
+    label.textContent = 'Undock';
+    // overlay off, keep drawer open
+    document.getElementById('drawer-overlay').classList.remove('open');
+    document.getElementById('signal-drawer').classList.add('open');
+    // re-render bars now tape is narrower
+    setTimeout(renderBars, 260);
+  } else {
+    document.body.classList.remove('docked');
+    btn.classList.remove('pinned');
+    icon.textContent = '◫';
+    label.textContent = 'Dock';
+  }
+}
+
+// ── Raw JSON toggle ───────────────────────
+function toggleRaw() {
+  const el = document.getElementById('raw-json');
+  const btn = document.querySelector('.raw-toggle');
+  if (el.style.display === 'block') {
+    el.style.display = 'none'; btn.textContent = '▶ Show raw JSON';
+  } else {
+    el.style.display = 'block'; btn.textContent = '▼ Hide raw JSON';
+  }
+}
+
+// ── State cycling ─────────────────────────
+const STATES = ['populated', 'loading', 'empty', 'error'];
+let stateIdx = 0;
+function cycleState(v) {
+  stateIdx = (stateIdx + 1) % STATES.length;
+  const tape = document.querySelector(`#variant-${v} .tape-content, #variant-${v} [style*="overflow-y:auto"]`);
+  if (!tape) return;
+  if (STATES[stateIdx] === 'loading') {
+    tape.innerHTML = `<div style="padding:12px;display:flex;flex-direction:column;gap:8px">
+      ${[...Array(4)].map(() => `<div style="display:grid;grid-template-columns:52px 72px 1fr 160px 120px;gap:8px;padding:8px 0">
+        <div class="skel" style="height:36px;border-radius:3px"></div>
+        <div class="skel" style="height:14px;margin-top:8px;border-radius:3px"></div>
+        <div style="padding:0 8px"><div class="skel" style="height:14px;margin-bottom:6px;border-radius:3px"></div><div class="skel" style="height:10px;width:60%;border-radius:3px"></div></div>
+        <div class="skel" style="height:36px;border-radius:3px"></div>
+        <div class="skel" style="height:14px;margin-top:8px;border-radius:3px"></div>
+      </div>`).join('')}
+    </div>`;
+  } else if (STATES[stateIdx] === 'empty') {
+    tape.innerHTML = `<div class="empty-state"><strong>No signals match</strong>Lower minScore or widen the window.</div>`;
+  } else if (STATES[stateIdx] === 'error') {
+    tape.innerHTML = `<div class="empty-state"><strong style="color:var(--color-bear)">Failed to fetch signals</strong><span style="font-size:var(--text-sm)">flash_alpha returned 503 — retrying in 30s</span></div>`;
+  } else {
+    location.reload();
+  }
+}
+
+// ── Viewport ──────────────────────────────
+function setViewport(w) {
+  document.body.style.maxWidth = w ? w + 'px' : '';
+  document.body.style.margin = w ? '0 auto' : '';
+}
+
+// ── Clock ─────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const et = now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour12: false, hour:'2-digit', minute:'2-digit' });
+  document.querySelectorAll('.clock').forEach(el => el.textContent = et + ' ET');
+}
+updateClock();
+setInterval(updateClock, 10000);
+
+// ── Init ──────────────────────────────────
+renderBars();
+</script>
+</body>
+</html>

@@ -113,7 +113,7 @@ export const fetchFlowWatchlist = (symbols, opts) => ...
 - `SignalTape.jsx` — virtualised list of `SignalRow` (use existing list patterns; recharts not needed here).
 - `SignalRow.jsx` — single row, see UI mockup below.
 - `ScoreBreakdownBar.jsx` — stacked horizontal bar showing the six component contributions summing to the composite score; hover tooltip per segment.
-- `SignalDetailDrawer.jsx` — right-side drawer on row click: full enrichment (IV/δ/γ, IV vs ATM, moneyness, delta-notional, hypothetical GEX impact), chain context anchors (call wall / put wall / γ flip relative to strike), raw JSON toggle.
+- `SignalDetailDrawer.jsx` — right-side drawer on row click: full enrichment (IV/δ/γ, IV vs ATM, moneyness, delta-notional, hypothetical GEX impact), chain context anchors (call wall / put wall / γ flip relative to strike), raw JSON toggle. Supports **dock/pin mode**: a "Dock" button in the drawer header pins the panel alongside the tape (split-pane); the tape insets `margin-right: 380px` and the dim overlay is hidden. Clicking new rows updates the pinned drawer without closing it. The active row is highlighted. Clicking ✕ always closes and undocks. Pin state persisted to `localStorage` under `uoa-drawer-pinned`.
 
 Reuse existing primitives: `components/ui/{card,badge,button,tabs,skeleton}.jsx`, `lib/format.js` (extend with `fmtPremium`, `fmtScore`, `fmtMoneyness`), `lib/utils.js` (`cn`).
 
