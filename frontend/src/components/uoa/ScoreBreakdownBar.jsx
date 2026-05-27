@@ -1,12 +1,13 @@
 import { cn } from "@/lib/utils"
 
+// Colors mirror the sketch: P=blue, S=green, A=amber, W=purple, O=teal, T=slate
 const SEGMENTS = [
-  { key: "premium", label: "P", color: "bg-blue-500" },
-  { key: "size_vs_oi", label: "S", color: "bg-violet-500" },
-  { key: "aggressor", label: "A", color: "bg-cyan-500" },
-  { key: "sweep", label: "W", color: "bg-amber-500" },
-  { key: "opening_bias", label: "O", color: "bg-emerald-500" },
-  { key: "tenor", label: "T", color: "bg-rose-500" },
+  { key: "premium",      label: "P", color: "#3b82f6" },
+  { key: "size_vs_oi",   label: "S", color: "#22c55e" },
+  { key: "aggressor",    label: "A", color: "#f59e0b" },
+  { key: "sweep",        label: "W", color: "#a78bfa" },
+  { key: "opening_bias", label: "O", color: "#34d399" },
+  { key: "tenor",        label: "T", color: "#94a3b8" },
 ]
 
 export default function ScoreBreakdownBar({ breakdown, score, compact = false }) {
@@ -22,8 +23,8 @@ export default function ScoreBreakdownBar({ breakdown, score, compact = false })
           return (
             <div
               key={key}
-              className={cn("h-full transition-all", color)}
-              style={{ width: `${pct}%` }}
+              className="h-full transition-all"
+              style={{ width: `${pct}%`, background: color }}
               title={`${key.replace(/_/g, " ")}: ${val}`}
             />
           )
@@ -34,8 +35,8 @@ export default function ScoreBreakdownBar({ breakdown, score, compact = false })
           {SEGMENTS.map(({ key, label, color }) => (
             <div
               key={key}
-              className={cn("text-[8px] font-mono leading-none text-center", color.replace("bg-", "text-"))}
-              style={{ width: `${100 / SEGMENTS.length}%` }}
+              className="text-[8px] font-mono leading-none text-center"
+              style={{ width: `${100 / SEGMENTS.length}%`, color }}
             >
               {label}
             </div>

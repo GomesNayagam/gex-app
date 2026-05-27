@@ -10,8 +10,26 @@ export default function SignalTape({ signals, onSelect, activeSignal }) {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      {signals.map((signal, i) => (
+    <>
+      <div
+        className="shrink-0 grid font-mono uppercase tracking-widest"
+        style={{
+          gridTemplateColumns: "52px 64px 1fr 150px 110px",
+          padding: "4px 12px",
+          background: "#111118",
+          borderBottom: "1px solid #1e1e2a",
+          fontSize: "9px",
+          color: "#3d3d50",
+        }}
+      >
+        <div>SCORE</div>
+        <div>TIME</div>
+        <div>CONTRACT</div>
+        <div>FLOW</div>
+        <div>BREAKDOWN</div>
+      </div>
+      <div className="flex-1 overflow-y-auto">
+        {signals.map((signal, i) => (
         <SignalRow
           key={`${signal.ts}-${signal.strike}-${signal.right}-${i}`}
           signal={signal}
@@ -19,6 +37,7 @@ export default function SignalTape({ signals, onSelect, activeSignal }) {
           isActive={activeSignal && signal.ts === activeSignal.ts && signal.strike === activeSignal.strike}
         />
       ))}
-    </div>
+      </div>
+    </>
   )
 }
