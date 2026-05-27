@@ -2,7 +2,7 @@ export default function UOATabsRow({ watchlist, activeSymbol, allData, onSelect 
   return (
     <div
       className="shrink-0 flex items-stretch overflow-x-auto"
-      style={{ background: "#111118", borderBottom: "1px solid #1e1e2a" }}
+      style={{ background: "#0a0a0f", borderBottom: "1px solid #1e1e2a" }}
     >
       {watchlist.map((sym) => {
         const entry = allData[sym]
@@ -26,7 +26,7 @@ export default function UOATabsRow({ watchlist, activeSymbol, allData, onSelect 
               paddingBottom: "6px",
               borderRight: "1px solid #1e1e2a",
               borderBottom: isActive ? "2px solid #3b82f6" : "2px solid transparent",
-              background: isActive ? "#0f0f18" : "transparent",
+              background: isActive ? "#1a1a2a" : "transparent",
               color: isActive ? "#e2e2e8" : "#6b6b80",
             }}
           >

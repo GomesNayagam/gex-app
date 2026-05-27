@@ -101,11 +101,43 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain }) {
       <div className={drawerCls}>
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] shrink-0">
-          <span className="text-[var(--text-1)] font-semibold">
-            {signal.strike?.toLocaleString()} {signal.right}{" "}
-            {signal.expiry?.slice(5)} ({signal.dte}d)
-          </span>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-0.5 min-w-0">
+            <span className="text-[var(--text-1)] font-semibold font-mono">
+              {signal.strike?.toLocaleString()} {signal.right}{" "}
+              {signal.expiry?.slice(5)} ({signal.dte}d)
+            </span>
+            <button
+              onClick={() => {
+                const sym = symbol;
+                const expiry = signal.expiry;
+                if (!sym || !expiry) return;
+                try {
+                  const saved = localStorage.getItem("expiry-panels");
+                  const panels = saved ? JSON.parse(saved) : [];
+                  const exists = panels.find(
+                    (p) => p.symbol === sym && p.date === expiry,
+                  );
+                  if (!exists) {
+                    panels.push({
+                      id: `${sym}-${expiry}-${Date.now()}`,
+                      symbol: sym,
+                      date: expiry,
+                      pinned: false,
+                    });
+                    localStorage.setItem(
+                      "expiry-panels",
+                      JSON.stringify(panels),
+                    );
+                  }
+                } catch {}
+                navigate("/expiry");
+              }}
+              className="text-left text-[10px] text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              View {symbol} {signal.expiry} in GEX ladder →
+            </button>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 ml-2">
             <button
               onClick={() => setPinned((p) => !p)}
               className={cn(
@@ -255,51 +287,6 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain }) {
           </div>
 
           <hr className="border-[var(--border)]" />
-
-          {/* Tags */}
-          <div>
-            <div className="text-[var(--text-3)] uppercase tracking-wider text-[10px] mb-2">
-              Tags
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {(signal.tags || []).map((tag) => (
-                <span
-                  key={tag}
-                  className="px-1.5 py-0.5 rounded-sm text-[10px] font-mono uppercase tracking-wide"
-                  style={
-                    TAG_STYLE[tag] || {
-                      border: "1px solid #374151",
-                      color: "#6b7280",
-                    }
-                  }
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Deep link to GEX ladder */}
-          <button
-            onClick={() => {
-              const sym = symbol
-              const expiry = signal.expiry
-              if (!sym || !expiry) return
-              try {
-                const saved = localStorage.getItem("expiry-panels")
-                const panels = saved ? JSON.parse(saved) : []
-                const exists = panels.find(p => p.symbol === sym && p.date === expiry)
-                if (!exists) {
-                  panels.push({ id: `${sym}-${expiry}-${Date.now()}`, symbol: sym, date: expiry, pinned: false })
-                  localStorage.setItem("expiry-panels", JSON.stringify(panels))
-                }
-              } catch {}
-              navigate("/expiry")
-            }}
-            className="text-blue-400 hover:text-blue-300 text-[10px] underline text-left"
-          >
-            View {symbol} {signal.expiry} in GEX ladder →
-          </button>
 
           {/* Raw JSON toggle */}
           <div>
