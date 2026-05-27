@@ -6,6 +6,7 @@ import {
   Settings2,
   ChevronLeft,
   ChevronRight,
+  Flame,
 } from "lucide-react";
 import { useSidebar } from "@/hooks/useSidebar";
 import { cn } from "@/lib/utils";
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
   { to: "/b3", icon: LayoutGrid, label: "B3 Mode" },
   { to: "/watch", icon: Star, label: "Watchlist" },
   { to: "/expiry", icon: CalendarRange, label: "Gamma Horizon" },
+  { to: "/uoa", icon: Flame, label: "Flow Signals" },
   { to: "/settings", icon: Settings2, label: "Settings" },
 ];
 

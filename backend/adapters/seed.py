@@ -1,5 +1,9 @@
 from datetime import datetime, timezone
-from backend.models import InstrumentGEX, Strike, KeyLevel
+from backend.models import (
+    InstrumentGEX, Strike, KeyLevel,
+    FlowSignalsResponse, FlowSignalsSummary, FlowSignal,
+    ScoreBreakdown, SignalEnrichment, ChainContext,
+)
 
 
 def _make_strikes(raw: list[tuple]) -> list[Strike]:
@@ -127,6 +131,63 @@ _FACTORIES = {
 }
 
 
+_SEED_SIGNALS = [
+    FlowSignal(
+        ts="2026-05-25T12:03:14Z", expiry="2026-06-21", strike=5850.0, right="C",
+        side="buy", price=4.20, size=1200, premium=504000.0, dte=28,
+        structure="sweep", aggressor="above_ask",
+        open_close_bias="open", open_close_confidence=0.92, contract_net_oi_delta=850.0,
+        intent="bullish", score=92.0, conviction="high",
+        tags=["whale", "golden", "sweep", "opening"],
+        score_breakdown=ScoreBreakdown(premium=18, size_vs_oi=16, aggressor=14, sweep=20, opening_bias=14, tenor=10),
+        enrichment=SignalEnrichment(iv=0.182, delta=0.42, gamma=0.012, iv_vs_atm=1.4, moneyness="OTM",
+                                    estimated_delta_notional=50400000.0, hypothetical_gex_impact_if_opening=1800000.0),
+    ),
+    FlowSignal(
+        ts="2026-05-25T12:01:58Z", expiry="2026-05-31", strike=5800.0, right="P",
+        side="buy", price=9.10, size=600, premium=546000.0, dte=7,
+        structure="sweep", aggressor="at_ask",
+        open_close_bias="open", open_close_confidence=0.78, contract_net_oi_delta=410.0,
+        intent="bearish", score=84.0, conviction="high",
+        tags=["golden", "sweep", "opening"],
+        score_breakdown=ScoreBreakdown(premium=15, size_vs_oi=14, aggressor=16, sweep=18, opening_bias=12, tenor=9),
+        enrichment=SignalEnrichment(iv=0.215, delta=-0.38, gamma=0.018, iv_vs_atm=2.1, moneyness="OTM"),
+    ),
+    FlowSignal(
+        ts="2026-05-25T11:58:42Z", expiry="2026-06-21", strike=5900.0, right="C",
+        side="buy", price=2.80, size=800, premium=224000.0, dte=28,
+        structure="block", aggressor="at_ask",
+        open_close_bias="close", open_close_confidence=0.65, contract_net_oi_delta=-120.0,
+        intent="bullish", score=71.0, conviction="medium",
+        tags=["block", "closing"],
+        score_breakdown=ScoreBreakdown(premium=12, size_vs_oi=10, aggressor=14, sweep=10, opening_bias=15, tenor=10),
+        enrichment=SignalEnrichment(iv=0.165, delta=0.28, gamma=0.009, moneyness="OTM"),
+    ),
+]
+
+
+def _seed_flow_signals_spx() -> FlowSignalsResponse:
+    now = datetime.now(timezone.utc).isoformat()
+    return FlowSignalsResponse(
+        symbol="SPX", as_of=now, underlying_price=5832.40,
+        window_minutes=240,
+        chain=ChainContext(call_wall=5850.0, put_wall=5780.0, max_pain=5820.0, gamma_flip=5820.0),
+        count=len(_SEED_SIGNALS), signals=_SEED_SIGNALS,
+    )
+
+
+def _seed_flow_summary_spx() -> FlowSignalsSummary:
+    now = datetime.now(timezone.utc).isoformat()
+    return FlowSignalsSummary(
+        symbol="SPX", as_of=now, window_minutes=240, expiry=None,
+        underlying_price=5832.40, signal_count=14,
+        bullish_premium=18200000.0, bearish_premium=6400000.0,
+        net_directional_premium=11800000.0,
+        opening_premium=21300000.0, closing_premium=3400000.0,
+        top_signals=_SEED_SIGNALS[:2],
+    )
+
+
 class SeedAdapter:
     async def fetch(self, symbol: str, expiry: str | None = None) -> InstrumentGEX:
         sym = symbol.upper()
@@ -136,3 +197,25 @@ class SeedAdapter:
 
     async def available_symbols(self) -> list[str]:
         return list(_FACTORIES.keys())
+
+    async def fetch_flow_signals(
+        self, symbol: str, *, window_minutes: int, min_score: int,
+        intent: str | None, structure: str | None, expiry: str | None, limit: int
+    ) -> FlowSignalsResponse:
+        result = _seed_flow_signals_spx()
+        filtered = [s for s in result.signals if s.score >= min_score]
+        if intent:
+            filtered = [s for s in filtered if s.intent == intent]
+        if structure:
+            filtered = [s for s in filtered if s.structure == structure]
+        filtered = filtered[:limit]
+        return FlowSignalsResponse(
+            symbol=result.symbol, as_of=result.as_of, underlying_price=result.underlying_price,
+            window_minutes=window_minutes, chain=result.chain,
+            count=len(filtered), signals=filtered,
+        )
+
+    async def fetch_flow_signals_summary(
+        self, symbol: str, *, window_minutes: int, expiry: str | None
+    ) -> FlowSignalsSummary:
+        return _seed_flow_summary_spx()

@@ -32,3 +32,14 @@ export function fmtOI(v) {
   if (v >= 1e3) return (v / 1e3).toFixed(0) + "K";
   return String(v);
 }
+
+export function fmtPremium(v) {
+  const a = Math.abs(v);
+  if (a >= 1e6) return "$" + (a / 1e6).toFixed(1) + "M";
+  if (a >= 1e3) return "$" + (a / 1e3).toFixed(0) + "K";
+  return "$" + a.toFixed(0);
+}
+
+export function fmtScore(v) {
+  return Math.round(v).toString();
+}
