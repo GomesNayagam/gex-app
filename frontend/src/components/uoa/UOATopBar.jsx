@@ -1,5 +1,4 @@
 import { RefreshCw } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 const WINDOW_OPTIONS = [
   { label: "60m", value: 60 },
@@ -15,26 +14,6 @@ export default function UOATopBar({ filters, setFilters, refresh, elapsed, REFRE
 
   return (
     <div className="shrink-0 border-b border-[var(--border)] bg-[var(--surface-1)] px-4 py-2 flex flex-wrap items-center gap-3 font-mono text-[11px]">
-      {/* Symbol selector */}
-      <div className="flex items-center gap-1.5">
-        <span className="text-[var(--text-3)]">SYM</span>
-        {["SPX", "SPY", "QQQ"].map((sym) => (
-          <button
-            key={sym}
-            onClick={() => setFilters({ symbol: sym })}
-            className={cn(
-              "px-2 py-0.5 rounded-sm border transition-colors",
-              filters.symbol === sym
-                ? "border-blue-500 bg-blue-500/10 text-[var(--text-1)]"
-                : "border-[var(--border)] text-[var(--text-2)] hover:text-[var(--text-1)]"
-            )}
-          >
-            {sym}
-          </button>
-        ))}
-      </div>
-
-      <span className="text-[var(--border)]">·</span>
 
       {/* Window */}
       <div className="flex items-center gap-1.5">
@@ -43,19 +22,17 @@ export default function UOATopBar({ filters, setFilters, refresh, elapsed, REFRE
           <button
             key={value}
             onClick={() => setFilters({ windowMinutes: value })}
-            className={cn(
-              "px-2 py-0.5 rounded-sm border transition-colors",
-              filters.windowMinutes === value
-                ? "border-blue-500 bg-blue-500/10 text-[var(--text-1)]"
-                : "border-[var(--border)] text-[var(--text-2)] hover:text-[var(--text-1)]"
-            )}
+            className="px-2 py-0.5 rounded-sm border transition-colors"
+            style={filters.windowMinutes === value
+              ? { borderColor: "#3b82f6", background: "#3b82f6", color: "#fff" }
+              : { borderColor: "var(--border)", color: "var(--text-2)" }}
           >
             {label}
           </button>
         ))}
       </div>
 
-      <span className="text-[var(--border)]">·</span>
+      <span className="text-[var(--text-3)]">·</span>
 
       {/* Min score */}
       <div className="flex items-center gap-2">
@@ -72,53 +49,56 @@ export default function UOATopBar({ filters, setFilters, refresh, elapsed, REFRE
         <span className="text-[var(--text-1)] tabular-nums w-5">{filters.minScore}</span>
       </div>
 
-      <span className="text-[var(--border)]">·</span>
+      <span className="text-[var(--text-3)]">·</span>
 
       {/* Intent */}
-      <div className="flex items-center gap-1">
-        {INTENT_OPTIONS.map((v) => (
-          <button
-            key={v}
-            onClick={() => setFilters({ intent: v === "all" ? null : v })}
-            className={cn(
-              "px-1.5 py-0.5 rounded-sm border transition-colors uppercase tracking-wide",
-              (v === "all" ? filters.intent === null : filters.intent === v)
-                ? "border-blue-500 bg-blue-500/10 text-[var(--text-1)]"
-                : "border-[var(--border)] text-[var(--text-2)] hover:text-[var(--text-1)]"
-            )}
-          >
-            {v}
-          </button>
-        ))}
+      <div className="flex items-center gap-0.5">
+        {INTENT_OPTIONS.map((v) => {
+          const isActive = v === "all" ? filters.intent === null : filters.intent === v
+          const activeStyle =
+            v === "bullish" ? { background: "#14532d", color: "#22c55e", borderColor: "#14532d" } :
+            v === "bearish" ? { background: "#4c0519", color: "#f43f5e", borderColor: "#4c0519" } :
+            { background: "#16161f", color: "#e2e2e8", borderColor: "#333348" }
+          return (
+            <button
+              key={v}
+              onClick={() => setFilters({ intent: v === "all" ? null : v })}
+              className="px-1.5 py-0.5 rounded-sm border transition-colors uppercase tracking-wide"
+              style={isActive ? activeStyle : { borderColor: "var(--border)", color: "var(--text-2)" }}
+            >
+              {v === "all" ? "ALL" : v === "bullish" ? "▲BULL" : "▼BEAR"}
+            </button>
+          )
+        })}
       </div>
 
       {/* Structure */}
-      <div className="flex items-center gap-1">
-        {STRUCTURE_OPTIONS.map((v) => (
-          <button
-            key={v}
-            onClick={() => setFilters({ structure: v === "all" ? null : v })}
-            className={cn(
-              "px-1.5 py-0.5 rounded-sm border transition-colors uppercase tracking-wide",
-              (v === "all" ? filters.structure === null : filters.structure === v)
-                ? "border-blue-500 bg-blue-500/10 text-[var(--text-1)]"
-                : "border-[var(--border)] text-[var(--text-2)] hover:text-[var(--text-1)]"
-            )}
-          >
-            {v}
-          </button>
-        ))}
+      <div className="flex items-center gap-0.5">
+        {STRUCTURE_OPTIONS.map((v) => {
+          const isActive = v === "all" ? filters.structure === null : filters.structure === v
+          const activeStyle =
+            v === "sweep" ? { background: "#1e3a5f", color: "#3b82f6", borderColor: "#1e3a5f" } :
+            { background: "#16161f", color: "#e2e2e8", borderColor: "#333348" }
+          return (
+            <button
+              key={v}
+              onClick={() => setFilters({ structure: v === "all" ? null : v })}
+              className="px-1.5 py-0.5 rounded-sm border transition-colors uppercase tracking-wide"
+              style={isActive ? activeStyle : { borderColor: "var(--border)", color: "var(--text-2)" }}
+            >
+              {v.toUpperCase()}
+            </button>
+          )
+        })}
       </div>
 
       {/* 0DTE */}
       <button
         onClick={() => setFilters((f) => ({ zeroDte: !f.zeroDte, expiry: null }))}
-        className={cn(
-          "px-2 py-0.5 rounded-sm border transition-colors uppercase tracking-wide",
-          filters.zeroDte
-            ? "border-amber-500 bg-amber-500/10 text-amber-400"
-            : "border-[var(--border)] text-[var(--text-2)] hover:text-[var(--text-1)]"
-        )}
+        className="px-2 py-0.5 rounded-sm border transition-colors uppercase tracking-wide font-bold"
+        style={filters.zeroDte
+          ? { background: "#2d1b4e", color: "#c084fc", borderColor: "#4a2080" }
+          : { borderColor: "var(--border)", color: "var(--text-2)" }}
       >
         0DTE
       </button>

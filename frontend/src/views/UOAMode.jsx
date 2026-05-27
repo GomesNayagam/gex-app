@@ -1,15 +1,31 @@
 import { useState } from "react"
 import { useFlowSignals } from "@/hooks/useFlowSignals"
 import UOATopBar from "@/components/uoa/UOATopBar"
+import UOAWatchlistRow from "@/components/uoa/UOAWatchlistRow"
+import UOATabsRow from "@/components/uoa/UOATabsRow"
 import UOASummaryStrip from "@/components/uoa/UOASummaryStrip"
 import SignalTape from "@/components/uoa/SignalTape"
 import SignalDetailDrawer from "@/components/uoa/SignalDetailDrawer"
 
 export default function UOAMode() {
-  const { data, summary, loading, error, elapsed, refresh, filters, setFilters, REFRESH_INTERVAL } = useFlowSignals()
+  const {
+    allData,
+    activeSymbol,
+    setActiveSymbol,
+    watchlist,
+    addSymbol,
+    removeSymbol,
+    elapsed,
+    refresh,
+    filters,
+    setFilters,
+    REFRESH_INTERVAL,
+  } = useFlowSignals()
+
   const [activeSignal, setActiveSignal] = useState(null)
 
-  const drawerPinned = activeSignal !== null
+  const entry = allData[activeSymbol] ?? {}
+  const { signals: signalsData, summary, loading, error } = entry
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -21,16 +37,30 @@ export default function UOAMode() {
         REFRESH_INTERVAL={REFRESH_INTERVAL}
       />
 
+      <UOAWatchlistRow
+        watchlist={watchlist}
+        activeSymbol={activeSymbol}
+        onSelect={setActiveSymbol}
+        onAdd={addSymbol}
+        onRemove={removeSymbol}
+      />
+
+      <UOATabsRow
+        watchlist={watchlist}
+        activeSymbol={activeSymbol}
+        allData={allData}
+        onSelect={setActiveSymbol}
+      />
+
       {summary && (
         <UOASummaryStrip
           summary={summary}
-          spot={data?.underlying_price}
+          spot={signalsData?.underlying_price}
         />
       )}
 
       <div className="flex flex-1 overflow-hidden relative">
-        {/* Loading / error states */}
-        {loading && !data && (
+        {loading && !signalsData && (
           <div className="flex-1 flex items-center justify-center font-mono text-[12px] text-[var(--text-3)]">
             Loading flow signals…
           </div>
@@ -42,10 +72,10 @@ export default function UOAMode() {
           </div>
         )}
 
-        {data && (
-          <div className={`flex-1 flex flex-col overflow-hidden transition-all ${drawerPinned ? "mr-0" : ""}`}>
+        {signalsData && (
+          <div className="flex-1 flex flex-col overflow-hidden">
             <SignalTape
-              signals={data.signals}
+              signals={signalsData.signals}
               onSelect={setActiveSignal}
               activeSignal={activeSignal}
             />
@@ -55,7 +85,8 @@ export default function UOAMode() {
         {activeSignal && (
           <SignalDetailDrawer
             signal={activeSignal}
-            chain={data?.chain}
+            symbol={activeSymbol}
+            chain={signalsData?.chain}
             onClose={() => setActiveSignal(null)}
           />
         )}
