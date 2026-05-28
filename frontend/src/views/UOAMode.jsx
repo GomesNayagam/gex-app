@@ -24,7 +24,14 @@ export default function UOAMode() {
     REFRESH_INTERVAL,
   } = useFlowSignals()
 
-  const { data: lbData, loading: lbLoading, error: lbError } = useLeaderboard()
+  const {
+    data: lbData,
+    loading: lbLoading,
+    error: lbError,
+    excludeList: lbExclude,
+    addExclude: lbAddExclude,
+    removeExclude: lbRemoveExclude,
+  } = useLeaderboard()
 
   const handleLeaderboardActivate = (sym) => {
     if (!watchlist.includes(sym)) addSymbol(sym)
@@ -44,6 +51,9 @@ export default function UOAMode() {
         error={lbError}
         watchlist={watchlist}
         onActivate={handleLeaderboardActivate}
+        excludeList={lbExclude}
+        onAddExclude={lbAddExclude}
+        onRemoveExclude={lbRemoveExclude}
       />
 
       <UOATopBar

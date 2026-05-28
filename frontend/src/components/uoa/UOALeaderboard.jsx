@@ -1,3 +1,4 @@
+import { useState, useRef } from "react"
 import UOALeaderboardRow from "./UOALeaderboardRow"
 
 function LeaderboardColumn({ side, rows, watchlist, onActivate }) {
@@ -33,7 +34,57 @@ function LeaderboardColumn({ side, rows, watchlist, onActivate }) {
   )
 }
 
-export default function UOALeaderboard({ data, loading, error, watchlist, onActivate }) {
+function ExcludeChip({ symbol, onRemove }) {
+  return (
+    <span className="flex items-center gap-[3px] px-[5px] py-[1px] bg-[var(--surface-2)] border border-[var(--border)] rounded-sm font-mono text-[9px] text-[var(--text-2)]">
+      {symbol}
+      <button
+        onClick={() => onRemove(symbol)}
+        className="text-[var(--text-3)] hover:text-red-400 transition-colors leading-none"
+        title={`Un-exclude ${symbol}`}
+      >
+        ×
+      </button>
+    </span>
+  )
+}
+
+function ExcludeInput({ onAdd }) {
+  const [val, setVal] = useState("")
+  const inputRef = useRef(null)
+
+  const commit = () => {
+    const sym = val.trim().toUpperCase()
+    if (sym) { onAdd(sym); setVal("") }
+  }
+
+  return (
+    <span className="flex items-center gap-[2px]">
+      <input
+        ref={inputRef}
+        value={val}
+        onChange={(e) => setVal(e.target.value.toUpperCase())}
+        onKeyDown={(e) => { if (e.key === "Enter") commit(); if (e.key === "Escape") setVal("") }}
+        placeholder="EXCL…"
+        maxLength={6}
+        className="w-[44px] bg-transparent border border-[var(--border)] rounded-sm px-[4px] py-[1px] font-mono text-[9px] text-[var(--text-1)] placeholder:text-[var(--text-3)] outline-none focus:border-blue-500"
+      />
+      {val && (
+        <button
+          onClick={commit}
+          className="text-[9px] text-blue-400 hover:text-blue-300 font-mono px-[3px]"
+        >
+          +
+        </button>
+      )}
+    </span>
+  )
+}
+
+export default function UOALeaderboard({
+  data, loading, error, watchlist, onActivate,
+  excludeList, onAddExclude, onRemoveExclude,
+}) {
   if (loading && !data) {
     return (
       <div className="shrink-0 border-b border-[var(--border)] bg-[var(--surface-1)] px-4 py-1.5 text-[11px] text-[var(--text-3)] font-mono">
@@ -54,13 +105,18 @@ export default function UOALeaderboard({ data, loading, error, watchlist, onActi
 
   return (
     <div className="shrink-0 border-b border-[var(--border)] bg-[var(--surface-1)]">
-      {/* Strip title bar */}
-      <div className="flex items-center gap-2 px-3 py-[3px] bg-[var(--surface-1)] border-b border-[var(--border)] font-mono text-[9px]">
+      {/* Title bar with exclude chips */}
+      <div className="flex items-center flex-wrap gap-x-2 gap-y-[3px] px-3 py-[4px] bg-[var(--surface-1)] border-b border-[var(--border)] font-mono text-[9px]">
         <span className="font-bold tracking-widest uppercase text-[var(--text-2)]">Top Movers</span>
         <span className="px-[5px] py-[1px] border border-[var(--border)] rounded-sm text-[var(--text-3)]">
           {data.windowMinutes}m
         </span>
-        <span className="text-[var(--text-3)]">excl. SPX · SPY · QQQ</span>
+
+        <span className="text-[var(--text-3)]">excl.</span>
+        {(excludeList || []).map((sym) => (
+          <ExcludeChip key={sym} symbol={sym} onRemove={onRemoveExclude} />
+        ))}
+        <ExcludeInput onAdd={onAddExclude} />
       </div>
 
       <div className="grid grid-cols-2">
