@@ -1,9 +1,11 @@
 import { useState } from "react"
 import { useFlowSignals } from "@/hooks/useFlowSignals"
+import { useLeaderboard } from "@/hooks/useLeaderboard"
 import UOATopBar from "@/components/uoa/UOATopBar"
 import UOAWatchlistRow from "@/components/uoa/UOAWatchlistRow"
 import UOATabsRow from "@/components/uoa/UOATabsRow"
 import UOASummaryStrip from "@/components/uoa/UOASummaryStrip"
+import UOALeaderboard from "@/components/uoa/UOALeaderboard"
 import SignalTape from "@/components/uoa/SignalTape"
 import SignalDetailDrawer from "@/components/uoa/SignalDetailDrawer"
 
@@ -22,6 +24,20 @@ export default function UOAMode() {
     REFRESH_INTERVAL,
   } = useFlowSignals()
 
+  const {
+    data: lbData,
+    loading: lbLoading,
+    error: lbError,
+    excludeList: lbExclude,
+    addExclude: lbAddExclude,
+    removeExclude: lbRemoveExclude,
+  } = useLeaderboard()
+
+  const handleLeaderboardActivate = (sym) => {
+    if (!watchlist.includes(sym)) addSymbol(sym)
+    setActiveSymbol(sym)
+  }
+
   const [activeSignal, setActiveSignal] = useState(null)
 
   const entry = allData[activeSymbol] ?? {}
@@ -29,6 +45,17 @@ export default function UOAMode() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
+      <UOALeaderboard
+        data={lbData}
+        loading={lbLoading}
+        error={lbError}
+        watchlist={watchlist}
+        onActivate={handleLeaderboardActivate}
+        excludeList={lbExclude}
+        onAddExclude={lbAddExclude}
+        onRemoveExclude={lbRemoveExclude}
+      />
+
       <UOATopBar
         filters={filters}
         setFilters={setFilters}

@@ -1,6 +1,7 @@
 import asyncio
 from fastapi import APIRouter, Request, HTTPException, Query
-from backend.models import FlowSignalsResponse, FlowSignalsSummary
+from backend.models import FlowSignalsResponse, FlowSignalsSummary, LeaderboardResponse
+from backend.services.cache import cache
 
 router = APIRouter(prefix="/api/flow", tags=["flow-signals"])
 
@@ -14,7 +15,7 @@ async def get_flow_signals(
     intent: str | None = Query(None),
     structure: str | None = Query(None),
     expiry: str | None = Query(None),
-    limit: int = Query(50, ge=1, le=200),
+    limit: int = Query(10, ge=1, le=60),
 ):
     adapter = request.app.state.adapter
     try:
@@ -63,3 +64,22 @@ async def get_flow_watchlist(
     ]
     results = await asyncio.gather(*tasks, return_exceptions=True)
     return [r for r in results if not isinstance(r, Exception)]
+
+
+@router.get("/leaderboard", response_model=LeaderboardResponse)
+async def get_leaderboard(
+    request: Request,
+    window: int = Query(60, ge=1, le=1440),
+    n: int = Query(15, ge=1, le=50),
+):
+    cache_key = f"leaderboard:{window}:{n}"
+    cached = cache.get(cache_key)
+    if cached:
+        return cached
+    adapter = request.app.state.adapter
+    try:
+        result = await adapter.fetch_leaderboard(window_minutes=window, n=n)
+        cache.set(cache_key, result)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=str(e))
