@@ -3,6 +3,7 @@ from backend.models import (
     InstrumentGEX, Strike, KeyLevel,
     FlowSignalsResponse, FlowSignalsSummary, FlowSignal,
     ScoreBreakdown, SignalEnrichment, ChainContext,
+    LeaderboardEntry, LeaderboardResponse,
 )
 
 
@@ -219,3 +220,22 @@ class SeedAdapter:
         self, symbol: str, *, window_minutes: int, expiry: str | None
     ) -> FlowSignalsSummary:
         return _seed_flow_summary_spx()
+
+    async def fetch_leaderboard(self, *, window_minutes: int, n: int) -> LeaderboardResponse:
+        from datetime import datetime, timezone
+        now = datetime.now(timezone.utc).isoformat()
+        buyers = [
+            LeaderboardEntry(symbol="AMD",  net_volume=7882,  net_notional=19805114.0, buy_volume=20184, sell_volume=12302, avg_premium=25.13, trade_count=15472, last_trade_utc=now),
+            LeaderboardEntry(symbol="MU",   net_volume=2662,  net_notional=13143444.0, buy_volume=16314, sell_volume=13652, avg_premium=49.37, trade_count=24596, last_trade_utc=now),
+            LeaderboardEntry(symbol="NVDA", net_volume=1800,  net_notional=9200000.0,  buy_volume=10000, sell_volume=8200,  avg_premium=51.11, trade_count=12000, last_trade_utc=now),
+            LeaderboardEntry(symbol="AAPL", net_volume=950,   net_notional=4100000.0,  buy_volume=5500,  sell_volume=4550,  avg_premium=43.16, trade_count=8200,  last_trade_utc=now),
+            LeaderboardEntry(symbol="GOOGL",net_volume=620,   net_notional=3400000.0,  buy_volume=3800,  sell_volume=3180,  avg_premium=54.84, trade_count=5600,  last_trade_utc=now),
+        ]
+        sellers = [
+            LeaderboardEntry(symbol="SPY",  net_volume=-64812, net_notional=-14035074.0, buy_volume=381580, sell_volume=446392, avg_premium=2.17,   trade_count=96371, last_trade_utc=now),
+            LeaderboardEntry(symbol="SPX",  net_volume=-652,   net_notional=-12567596.0, buy_volume=7349,   sell_volume=8001,   avg_premium=192.75, trade_count=4534,  last_trade_utc=now),
+            LeaderboardEntry(symbol="TSLA", net_volume=-3200,  net_notional=-6400000.0,  buy_volume=14000,  sell_volume=17200,  avg_premium=20.0,   trade_count=18000, last_trade_utc=now),
+            LeaderboardEntry(symbol="META", net_volume=-1400,  net_notional=-3200000.0,  buy_volume=7200,   sell_volume=8600,   avg_premium=22.86,  trade_count=9800,  last_trade_utc=now),
+            LeaderboardEntry(symbol="IWM",  net_volume=-900,   net_notional=-1900000.0,  buy_volume=4900,   sell_volume=5800,   avg_premium=21.11,  trade_count=6200,  last_trade_utc=now),
+        ]
+        return LeaderboardResponse(generatedUtc=now, n=n, windowMinutes=window_minutes, buyers=buyers, sellers=sellers)

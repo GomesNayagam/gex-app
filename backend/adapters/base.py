@@ -1,5 +1,5 @@
 from typing import Protocol
-from backend.models import InstrumentGEX, FlowSignalsResponse, FlowSignalsSummary
+from backend.models import InstrumentGEX, FlowSignalsResponse, FlowSignalsSummary, LeaderboardResponse
 
 
 class GEXDataAdapter(Protocol):
@@ -15,3 +15,5 @@ class GEXDataAdapter(Protocol):
     async def fetch_flow_signals_summary(
         self, symbol: str, *, window_minutes: int, expiry: str | None
     ) -> FlowSignalsSummary: ...
+
+    async def fetch_leaderboard(self, *, window_minutes: int, n: int) -> "LeaderboardResponse": ...

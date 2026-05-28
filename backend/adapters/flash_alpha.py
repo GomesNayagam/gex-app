@@ -4,6 +4,7 @@ from backend.models import (
     InstrumentGEX, Strike, KeyLevel,
     FlowSignalsResponse, FlowSignalsSummary, FlowSignal,
     ScoreBreakdown, SignalEnrichment, ChainContext,
+    LeaderboardEntry, LeaderboardResponse,
 )
 from backend.config import settings
 from datetime import date, timedelta
@@ -160,6 +161,21 @@ class FlashAlphaAdapter:
             opening_premium=data.get("opening_premium", 0.0),
             closing_premium=data.get("closing_premium", 0.0),
             top_signals=top_signals,
+        )
+
+    async def fetch_leaderboard(self, *, window_minutes: int, n: int) -> LeaderboardResponse:
+        params = {"windowMinutes": window_minutes, "n": n}
+        resp = await self._client.get("/flow/options/leaderboard", params=params)
+        resp.raise_for_status()
+        data = resp.json()
+        buyers = [LeaderboardEntry.model_validate(e) for e in data.get("buyers", [])]
+        sellers = [LeaderboardEntry.model_validate(e) for e in data.get("sellers", [])]
+        return LeaderboardResponse(
+            generatedUtc=data.get("generatedUtc", ""),
+            n=data.get("n", n),
+            windowMinutes=data.get("windowMinutes", window_minutes),
+            buyers=buyers,
+            sellers=sellers,
         )
 
     async def aclose(self):

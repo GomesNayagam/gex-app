@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
@@ -152,3 +152,23 @@ class FlowSignalsSummary(BaseModel):
     opening_premium: float
     closing_premium: float
     top_signals: list[FlowSignal] = []
+
+
+class LeaderboardEntry(BaseModel):
+    model_config = {"populate_by_name": True}
+    symbol: str
+    net_volume: int = Field(alias="netVolume", default=0)
+    net_notional: float = Field(alias="netNotional", default=0.0)
+    buy_volume: int = Field(alias="buyVolume", default=0)
+    sell_volume: int = Field(alias="sellVolume", default=0)
+    avg_premium: float = Field(alias="avgPremium", default=0.0)
+    trade_count: int = Field(alias="tradeCount", default=0)
+    last_trade_utc: str = Field(alias="lastTradeUtc", default="")
+
+
+class LeaderboardResponse(BaseModel):
+    generated_utc: str = Field(alias="generatedUtc", default="")
+    n: int = 0
+    window_minutes: int = Field(alias="windowMinutes", default=60)
+    buyers: list[LeaderboardEntry] = []
+    sellers: list[LeaderboardEntry] = []
