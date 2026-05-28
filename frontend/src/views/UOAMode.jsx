@@ -28,7 +28,7 @@ export default function UOAMode() {
 
   const handleLeaderboardActivate = (sym) => {
     if (!watchlist.includes(sym)) addSymbol(sym)
-    else setActiveSymbol(sym)
+    setActiveSymbol(sym)
   }
 
   const [activeSignal, setActiveSignal] = useState(null)

@@ -155,7 +155,7 @@ class FlowSignalsSummary(BaseModel):
 
 
 class LeaderboardEntry(BaseModel):
-    model_config = {"populate_by_name": True}
+    model_config = {"populate_by_name": True, "serialize_by_alias": True}
     symbol: str
     net_volume: int = Field(alias="netVolume", default=0)
     net_notional: float = Field(alias="netNotional", default=0.0)
@@ -167,6 +167,7 @@ class LeaderboardEntry(BaseModel):
 
 
 class LeaderboardResponse(BaseModel):
+    model_config = {"populate_by_name": True, "serialize_by_alias": True}
     generated_utc: str = Field(alias="generatedUtc", default="")
     n: int = 0
     window_minutes: int = Field(alias="windowMinutes", default=60)
