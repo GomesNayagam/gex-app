@@ -1,9 +1,11 @@
 import { useState } from "react"
 import { useFlowSignals } from "@/hooks/useFlowSignals"
+import { useLeaderboard } from "@/hooks/useLeaderboard"
 import UOATopBar from "@/components/uoa/UOATopBar"
 import UOAWatchlistRow from "@/components/uoa/UOAWatchlistRow"
 import UOATabsRow from "@/components/uoa/UOATabsRow"
 import UOASummaryStrip from "@/components/uoa/UOASummaryStrip"
+import UOALeaderboard from "@/components/uoa/UOALeaderboard"
 import SignalTape from "@/components/uoa/SignalTape"
 import SignalDetailDrawer from "@/components/uoa/SignalDetailDrawer"
 
@@ -21,6 +23,13 @@ export default function UOAMode() {
     setFilters,
     REFRESH_INTERVAL,
   } = useFlowSignals()
+
+  const { data: lbData, loading: lbLoading, error: lbError } = useLeaderboard()
+
+  const handleLeaderboardActivate = (sym) => {
+    if (!watchlist.includes(sym)) addSymbol(sym)
+    else setActiveSymbol(sym)
+  }
 
   const [activeSignal, setActiveSignal] = useState(null)
 
@@ -58,6 +67,14 @@ export default function UOAMode() {
           spot={signalsData?.underlying_price}
         />
       )}
+
+      <UOALeaderboard
+        data={lbData}
+        loading={lbLoading}
+        error={lbError}
+        watchlist={watchlist}
+        onActivate={handleLeaderboardActivate}
+      />
 
       <div className="flex flex-1 overflow-hidden relative">
         {loading && !signalsData && (
