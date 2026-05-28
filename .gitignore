@@ -24,4 +24,5 @@ backend/data/
 # Claude Code editor settings (local only)
 .claude/settings.json
 .claude/settings.local.json
-.superpowers/*
+.superpowers/
+.planning/

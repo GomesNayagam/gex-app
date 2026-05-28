@@ -14,7 +14,7 @@ function loadExclude() {
   }
 }
 
-export function useLeaderboard({ window = 60, n = 5 } = {}) {
+export function useLeaderboard({ window = 60, n = 10 } = {}) {
   const [excludeList, setExcludeList] = useState(loadExclude);
   const [rawData, setRawData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -65,7 +65,9 @@ export function useLeaderboard({ window = 60, n = 5 } = {}) {
     setExcludeList((prev) => {
       if (prev.includes(upper)) return prev;
       const next = [...prev, upper];
-      try { localStorage.setItem(LS_EXCLUDE, JSON.stringify(next)); } catch {}
+      try {
+        localStorage.setItem(LS_EXCLUDE, JSON.stringify(next));
+      } catch {}
       return next;
     });
   }, []);
@@ -73,7 +75,9 @@ export function useLeaderboard({ window = 60, n = 5 } = {}) {
   const removeExclude = useCallback((sym) => {
     setExcludeList((prev) => {
       const next = prev.filter((s) => s !== sym);
-      try { localStorage.setItem(LS_EXCLUDE, JSON.stringify(next)); } catch {}
+      try {
+        localStorage.setItem(LS_EXCLUDE, JSON.stringify(next));
+      } catch {}
       return next;
     });
   }, []);
@@ -83,7 +87,9 @@ export function useLeaderboard({ window = 60, n = 5 } = {}) {
     ? {
         ...rawData,
         buyers: (rawData.buyers || []).filter((e) => !excludeSet.has(e.symbol)),
-        sellers: (rawData.sellers || []).filter((e) => !excludeSet.has(e.symbol)),
+        sellers: (rawData.sellers || []).filter(
+          (e) => !excludeSet.has(e.symbol),
+        ),
       }
     : null;
 
