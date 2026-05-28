@@ -43,3 +43,13 @@ export function fmtPremium(v) {
 export function fmtScore(v) {
   return Math.round(v).toString();
 }
+
+export function relTime(isoUtc) {
+  if (!isoUtc) return "—";
+  const diffMs = Date.now() - new Date(isoUtc).getTime();
+  const s = Math.floor(diffMs / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m`;
+  return `${Math.floor(m / 60)}h`;
+}
