@@ -3,7 +3,6 @@ import UOALeaderboardRow from "./UOALeaderboardRow"
 
 function LeaderboardColumn({ side, rows, watchlist, onActivate }) {
   const isBull = side === "buyers"
-  const maxNotional = rows.length > 0 ? Math.abs(rows[0].netNotional ?? 0) : 1
   const label = isBull ? "▲ BUYERS" : "▼ SELLERS"
 
   return (
@@ -23,7 +22,7 @@ function LeaderboardColumn({ side, rows, watchlist, onActivate }) {
         textTransform: "uppercase",
       }}>
         <span style={{ fontWeight: 700, color: isBull ? "var(--green)" : "var(--red)" }}>{label}</span>
-        <span style={{ marginLeft: "auto", color: "var(--text-3)", letterSpacing: "0.06em" }}>NET $ · MAG · B/S · AGO</span>
+        <span style={{ marginLeft: "auto", color: "var(--text-3)", letterSpacing: "0.06em" }}>NET $ · B/S · AGO</span>
       </div>
 
       {rows.length === 0 ? (
@@ -37,7 +36,6 @@ function LeaderboardColumn({ side, rows, watchlist, onActivate }) {
             rank={i + 1}
             entry={entry}
             side={side}
-            maxNotional={maxNotional}
             inWatchlist={watchlist.includes(entry.symbol)}
             onActivate={onActivate}
           />

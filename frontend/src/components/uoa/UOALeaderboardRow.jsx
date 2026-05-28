@@ -1,8 +1,7 @@
 import { relTime } from "@/lib/format"
 
-export default function UOALeaderboardRow({ rank, entry, side, maxNotional, inWatchlist, onActivate }) {
+export default function UOALeaderboardRow({ rank, entry, side, inWatchlist, onActivate }) {
   const isBull = side === "buyers"
-  const pct = maxNotional > 0 ? Math.abs(entry.netNotional ?? 0) / maxNotional : 0
   const totalVol = (entry.buyVolume ?? 0) + (entry.sellVolume ?? 0)
   const buyPct = totalVol > 0 ? (entry.buyVolume ?? 0) / totalVol : 0.5
   const netFmt = isBull
@@ -36,20 +35,10 @@ export default function UOALeaderboardRow({ rank, entry, side, maxNotional, inWa
         {netFmt}
       </span>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
-        {/* Magnitude bar */}
-        <div style={{ height: 3, borderRadius: 9999, background: "var(--surface-3)", overflow: "hidden" }}>
-          <div style={{
-            height: "100%", borderRadius: 9999,
-            background: isBull ? "var(--green)" : "var(--red)",
-            width: `${Math.round(pct * 100)}%`,
-          }} />
-        </div>
-        {/* B/S split bar */}
-        <div style={{ height: 3, borderRadius: 9999, overflow: "hidden", display: "flex" }}>
-          <div style={{ background: "var(--green)", height: "100%", width: `${Math.round(buyPct * 100)}%` }} />
-          <div style={{ background: "var(--red)", height: "100%", flex: 1 }} />
-        </div>
+      {/* B/S split bar only */}
+      <div style={{ height: 4, borderRadius: 9999, overflow: "hidden", display: "flex" }}>
+        <div style={{ background: "var(--green)", height: "100%", width: `${Math.round(buyPct * 100)}%` }} />
+        <div style={{ background: "var(--red)", height: "100%", flex: 1 }} />
       </div>
 
       <span style={{ textAlign: "right", color: "var(--text-3)", fontVariantNumeric: "tabular-nums" }}>
