@@ -38,6 +38,14 @@ export default function UOAMode() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
+      <UOALeaderboard
+        data={lbData}
+        loading={lbLoading}
+        error={lbError}
+        watchlist={watchlist}
+        onActivate={handleLeaderboardActivate}
+      />
+
       <UOATopBar
         filters={filters}
         setFilters={setFilters}
@@ -67,14 +75,6 @@ export default function UOAMode() {
           spot={signalsData?.underlying_price}
         />
       )}
-
-      <UOALeaderboard
-        data={lbData}
-        loading={lbLoading}
-        error={lbError}
-        watchlist={watchlist}
-        onActivate={handleLeaderboardActivate}
-      />
 
       <div className="flex flex-1 overflow-hidden relative">
         {loading && !signalsData && (

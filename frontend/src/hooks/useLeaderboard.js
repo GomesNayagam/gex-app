@@ -8,7 +8,7 @@ function filterRows(rows) {
   return (rows || []).filter((e) => !LEADERBOARD_EXCLUDE.has(e.symbol));
 }
 
-export function useLeaderboard({ window = 60, n = 15 } = {}) {
+export function useLeaderboard({ window = 60, n = 5 } = {}) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
