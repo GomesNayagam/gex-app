@@ -2,7 +2,7 @@ import { relTime } from "@/lib/format"
 
 export default function UOALeaderboardRow({ rank, entry, side, maxNotional, inWatchlist, onActivate }) {
   const isBull = side === "buyers"
-  const pct = maxNotional > 0 ? Math.abs(entry.netNotional) / maxNotional : 0
+  const pct = maxNotional > 0 ? Math.abs(entry.netNotional ?? 0) / maxNotional : 0
   const totalVol = (entry.buyVolume ?? 0) + (entry.sellVolume ?? 0)
   const buyPct = totalVol > 0 ? (entry.buyVolume ?? 0) / totalVol : 0.5
   const netFmt = isBull
@@ -11,36 +11,48 @@ export default function UOALeaderboardRow({ rank, entry, side, maxNotional, inWa
 
   return (
     <div
-      className="grid gap-x-2 px-3 py-[4px] border-b border-[var(--border)] cursor-pointer hover:bg-[var(--surface-2)] transition-colors items-center font-mono text-[11px]"
-      style={{ gridTemplateColumns: "16px 42px 72px 1fr 32px" }}
+      className="grid gap-x-2 items-center cursor-pointer transition-colors font-mono text-[11px]"
+      style={{
+        gridTemplateColumns: "16px 42px 72px 1fr 32px",
+        padding: "4px 12px",
+        borderBottom: "1px solid var(--border-soft)",
+        background: "transparent",
+      }}
+      onMouseEnter={(e) => e.currentTarget.style.background = "var(--surface-2)"}
+      onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
       onClick={() => onActivate(entry.symbol)}
       title={inWatchlist ? `Activate ${entry.symbol}` : `Add ${entry.symbol} to watchlist`}
     >
-      <span className="text-[var(--text-3)]">{rank}</span>
+      <span style={{ color: "var(--text-3)", fontWeight: 600 }}>{rank}</span>
 
-      <span className="font-bold text-[var(--text-1)] flex items-center gap-1">
-        {inWatchlist && <span className="w-[4px] h-[4px] rounded-full bg-blue-500 shrink-0" />}
+      <span style={{ fontWeight: 700, color: "var(--text-1)", display: "flex", alignItems: "center", gap: 3 }}>
+        {inWatchlist && (
+          <span style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--blue)", flexShrink: 0, display: "inline-block" }} />
+        )}
         {entry.symbol}
       </span>
 
-      <span className={`font-bold tabular-nums ${isBull ? "text-green-400" : "text-red-400"}`}>
+      <span style={{ fontWeight: 700, color: isBull ? "var(--green)" : "var(--red)", fontVariantNumeric: "tabular-nums" }}>
         {netFmt}
       </span>
 
-      <div className="flex flex-col gap-[3px] min-w-0">
-        <div className="h-[3px] rounded-full bg-[var(--surface-3)] overflow-hidden">
-          <div
-            className={`h-full rounded-full ${isBull ? "bg-green-500" : "bg-red-500"}`}
-            style={{ width: `${Math.round(pct * 100)}%` }}
-          />
+      <div style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
+        {/* Magnitude bar */}
+        <div style={{ height: 3, borderRadius: 9999, background: "var(--surface-3)", overflow: "hidden" }}>
+          <div style={{
+            height: "100%", borderRadius: 9999,
+            background: isBull ? "var(--green)" : "var(--red)",
+            width: `${Math.round(pct * 100)}%`,
+          }} />
         </div>
-        <div className="h-[3px] rounded-full overflow-hidden flex">
-          <div className="bg-green-500 h-full" style={{ width: `${Math.round(buyPct * 100)}%` }} />
-          <div className="bg-red-500 h-full flex-1" />
+        {/* B/S split bar */}
+        <div style={{ height: 3, borderRadius: 9999, overflow: "hidden", display: "flex" }}>
+          <div style={{ background: "var(--green)", height: "100%", width: `${Math.round(buyPct * 100)}%` }} />
+          <div style={{ background: "var(--red)", height: "100%", flex: 1 }} />
         </div>
       </div>
 
-      <span className="text-right text-[var(--text-3)] tabular-nums">
+      <span style={{ textAlign: "right", color: "var(--text-3)", fontVariantNumeric: "tabular-nums" }}>
         {relTime(entry.lastTradeUtc)}
       </span>
     </div>

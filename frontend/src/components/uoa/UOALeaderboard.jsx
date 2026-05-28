@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useState } from "react"
 import UOALeaderboardRow from "./UOALeaderboardRow"
 
 function LeaderboardColumn({ side, rows, watchlist, onActivate }) {
@@ -7,16 +7,29 @@ function LeaderboardColumn({ side, rows, watchlist, onActivate }) {
   const label = isBull ? "▲ BUYERS" : "▼ SELLERS"
 
   return (
-    <div className={`flex flex-col ${!isBull ? "border-l border-[var(--border)]" : ""}`}>
-      <div className="flex items-center px-3 py-[3px] bg-[var(--surface-1)] border-b border-[var(--border)]">
-        <span className={`text-[9px] font-bold tracking-widest ${isBull ? "text-green-400" : "text-red-400"}`}>
-          {label}
-        </span>
-        <span className="ml-auto text-[9px] text-[var(--text-3)] tracking-wider">NET $ · MAG · B/S · AGO</span>
+    <div style={{
+      display: "flex", flexDirection: "column",
+      borderLeft: isBull ? "none" : "1px solid var(--border)",
+    }}>
+      {/* Column header */}
+      <div style={{
+        display: "flex", alignItems: "center",
+        padding: "3px 12px",
+        background: "var(--surface-2)",
+        borderBottom: "1px solid var(--border)",
+        fontFamily: "inherit",
+        fontSize: 9,
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+      }}>
+        <span style={{ fontWeight: 700, color: isBull ? "var(--green)" : "var(--red)" }}>{label}</span>
+        <span style={{ marginLeft: "auto", color: "var(--text-3)", letterSpacing: "0.06em" }}>NET $ · MAG · B/S · AGO</span>
       </div>
 
       {rows.length === 0 ? (
-        <div className="px-3 py-2 text-[11px] text-[var(--text-3)] font-mono text-center">No data</div>
+        <div style={{ padding: "8px 12px", fontSize: 11, color: "var(--text-3)", textAlign: "center", fontFamily: "inherit" }}>
+          No data
+        </div>
       ) : (
         rows.map((entry, i) => (
           <UOALeaderboardRow
@@ -36,22 +49,29 @@ function LeaderboardColumn({ side, rows, watchlist, onActivate }) {
 
 function ExcludeChip({ symbol, onRemove }) {
   return (
-    <span className="flex items-center gap-[3px] px-[5px] py-[1px] bg-[var(--surface-2)] border border-[var(--border)] rounded-sm font-mono text-[9px] text-[var(--text-2)]">
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 3,
+      padding: "1px 5px",
+      background: "var(--surface-2)",
+      border: "1px solid var(--border)",
+      borderRadius: 2,
+      fontSize: 9, fontFamily: "inherit",
+      color: "var(--text-2)",
+    }}>
       {symbol}
       <button
         onClick={() => onRemove(symbol)}
-        className="text-[var(--text-3)] hover:text-red-400 transition-colors leading-none"
+        style={{ color: "var(--text-3)", background: "none", border: "none", cursor: "pointer", lineHeight: 1, padding: 0, fontSize: 11 }}
+        onMouseEnter={(e) => e.currentTarget.style.color = "var(--red)"}
+        onMouseLeave={(e) => e.currentTarget.style.color = "var(--text-3)"}
         title={`Un-exclude ${symbol}`}
-      >
-        ×
-      </button>
+      >×</button>
     </span>
   )
 }
 
 function ExcludeInput({ onAdd }) {
   const [val, setVal] = useState("")
-  const inputRef = useRef(null)
 
   const commit = () => {
     const sym = val.trim().toUpperCase()
@@ -59,23 +79,29 @@ function ExcludeInput({ onAdd }) {
   }
 
   return (
-    <span className="flex items-center gap-[2px]">
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 2 }}>
       <input
-        ref={inputRef}
         value={val}
         onChange={(e) => setVal(e.target.value.toUpperCase())}
         onKeyDown={(e) => { if (e.key === "Enter") commit(); if (e.key === "Escape") setVal("") }}
         placeholder="EXCL…"
         maxLength={6}
-        className="w-[44px] bg-transparent border border-[var(--border)] rounded-sm px-[4px] py-[1px] font-mono text-[9px] text-[var(--text-1)] placeholder:text-[var(--text-3)] outline-none focus:border-blue-500"
+        style={{
+          width: 44, background: "transparent",
+          border: "1px solid var(--border)",
+          borderRadius: 2, padding: "1px 4px",
+          fontFamily: "inherit", fontSize: 9,
+          color: "var(--text-1)",
+          outline: "none",
+        }}
+        onFocus={(e) => e.target.style.borderColor = "var(--blue)"}
+        onBlur={(e) => e.target.style.borderColor = "var(--border)"}
       />
       {val && (
         <button
           onClick={commit}
-          className="text-[9px] text-blue-400 hover:text-blue-300 font-mono px-[3px]"
-        >
-          +
-        </button>
+          style={{ fontSize: 9, color: "var(--blue)", background: "none", border: "none", cursor: "pointer", padding: "0 3px", fontFamily: "inherit" }}
+        >+</button>
       )}
     </span>
   )
@@ -85,9 +111,16 @@ export default function UOALeaderboard({
   data, loading, error, watchlist, onActivate,
   excludeList, onAddExclude, onRemoveExclude,
 }) {
+  const baseStyle = {
+    flexShrink: 0,
+    borderBottom: "1px solid var(--border)",
+    background: "var(--surface-1)",
+    fontFamily: "'IBM Plex Mono', monospace",
+  }
+
   if (loading && !data) {
     return (
-      <div className="shrink-0 border-b border-[var(--border)] bg-[var(--surface-1)] px-4 py-1.5 text-[11px] text-[var(--text-3)] font-mono">
+      <div style={{ ...baseStyle, padding: "6px 16px", fontSize: 11, color: "var(--text-3)" }}>
         Loading top movers…
       </div>
     )
@@ -95,7 +128,7 @@ export default function UOALeaderboard({
 
   if (error) {
     return (
-      <div className="shrink-0 border-b border-[var(--border)] bg-[var(--surface-1)] px-4 py-1.5 text-[11px] text-red-400 font-mono">
+      <div style={{ ...baseStyle, padding: "6px 16px", fontSize: 11, color: "var(--red)" }}>
         Top movers unavailable
       </div>
     )
@@ -104,22 +137,33 @@ export default function UOALeaderboard({
   if (!data) return null
 
   return (
-    <div className="shrink-0 border-b border-[var(--border)] bg-[var(--surface-1)]">
-      {/* Title bar with exclude chips */}
-      <div className="flex items-center flex-wrap gap-x-2 gap-y-[3px] px-3 py-[4px] bg-[var(--surface-1)] border-b border-[var(--border)] font-mono text-[9px]">
-        <span className="font-bold tracking-widest uppercase text-[var(--text-2)]">Top Movers</span>
-        <span className="px-[5px] py-[1px] border border-[var(--border)] rounded-sm text-[var(--text-3)]">
+    <div style={baseStyle}>
+      {/* Title bar */}
+      <div style={{
+        display: "flex", alignItems: "center", flexWrap: "wrap",
+        gap: "6px 8px", padding: "4px 12px",
+        background: "var(--bg)",
+        borderBottom: "1px solid var(--border)",
+        fontSize: 9, fontFamily: "inherit",
+      }}>
+        <span style={{ fontWeight: 700, letterSpacing: "0.10em", textTransform: "uppercase", color: "var(--text-1)" }}>
+          Top Movers
+        </span>
+        <span style={{
+          padding: "1px 5px", border: "1px solid var(--border)", borderRadius: 2,
+          color: "var(--text-3)", fontFamily: "inherit",
+        }}>
           {data.windowMinutes}m
         </span>
-
-        <span className="text-[var(--text-3)]">excl.</span>
+        <span style={{ color: "var(--text-3)" }}>excl.</span>
         {(excludeList || []).map((sym) => (
           <ExcludeChip key={sym} symbol={sym} onRemove={onRemoveExclude} />
         ))}
         <ExcludeInput onAdd={onAddExclude} />
       </div>
 
-      <div className="grid grid-cols-2">
+      {/* Two columns */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
         <LeaderboardColumn side="buyers"  rows={data.buyers}  watchlist={watchlist} onActivate={onActivate} />
         <LeaderboardColumn side="sellers" rows={data.sellers} watchlist={watchlist} onActivate={onActivate} />
       </div>
