@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { X, Dock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -6,6 +6,10 @@ import { fmtPremium } from "@/lib/format";
 import ScoreBreakdownBar from "./ScoreBreakdownBar";
 
 const LS_PINNED = "uoa-drawer-pinned";
+const LS_WIDTH = "uoa-drawer-width";
+const MIN_WIDTH = 280;
+const MAX_WIDTH = 900;
+const DEFAULT_WIDTH = 384; // matches the previous w-96
 
 const BREAKDOWN_SEGMENTS = [
   { key: "premium", label: "premium", color: "#3b82f6" },
@@ -61,13 +65,59 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain }) {
     }
   });
   const [showJson, setShowJson] = useState(false);
+  const [width, setWidth] = useState(() => {
+    try {
+      const saved = parseInt(localStorage.getItem(LS_WIDTH), 10);
+      return Number.isFinite(saved)
+        ? Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, saved))
+        : DEFAULT_WIDTH;
+    } catch {
+      return DEFAULT_WIDTH;
+    }
+  });
   const navigate = useNavigate();
+  const dragState = useRef(null);
 
   useEffect(() => {
     try {
       localStorage.setItem(LS_PINNED, String(pinned));
     } catch {}
   }, [pinned]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_WIDTH, String(width));
+    } catch {}
+  }, [width]);
+
+  const onResizeMove = useCallback((e) => {
+    const { startX, startWidth } = dragState.current;
+    // Drawer is anchored right, so dragging the left edge leftward widens it.
+    const next = startWidth + (startX - e.clientX);
+    setWidth(Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, next)));
+  }, []);
+
+  const onResizeEnd = useCallback(() => {
+    dragState.current = null;
+    document.removeEventListener("mousemove", onResizeMove);
+    document.removeEventListener("mouseup", onResizeEnd);
+    document.body.style.userSelect = "";
+    document.body.style.cursor = "";
+  }, [onResizeMove]);
+
+  const onResizeStart = useCallback(
+    (e) => {
+      e.preventDefault();
+      dragState.current = { startX: e.clientX, startWidth: width };
+      document.addEventListener("mousemove", onResizeMove);
+      document.addEventListener("mouseup", onResizeEnd);
+      document.body.style.userSelect = "none";
+      document.body.style.cursor = "ew-resize";
+    },
+    [width, onResizeMove, onResizeEnd],
+  );
+
+  useEffect(() => () => onResizeEnd(), [onResizeEnd]);
 
   if (!signal) return null;
 
@@ -76,10 +126,10 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain }) {
   const ch = chain || {};
 
   const drawerCls = cn(
-    "flex flex-col bg-[var(--surface-1)] border-l border-[var(--border)] overflow-y-auto font-mono text-[11px]",
+    "relative flex flex-col bg-[var(--surface-1)] border-l border-[var(--border)] overflow-y-auto font-mono text-[11px]",
     pinned
-      ? "w-96 shrink-0"
-      : "fixed right-0 top-0 bottom-0 w-96 z-50 shadow-2xl",
+      ? "shrink-0"
+      : "fixed right-0 top-0 bottom-0 z-50 shadow-2xl",
   );
 
   const overlay = !pinned ? (
@@ -98,7 +148,16 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain }) {
   return (
     <>
       {overlay}
-      <div className={drawerCls}>
+      <div className={drawerCls} style={{ width }}>
+        {/* Left-edge horizontal resize handle */}
+        <div
+          onMouseDown={onResizeStart}
+          title="Drag to resize"
+          className="group absolute left-0 top-0 bottom-0 z-10 flex w-1.5 cursor-ew-resize items-center justify-center hover:bg-[var(--blue)]"
+        >
+          <span className="h-6 w-0.5 rounded bg-[var(--text-3)] opacity-60 group-hover:opacity-0" />
+        </div>
+
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] shrink-0">
           <div className="flex flex-col gap-0.5 min-w-0">
