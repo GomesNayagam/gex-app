@@ -1,5 +1,10 @@
-import { useState } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import UOALeaderboardRow from "./UOALeaderboardRow"
+
+const HEIGHT_KEY = "uoa.leaderboard.height"
+const MIN_HEIGHT = 120
+const MAX_HEIGHT = 600
+const DEFAULT_HEIGHT = 260
 
 function LeaderboardColumn({ side, rows, watchlist, onActivate }) {
   const isBull = side === "buyers"
@@ -109,6 +114,45 @@ export default function UOALeaderboard({
   data, loading, error, watchlist, onActivate,
   excludeList, onAddExclude, onRemoveExclude,
 }) {
+  const [height, setHeight] = useState(() => {
+    const saved = parseInt(localStorage.getItem(HEIGHT_KEY), 10)
+    return Number.isFinite(saved) ? Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, saved)) : DEFAULT_HEIGHT
+  })
+  const containerRef = useRef(null)
+  const dragState = useRef(null)
+
+  useEffect(() => {
+    localStorage.setItem(HEIGHT_KEY, String(height))
+  }, [height])
+
+  const onResizeMove = useCallback((e) => {
+    const { startY, startHeight } = dragState.current
+    const next = startHeight + (e.clientY - startY)
+    setHeight(Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, next)))
+  }, [])
+
+  const onResizeEnd = useCallback(() => {
+    dragState.current = null
+    document.removeEventListener("mousemove", onResizeMove)
+    document.removeEventListener("mouseup", onResizeEnd)
+    document.body.style.userSelect = ""
+    document.body.style.cursor = ""
+  }, [onResizeMove])
+
+  const onResizeStart = useCallback((e) => {
+    e.preventDefault()
+    dragState.current = {
+      startY: e.clientY,
+      startHeight: containerRef.current?.offsetHeight ?? height,
+    }
+    document.addEventListener("mousemove", onResizeMove)
+    document.addEventListener("mouseup", onResizeEnd)
+    document.body.style.userSelect = "none"
+    document.body.style.cursor = "ns-resize"
+  }, [height, onResizeMove, onResizeEnd])
+
+  useEffect(() => () => onResizeEnd(), [onResizeEnd])
+
   const baseStyle = {
     flexShrink: 0,
     borderBottom: "1px solid var(--border)",
@@ -135,9 +179,19 @@ export default function UOALeaderboard({
   if (!data) return null
 
   return (
-    <div style={baseStyle}>
+    <div
+      ref={containerRef}
+      style={{
+        ...baseStyle,
+        height,
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+      }}
+    >
       {/* Title bar */}
       <div style={{
+        flexShrink: 0,
         display: "flex", alignItems: "center", flexWrap: "wrap",
         gap: "6px 8px", padding: "4px 12px",
         background: "var(--bg)",
@@ -160,10 +214,28 @@ export default function UOALeaderboard({
         <ExcludeInput onAdd={onAddExclude} />
       </div>
 
-      {/* Two columns */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+      {/* Two columns (scrollable) */}
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", display: "grid", gridTemplateColumns: "1fr 1fr" }}>
         <LeaderboardColumn side="buyers"  rows={data.buyers}  watchlist={watchlist} onActivate={onActivate} />
         <LeaderboardColumn side="sellers" rows={data.sellers} watchlist={watchlist} onActivate={onActivate} />
+      </div>
+
+      {/* Vertical resize handle */}
+      <div
+        onMouseDown={onResizeStart}
+        title="Drag to resize"
+        style={{
+          flexShrink: 0,
+          height: 6,
+          cursor: "ns-resize",
+          background: "var(--surface-2)",
+          borderTop: "1px solid var(--border)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.background = "var(--blue)"}
+        onMouseLeave={(e) => e.currentTarget.style.background = "var(--surface-2)"}
+      >
+        <span style={{ width: 24, height: 2, borderRadius: 2, background: "var(--text-3)", opacity: 0.6 }} />
       </div>
     </div>
   )

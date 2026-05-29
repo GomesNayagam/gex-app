@@ -1,18 +1,27 @@
-import { useState } from "react"
+import { useState } from "react";
 
-export default function UOAWatchlistRow({ watchlist, activeSymbol, onSelect, onAdd, onRemove }) {
-  const [input, setInput] = useState("")
+export default function UOAWatchlistRow({
+  watchlist,
+  activeSymbol,
+  onSelect,
+  onAdd,
+  onRemove,
+}) {
+  const [input, setInput] = useState("");
 
   function handleKeyDown(e) {
     if (e.key === "Enter") {
-      const val = input.trim().toUpperCase()
-      if (val) { onAdd(val); setInput("") }
+      const val = input.trim().toUpperCase();
+      if (val) {
+        onAdd(val);
+        setInput("");
+      }
     }
   }
 
   return (
     <div
-      className="shrink-0 border-b font-mono text-[11px] flex flex-wrap items-center gap-1.5 px-3 py-1.5"
+      className="shrink-0 border-b font-mono text-[11px] flex flex-wrap items-center gap-1.5 px-4 py-1.5"
       style={{ background: "#0f0f18", borderColor: "#1e1e2a" }}
     >
       <span
@@ -30,14 +39,24 @@ export default function UOAWatchlistRow({ watchlist, activeSymbol, onSelect, onA
           style={
             sym === activeSymbol
               ? { background: "#3b82f6", borderColor: "#3b82f6", color: "#fff" }
-              : { background: "#16161f", borderColor: "#1e1e2a", color: "#e2e2e8" }
+              : {
+                  background: "#16161f",
+                  borderColor: "#1e1e2a",
+                  color: "#e2e2e8",
+                }
           }
         >
           {sym}
           <span
-            onClick={(e) => { e.stopPropagation(); onRemove(sym) }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove(sym);
+            }}
             className="ml-0.5 leading-none cursor-pointer"
-            style={{ color: sym === activeSymbol ? "rgba(255,255,255,.6)" : "#6b6b80", fontSize: "10px" }}
+            style={{
+              color: sym === activeSymbol ? "rgba(255,255,255,.6)" : "#6b6b80",
+              fontSize: "10px",
+            }}
           >
             ✕
           </span>
@@ -61,5 +80,5 @@ export default function UOAWatchlistRow({ watchlist, activeSymbol, onSelect, onA
         }}
       />
     </div>
-  )
+  );
 }
