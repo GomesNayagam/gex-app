@@ -1,6 +1,13 @@
+import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { useGEXData } from "@/hooks/useGEXData"
 import { useTheme } from "@/hooks/useTheme"
+import {
+  REFRESH_STREAMS,
+  REFRESH_PRESETS,
+  getAllRefreshIntervals,
+  setRefreshInterval,
+} from "@/lib/refreshSettings"
 
 const ACCENT = "bg-blue"
 
@@ -33,6 +40,46 @@ function ThemePicker() {
   )
 }
 
+function RefreshIntervals() {
+  const [intervals, setIntervals] = useState(() => getAllRefreshIntervals())
+
+  function update(key, value) {
+    setRefreshInterval(key, value)
+    setIntervals((prev) => ({ ...prev, [key]: value }))
+  }
+
+  return (
+    <div className="space-y-3">
+      {REFRESH_STREAMS.map((stream) => (
+        <div key={stream.key} className="flex items-center justify-between gap-3">
+          <label
+            htmlFor={`refresh-${stream.key}`}
+            className="font-mono text-[11px] uppercase tracking-wider text-[var(--text-2)]"
+          >
+            {stream.label}
+          </label>
+          <select
+            id={`refresh-${stream.key}`}
+            value={intervals[stream.key]}
+            onChange={(e) => update(stream.key, Number(e.target.value))}
+            className="font-mono text-[11px] uppercase tracking-wider bg-[var(--surface-2)] text-[var(--text-1)] border border-[var(--border)] rounded-sm px-3 py-2 focus:outline-none focus:border-[var(--blue)] cursor-pointer"
+          >
+            {REFRESH_PRESETS.map((p) => (
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      ))}
+      <p className="font-mono text-[9px] leading-relaxed text-[var(--text-3)]">
+        How often each view polls the API. Use the Pause button in a view to
+        stop polling entirely. Changes apply when you next open the view.
+      </p>
+    </div>
+  )
+}
+
 export default function Settings() {
   const { data } = useGEXData()
   const source = data?.source ?? data?.adapter ?? "—"
@@ -49,10 +96,16 @@ export default function Settings() {
 
         <section className="space-y-3">
           <h2 className="font-mono text-[11px] uppercase tracking-widest text-[var(--text-3)] mb-4">
+            Refresh Intervals
+          </h2>
+          <RefreshIntervals />
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="font-mono text-[11px] uppercase tracking-widest text-[var(--text-3)] mb-4">
             System Info
           </h2>
           <InfoCard label="Data Source" value={source} accent="bg-blue" />
-          <InfoCard label="Refresh Interval" value="30s" accent="bg-green" />
           <InfoCard label="Version" value="GEX Dashboard v2.0" accent="bg-amber" />
         </section>
       </div>
