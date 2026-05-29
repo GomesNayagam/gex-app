@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react"
 import { fetchIntraday } from "@/api"
+import { getRefreshInterval } from "@/lib/refreshSettings"
 
 export function useIntraday(symbol) {
   const [series, setSeries] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [intervalSec] = useState(() => getRefreshInterval("intraday"))
 
   useEffect(() => {
     if (!symbol) return
@@ -17,9 +19,9 @@ export function useIntraday(symbol) {
       fetchIntraday(symbol)
         .then(setSeries)
         .catch(() => {})
-    }, 60_000)
+    }, intervalSec * 1000)
     return () => clearInterval(id)
-  }, [symbol])
+  }, [symbol, intervalSec])
 
   return { series, loading }
 }

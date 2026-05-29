@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { fetchFlowSignals, fetchFlowSummary } from "@/api";
-
-const REFRESH_INTERVAL = 60;
+import { getRefreshInterval } from "@/lib/refreshSettings";
 const LS_FILTERS = "uoa-filters";
 const LS_WATCHLIST = "uoa-watchlist";
 const LS_ACTIVE = "uoa-active-symbol";
@@ -47,6 +46,7 @@ function loadActiveSymbol(watchlist) {
 }
 
 export function useFlowSignals() {
+  const [REFRESH_INTERVAL] = useState(() => getRefreshInterval("uoaSignals"));
   const [filters, setFiltersState] = useState(loadFilters);
   const [watchlist, setWatchlistState] = useState(loadWatchlist);
   const [activeSymbol, setActiveSymbolState] = useState(() =>
@@ -55,9 +55,11 @@ export function useFlowSignals() {
   // allData: { [symbol]: { signals: FlowSignalsResponse|null, summary: FlowSignalsSummary|null, loading: bool, error: string|null } }
   const [allData, setAllData] = useState({});
   const [elapsed, setElapsed] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   const intervalRef = useRef(null);
   const tickRef = useRef(null);
+  const pausedRef = useRef(false);
   const filtersRef = useRef(filters);
   const watchlistRef = useRef(watchlist);
   filtersRef.current = filters;
@@ -121,6 +123,7 @@ export function useFlowSignals() {
   }, []);
 
   const load = useCallback(async () => {
+    if (pausedRef.current) return;
     const f = filtersRef.current;
     const syms = watchlistRef.current;
     if (!syms.length) return;
@@ -182,14 +185,30 @@ export function useFlowSignals() {
     clearInterval(tickRef.current);
     intervalRef.current = setInterval(load, REFRESH_INTERVAL * 1000);
     tickRef.current = setInterval(
-      () => setElapsed((e) => Math.min(e + 1, REFRESH_INTERVAL)),
+      () => { if (!pausedRef.current) setElapsed((e) => Math.min(e + 1, REFRESH_INTERVAL)); },
       1000,
     );
   }, [load]);
 
   const refresh = useCallback(() => {
+    if (pausedRef.current) return;
     load();
     startPolling();
+  }, [load, startPolling]);
+
+  const togglePause = useCallback(() => {
+    setPaused((prev) => {
+      const next = !prev;
+      pausedRef.current = next;
+      if (next) {
+        clearInterval(intervalRef.current);
+        clearInterval(tickRef.current);
+      } else {
+        load();
+        startPolling();
+      }
+      return next;
+    });
   }, [load, startPolling]);
 
   useEffect(() => {
@@ -222,6 +241,8 @@ export function useFlowSignals() {
     filters,
     setFilters,
     REFRESH_INTERVAL,
+    paused,
+    togglePause,
   };
 }
 

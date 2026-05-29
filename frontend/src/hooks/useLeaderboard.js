@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { fetchLeaderboard } from "@/api";
-
-const REFRESH_INTERVAL = 30;
+import { getRefreshInterval } from "@/lib/refreshSettings";
 const LS_EXCLUDE = "lb-exclude";
 const DEFAULT_EXCLUDE = ["SPX", "SPY", "QQQ"];
 
@@ -15,6 +14,7 @@ function loadExclude() {
 }
 
 export function useLeaderboard({ window = 60, n = 10 } = {}) {
+  const [REFRESH_INTERVAL] = useState(() => getRefreshInterval("uoaLeaderboard"));
   const [excludeList, setExcludeList] = useState(loadExclude);
   const [rawData, setRawData] = useState(null);
   const [loading, setLoading] = useState(false);
