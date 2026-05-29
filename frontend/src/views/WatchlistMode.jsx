@@ -3,6 +3,7 @@ import { Zap, Plus, X, Pin, PinOff, RefreshCw, Pause, Play } from "lucide-react"
 import { cn } from "@/lib/utils";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { fetchGEXBySymbol } from "@/api";
+import { getRefreshInterval } from "@/lib/refreshSettings";
 import InstrumentColumn from "@/components/InstrumentColumn";
 
 // ── Single watchlist panel ────────────────────────────────────────────────────
@@ -89,8 +90,6 @@ function WatchPanel({ id, symbol, zeroDTE, pinned, onClose, onTogglePin, refresh
   );
 }
 
-const REFRESH_INTERVAL = 60
-
 // ── WatchlistMode ─────────────────────────────────────────────────────────────
 export default function WatchlistMode() {
   const { watchlist, addTicker, removeTicker } = useWatchlist();
@@ -101,15 +100,16 @@ export default function WatchlistMode() {
   const [paused, setPaused] = useState(false);
   const pausedRef = useRef(false);
   const intervalRef = useRef(null);
+  const [refreshInterval] = useState(() => getRefreshInterval("watchlist"));
 
   const bump = useCallback(() => {
     if (!pausedRef.current) setLocalRefreshKey((k) => k + 1);
   }, []);
 
   useEffect(() => {
-    intervalRef.current = setInterval(bump, REFRESH_INTERVAL * 1000);
+    intervalRef.current = setInterval(bump, refreshInterval * 1000);
     return () => clearInterval(intervalRef.current);
-  }, [bump]);
+  }, [bump, refreshInterval]);
 
   const togglePause = () => {
     setPaused((prev) => {
@@ -119,7 +119,7 @@ export default function WatchlistMode() {
         clearInterval(intervalRef.current);
       } else {
         setLocalRefreshKey((k) => k + 1);
-        intervalRef.current = setInterval(bump, REFRESH_INTERVAL * 1000);
+        intervalRef.current = setInterval(bump, refreshInterval * 1000);
       }
       return next;
     });
