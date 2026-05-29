@@ -209,7 +209,11 @@ class SeedAdapter:
             filtered = [s for s in filtered if s.intent == intent]
         if structure:
             filtered = [s for s in filtered if s.structure == structure]
-        filtered = filtered[:limit]
+        # Two-stage ranking (mirrors flash_alpha): take a wider score-ranked
+        # pool, then keep the most recent `limit` within it, newest-first.
+        candidate_limit = min(limit + 15, 60)
+        pool = sorted(filtered, key=lambda s: s.score, reverse=True)[:candidate_limit]
+        filtered = sorted(pool, key=lambda s: s.ts or "", reverse=True)[:limit]
         return FlowSignalsResponse(
             symbol=result.symbol, as_of=result.as_of, underlying_price=result.underlying_price,
             window_minutes=window_minutes, chain=result.chain,

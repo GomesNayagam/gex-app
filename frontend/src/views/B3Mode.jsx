@@ -38,14 +38,6 @@ export default function B3Mode() {
   if (!data) return null;
   return (
     <div className="p-4 overflow-y-auto h-full">
-      {/* 3-column grid — no horizontal scroll */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 min-w-0">
-        {instruments.map((inst) => (
-          <div key={inst.symbol} className="min-w-0">
-            <InstrumentColumn inst={inst} resizable />
-          </div>
-        ))}
-      </div>
       {/* View toolbar */}
       <div className="flex items-center justify-end mb-3">
         <button
@@ -62,6 +54,15 @@ export default function B3Mode() {
           {paused ? "resume" : "pause"}
         </button>
       </div>
+      {/* 3-column grid — no horizontal scroll */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 min-w-0">
+        {instruments.map((inst) => (
+          <div key={inst.symbol} className="min-w-0">
+            <InstrumentColumn inst={inst} resizable />
+          </div>
+        ))}
+      </div>
+
       {/* Intraday chart section */}
       {activeInst && (
         <div className="mt-3">

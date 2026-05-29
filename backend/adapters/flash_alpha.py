@@ -109,7 +109,11 @@ class FlashAlphaAdapter:
         intent: str | None, structure: str | None, expiry: str | None, limit: int
     ) -> FlowSignalsResponse:
         sym = symbol.upper()
-        params: dict = {"window_minutes": window_minutes, "min_score": min_score, "limit": limit}
+        # Two-stage ranking: pull a wider pool ranked by score from upstream
+        # (limit + 15, e.g. 25 for the default display limit of 10), then keep
+        # the most recent `limit` within that pool. Capped at the route max (60).
+        candidate_limit = min(limit + 15, 60)
+        params: dict = {"window_minutes": window_minutes, "min_score": min_score, "limit": candidate_limit}
         if intent:
             params["intent"] = intent
         if structure:
@@ -126,7 +130,12 @@ class FlashAlphaAdapter:
             max_pain=chain_raw.get("max_pain"),
             gamma_flip=chain_raw.get("gamma_flip"),
         )
-        signals = [_parse_signal(s) for s in (data.get("signals") or [])]
+        raw_signals = sorted(
+            data.get("signals") or [],
+            key=lambda s: s.get("ts") or "",
+            reverse=True,
+        )
+        signals = [_parse_signal(s) for s in raw_signals[:limit]]
         return FlowSignalsResponse(
             symbol=data.get("symbol", sym),
             as_of=data.get("as_of", datetime.now(timezone.utc).isoformat()),

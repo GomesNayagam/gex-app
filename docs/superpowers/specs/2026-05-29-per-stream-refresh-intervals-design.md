@@ -12,10 +12,11 @@ polling data stream to be user-configurable from the Settings page.
 
 ## Scope
 
-**In scope:** Make the *refresh interval* (polling cadence) of each API-driven
+**In scope:** Make the _refresh interval_ (polling cadence) of each API-driven
 poller configurable from Settings, per data stream.
 
 **Out of scope (deferred):**
+
 - **Limit / data-load params** — GEX `strikes` (50), leaderboard `n`, flow
   `windowMinutes` / `minScore`. The original ask mentioned "refresh time **and**
   limit params"; per the scope decision we narrowed to intervals only. Limits
@@ -30,14 +31,14 @@ poller configurable from Settings, per data stream.
 Every API-driven `setInterval` in the frontend (MarketClock's 1s tick and the
 per-hook `elapsed` progress ticks are excluded — they are not API calls):
 
-| Key              | Label              | Source                       | Current |
-|------------------|--------------------|------------------------------|---------|
-| `b3`             | B3 Mode (Net GEX)  | `hooks/useGEXData.js`        | 60s     |
-| `watchlist`      | Watchlist GEX      | `views/WatchlistMode.jsx`    | 60s     |
-| `expiry`         | Expiry GEX         | `views/ExpiryMode.jsx`       | 60s     |
-| `intraday`       | Intraday Chart     | `hooks/useIntraday.js`       | 60s     |
-| `uoaSignals`     | UOA Flow Signals   | `hooks/useFlowSignals.js`    | 60s     |
-| `uoaLeaderboard` | UOA Leaderboard    | `hooks/useLeaderboard.js`    | 30s     |
+| Key              | Label             | Source                    | Current |
+| ---------------- | ----------------- | ------------------------- | ------- |
+| `b3`             | B3 Mode (Net GEX) | `hooks/useGEXData.js`     | 60s     |
+| `watchlist`      | Watchlist GEX     | `views/WatchlistMode.jsx` | 60s     |
+| `expiry`         | Expiry GEX        | `views/ExpiryMode.jsx`    | 60s     |
+| `intraday`       | Intraday Chart    | `hooks/useIntraday.js`    | 60s     |
+| `uoaSignals`     | UOA Flow Signals  | `hooks/useFlowSignals.js` | 30s     |
+| `uoaLeaderboard` | UOA Leaderboard   | `hooks/useLeaderboard.js` | 60s     |
 
 ## Architecture
 
@@ -49,36 +50,44 @@ defaults.
 
 ```js
 export const REFRESH_STREAMS = [
-  { key: "b3",             label: "B3 Mode (Net GEX)",   default: 60 },
-  { key: "watchlist",      label: "Watchlist GEX",       default: 60 },
-  { key: "expiry",         label: "Expiry GEX",          default: 60 },
-  { key: "intraday",       label: "Intraday Chart",      default: 60 },
-  { key: "uoaSignals",     label: "UOA Flow Signals",    default: 60 },
-  { key: "uoaLeaderboard", label: "UOA Leaderboard",     default: 30 },
-]
+  { key: "b3", label: "B3 Mode (Net GEX)", default: 60 },
+  { key: "watchlist", label: "Watchlist GEX", default: 60 },
+  { key: "expiry", label: "Expiry GEX", default: 60 },
+  { key: "intraday", label: "Intraday Chart", default: 60 },
+  { key: "uoaSignals", label: "UOA Flow Signals", default: 30 },
+  { key: "uoaLeaderboard", label: "UOA Leaderboard", default: 60 },
+];
 
 export const REFRESH_PRESETS = [
-  { value: 15,  label: "15s" },
-  { value: 30,  label: "30s" },
-  { value: 60,  label: "1m"  },
-  { value: 120, label: "2m"  },
-  { value: 300, label: "5m"  },
+  { value: 15, label: "15s" },
+  { value: 30, label: "30s" },
+  { value: 60, label: "1m" },
+  { value: 120, label: "2m" },
+  { value: 300, label: "5m" },
   { value: 600, label: "10m" },
-]
+];
 
-const STORAGE_KEY = "gex.refresh-intervals"
-const DEFAULTS = Object.fromEntries(REFRESH_STREAMS.map(s => [s.key, s.default]))
-const VALID = new Set(REFRESH_PRESETS.map(p => p.value))
+const STORAGE_KEY = "gex.refresh-intervals";
+const DEFAULTS = Object.fromEntries(
+  REFRESH_STREAMS.map((s) => [s.key, s.default]),
+);
+const VALID = new Set(REFRESH_PRESETS.map((p) => p.value));
 
-export function getRefreshInterval(key) { /* read+merge, fall back to default; validate against VALID */ }
-export function setRefreshInterval(key, seconds) { /* validate, persist merged object */ }
-export function getAllRefreshIntervals() { /* merged object for the Settings UI */ }
+export function getRefreshInterval(key) {
+  /* read+merge, fall back to default; validate against VALID */
+}
+export function setRefreshInterval(key, seconds) {
+  /* validate, persist merged object */
+}
+export function getAllRefreshIntervals() {
+  /* merged object for the Settings UI */
+}
 ```
 
 ### Why no reactive store
 
 The theme system uses `useSyncExternalStore` because a theme change must repaint
-the whole app *while everything stays mounted*. Refresh intervals have no such
+the whole app _while everything stays mounted_. Refresh intervals have no such
 requirement: **Settings is its own route**, so every polling view is unmounted
 while the user edits intervals and remounts — reading fresh values — on
 navigation back. Read-on-mount is therefore sufficient. This deliberately omits
@@ -91,13 +100,14 @@ Each poller reads its interval **once on mount** and uses it for both the
 `setInterval` delay and the `elapsed` cap:
 
 ```js
-const [interval] = useState(() => getRefreshInterval("b3")) // seconds
+const [interval] = useState(() => getRefreshInterval("b3")); // seconds
 // setInterval(load, interval * 1000)
 // setElapsed(e => Math.min(e + 1, interval))
 // progress %: elapsed / interval
 ```
 
 Per-poller notes:
+
 - `useGEXData.js` — replace `const REFRESH_INTERVAL = 60`. The hook returns
   `REFRESH_INTERVAL`; keep returning the resolved value under the same name so
   `TopBar`/consumers need no change.

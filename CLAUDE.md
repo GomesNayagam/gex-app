@@ -42,7 +42,7 @@ cd frontend && npm run dev
 
 ## Development Flow
 
-1. **Plan** — Create a detailed plan and save to `.claude/plans/`
+1. **Plan and Spec** — user superpowers to create a plan and spec.
 2. **Build** — Execute the plan
 3. **Validate** — Test end-to-end. Use browser MCP for UI validation where possible
 4. **Iterate** — Fix issues found during validation
@@ -120,6 +120,7 @@ src/
 **Path alias:** `@/` → `src/` (configured in `vite.config.js`).
 
 **Responsive breakpoints:**
+
 - `< sm` (mobile): single column
 - `sm`–`lg` (tablet): 2-column grid
 - `lg+` (desktop): 3-column grid
@@ -139,13 +140,13 @@ Default is `seed` (hardcoded demo data, no API key needed).
 
 The two Flash Alpha endpoints return **different field names** for the same data:
 
-| Field | `/flow/gex/{symbol}` | `/exposure/gex/{symbol}?expiration=` |
-|---|---|---|
-| Gamma flip | `live_gamma_flip` | `gamma_flip` |
-| Net GEX | `live_net_gex` | `net_gex` |
-| GEX label | `live_net_gex_label` | `net_gex_label` |
-| Spot price | `underlying_price` | `underlying_price` |
-| Strikes array | `strikes` | `strikes` |
+| Field         | `/flow/gex/{symbol}` | `/exposure/gex/{symbol}?expiration=` |
+| ------------- | -------------------- | ------------------------------------ |
+| Gamma flip    | `live_gamma_flip`    | `gamma_flip`                         |
+| Net GEX       | `live_net_gex`       | `net_gex`                            |
+| GEX label     | `live_net_gex_label` | `net_gex_label`                      |
+| Spot price    | `underlying_price`   | `underlying_price`                   |
+| Strikes array | `strikes`            | `strikes`                            |
 
 The adapter (`backend/adapters/flash_alpha.py`) handles both with `.get()` fallbacks:
 
