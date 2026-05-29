@@ -3,6 +3,7 @@ import { fetchGEXBySymbol } from "@/api";
 import InstrumentColumn from "@/components/InstrumentColumn";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { cn } from "@/lib/utils";
+import { getRefreshInterval } from "@/lib/refreshSettings";
 import { X, Pin, PinOff, RefreshCw, Pause, Play } from "lucide-react";
 
 // ── Single expiry panel ───────────────────────────────────────────────────────
@@ -82,8 +83,6 @@ function ExpiryPanel({ id, symbol, date, pinned, onClose, onTogglePin, refreshKe
   );
 }
 
-const REFRESH_INTERVAL = 60
-
 // ── ExpiryMode ────────────────────────────────────────────────────────────────
 export default function ExpiryMode() {
   const { watchlist } = useWatchlist();
@@ -93,15 +92,16 @@ export default function ExpiryMode() {
   const [paused, setPaused] = useState(false);
   const pausedRef = useRef(false);
   const intervalRef = useRef(null);
+  const [refreshInterval] = useState(() => getRefreshInterval("expiry"));
 
   const bump = useCallback(() => {
     if (!pausedRef.current) setLocalRefreshKey((k) => k + 1);
   }, []);
 
   useEffect(() => {
-    intervalRef.current = setInterval(bump, REFRESH_INTERVAL * 1000);
+    intervalRef.current = setInterval(bump, refreshInterval * 1000);
     return () => clearInterval(intervalRef.current);
-  }, [bump]);
+  }, [bump, refreshInterval]);
 
   const togglePause = () => {
     setPaused((prev) => {
@@ -111,7 +111,7 @@ export default function ExpiryMode() {
         clearInterval(intervalRef.current);
       } else {
         setLocalRefreshKey((k) => k + 1);
-        intervalRef.current = setInterval(bump, REFRESH_INTERVAL * 1000);
+        intervalRef.current = setInterval(bump, refreshInterval * 1000);
       }
       return next;
     });
