@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { fetchAllGEX } from "@/api";
-
-const REFRESH_INTERVAL = 60
+import { getRefreshInterval } from "@/lib/refreshSettings";
 
 export function useGEXData() {
+  const [REFRESH_INTERVAL] = useState(() => getRefreshInterval("b3"));
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
