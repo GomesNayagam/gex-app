@@ -48,17 +48,19 @@ export function getAllRefreshIntervals() {
 
 // Current interval (seconds) for one stream. Falls back to default on any issue.
 export function getRefreshInterval(key) {
-  const fallback = DEFAULTS[key] ?? 60
-  if (!VALID_KEYS.has(key)) return fallback
+  if (!VALID_KEYS.has(key)) return 60
   const value = readAll()[key]
-  return VALID_VALUES.has(value) ? value : fallback
+  return VALID_VALUES.has(value) ? value : DEFAULTS[key]
 }
 
 // Persist one stream's interval. No-ops on an invalid key or non-preset value.
 export function setRefreshInterval(key, seconds) {
   if (!VALID_KEYS.has(key) || !VALID_VALUES.has(seconds)) return
   try {
-    const next = { ...readAll(), [key]: seconds }
+    const merged = { ...readAll(), [key]: seconds }
+    const next = Object.fromEntries(
+      Object.entries(merged).filter(([k]) => VALID_KEYS.has(k)),
+    )
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
   } catch {}
 }
