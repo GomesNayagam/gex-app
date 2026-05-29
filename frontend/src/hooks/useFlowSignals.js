@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { fetchFlowSignals, fetchFlowSummary } from "@/api";
-
-const REFRESH_INTERVAL = 60;
+import { getRefreshInterval } from "@/lib/refreshSettings";
 const LS_FILTERS = "uoa-filters";
 const LS_WATCHLIST = "uoa-watchlist";
 const LS_ACTIVE = "uoa-active-symbol";
@@ -47,6 +46,7 @@ function loadActiveSymbol(watchlist) {
 }
 
 export function useFlowSignals() {
+  const [REFRESH_INTERVAL] = useState(() => getRefreshInterval("uoaSignals"));
   const [filters, setFiltersState] = useState(loadFilters);
   const [watchlist, setWatchlistState] = useState(loadWatchlist);
   const [activeSymbol, setActiveSymbolState] = useState(() =>
