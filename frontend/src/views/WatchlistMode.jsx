@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { Zap, Plus, X, Pin, PinOff, RefreshCw } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Zap, Plus, X, Pin, PinOff, RefreshCw, Pause, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { fetchGEXBySymbol } from "@/api";
@@ -89,12 +89,41 @@ function WatchPanel({ id, symbol, zeroDTE, pinned, onClose, onTogglePin, refresh
   );
 }
 
+const REFRESH_INTERVAL = 60
+
 // ── WatchlistMode ─────────────────────────────────────────────────────────────
-export default function WatchlistMode({ refreshKey = 0 }) {
+export default function WatchlistMode() {
   const { watchlist, addTicker, removeTicker } = useWatchlist();
   const [zeroDTE, setZeroDTE] = useState(false);
   const [input, setInput] = useState("");
   const inputRef = useRef(null);
+  const [localRefreshKey, setLocalRefreshKey] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(false);
+  const intervalRef = useRef(null);
+
+  const bump = useCallback(() => {
+    if (!pausedRef.current) setLocalRefreshKey((k) => k + 1);
+  }, []);
+
+  useEffect(() => {
+    intervalRef.current = setInterval(bump, REFRESH_INTERVAL * 1000);
+    return () => clearInterval(intervalRef.current);
+  }, [bump]);
+
+  const togglePause = () => {
+    setPaused((prev) => {
+      const next = !prev;
+      pausedRef.current = next;
+      if (next) {
+        clearInterval(intervalRef.current);
+      } else {
+        setLocalRefreshKey((k) => k + 1);
+        intervalRef.current = setInterval(bump, REFRESH_INTERVAL * 1000);
+      }
+      return next;
+    });
+  };
 
   const [panels, setPanels] = useState(() => {
     try {
@@ -215,14 +244,29 @@ export default function WatchlistMode({ refreshKey = 0 }) {
           0DTE
         </button>
 
-        {panels.length > 0 && (
+        <div className="flex items-center gap-1 ml-auto">
+          {panels.length > 0 && (
+            <button
+              onClick={() => setPanels(prev => prev.filter(p => p.pinned))}
+              className="font-mono text-[10px] px-2 py-1 rounded border border-[var(--border)] text-[var(--text-3)] hover:text-[var(--red)] transition-colors"
+            >
+              Close unpinned
+            </button>
+          )}
           <button
-            onClick={() => setPanels(prev => prev.filter(p => p.pinned))}
-            className="font-mono text-[10px] px-2 py-1 rounded border border-[var(--border)] text-[var(--text-3)] hover:text-[var(--red)] transition-colors ml-auto"
+            onClick={togglePause}
+            className={cn(
+              "flex items-center gap-1.5 font-mono text-[11px] px-3 py-1 rounded border transition-colors",
+              paused
+                ? "border-amber/60 bg-amber/15 text-amber"
+                : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text-2)] hover:border-blue/40 hover:text-blue"
+            )}
+            title={paused ? "Resume auto-refresh" : "Pause auto-refresh"}
           >
-            Close unpinned
+            {paused ? <Play size={12} /> : <Pause size={12} />}
+            {paused ? "resume" : "pause"}
           </button>
-        )}
+        </div>
       </div>
 
       {/* Panel canvas */}
@@ -242,7 +286,7 @@ export default function WatchlistMode({ refreshKey = 0 }) {
                 key={p.id}
                 {...p}
                 zeroDTE={zeroDTE}
-                refreshKey={refreshKey}
+                refreshKey={localRefreshKey}
                 onClose={handleClose}
                 onTogglePin={handleTogglePin}
               />

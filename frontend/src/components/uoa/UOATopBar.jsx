@@ -1,4 +1,4 @@
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Pause, Play } from "lucide-react";
 
 const WINDOW_OPTIONS = [
   { label: "60m", value: 60 },
@@ -15,6 +15,8 @@ export default function UOATopBar({
   refresh,
   elapsed,
   REFRESH_INTERVAL,
+  paused,
+  togglePause,
 }) {
   const pct = Math.round((elapsed / REFRESH_INTERVAL) * 100);
 
@@ -159,33 +161,48 @@ export default function UOATopBar({
 
       <div className="ml-auto flex items-center gap-2">
         {/* Progress arc */}
-        <div className="relative w-5 h-5">
-          <svg className="w-5 h-5 -rotate-90" viewBox="0 0 20 20">
-            <circle
-              cx="10"
-              cy="10"
-              r="8"
-              fill="none"
-              stroke="var(--border)"
-              strokeWidth="2"
-            />
-            <circle
-              cx="10"
-              cy="10"
-              r="8"
-              fill="none"
-              stroke="var(--text-3)"
-              strokeWidth="2"
-              strokeDasharray={`${(50.27 * pct) / 100} 50.27`}
-            />
-          </svg>
-        </div>
+        {!paused && (
+          <div className="relative w-5 h-5">
+            <svg className="w-5 h-5 -rotate-90" viewBox="0 0 20 20">
+              <circle
+                cx="10"
+                cy="10"
+                r="8"
+                fill="none"
+                stroke="var(--border)"
+                strokeWidth="2"
+              />
+              <circle
+                cx="10"
+                cy="10"
+                r="8"
+                fill="none"
+                stroke="var(--text-3)"
+                strokeWidth="2"
+                strokeDasharray={`${(50.27 * pct) / 100} 50.27`}
+              />
+            </svg>
+          </div>
+        )}
         <button
           onClick={refresh}
-          className="flex items-center gap-1 text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors"
+          disabled={paused}
+          className="flex items-center gap-1 text-[var(--text-2)] hover:text-[var(--text-1)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           title="Refresh"
         >
           <RefreshCw size={13} />
+        </button>
+        <button
+          onClick={togglePause}
+          className={`flex items-center gap-1.5 px-3 py-1 rounded border transition-colors font-mono text-[11px] ${
+            paused
+              ? "border-amber-400/60 bg-amber-400/15 text-amber-400"
+              : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text-2)] hover:border-blue/40 hover:text-blue"
+          }`}
+          title={paused ? "Resume auto-refresh" : "Pause auto-refresh"}
+        >
+          {paused ? <Play size={12} /> : <Pause size={12} />}
+          {paused ? "resume" : "pause"}
         </button>
       </div>
     </div>

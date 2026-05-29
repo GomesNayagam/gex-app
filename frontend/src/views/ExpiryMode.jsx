@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { fetchGEXBySymbol } from "@/api";
 import InstrumentColumn from "@/components/InstrumentColumn";
 import { useWatchlist } from "@/hooks/useWatchlist";
 import { cn } from "@/lib/utils";
-import { X, Pin, PinOff, RefreshCw } from "lucide-react";
+import { X, Pin, PinOff, RefreshCw, Pause, Play } from "lucide-react";
 
 // ── Single expiry panel ───────────────────────────────────────────────────────
 function ExpiryPanel({ id, symbol, date, pinned, onClose, onTogglePin, refreshKey }) {
@@ -82,11 +82,40 @@ function ExpiryPanel({ id, symbol, date, pinned, onClose, onTogglePin, refreshKe
   );
 }
 
+const REFRESH_INTERVAL = 60
+
 // ── ExpiryMode ────────────────────────────────────────────────────────────────
-export default function ExpiryMode({ refreshKey = 0 }) {
+export default function ExpiryMode() {
   const { watchlist } = useWatchlist();
   const [symbol, setSymbol] = useState("SPX");
   const [date, setDate] = useState("");
+  const [localRefreshKey, setLocalRefreshKey] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(false);
+  const intervalRef = useRef(null);
+
+  const bump = useCallback(() => {
+    if (!pausedRef.current) setLocalRefreshKey((k) => k + 1);
+  }, []);
+
+  useEffect(() => {
+    intervalRef.current = setInterval(bump, REFRESH_INTERVAL * 1000);
+    return () => clearInterval(intervalRef.current);
+  }, [bump]);
+
+  const togglePause = () => {
+    setPaused((prev) => {
+      const next = !prev;
+      pausedRef.current = next;
+      if (next) {
+        clearInterval(intervalRef.current);
+      } else {
+        setLocalRefreshKey((k) => k + 1);
+        intervalRef.current = setInterval(bump, REFRESH_INTERVAL * 1000);
+      }
+      return next;
+    });
+  };
   const [panels, setPanels] = useState(() => {
     try {
       const saved = localStorage.getItem("expiry-panels");
@@ -178,14 +207,29 @@ export default function ExpiryMode({ refreshKey = 0 }) {
             + Add Panel
           </button>
 
-          {panels.length > 0 && (
+          <div className="flex items-center gap-1 ml-auto">
+            {panels.length > 0 && (
+              <button
+                onClick={() => setPanels(prev => prev.filter(p => p.pinned))}
+                className="font-mono text-[10px] px-2 py-1 rounded border border-[var(--border)] text-[var(--text-3)] hover:text-[var(--red)] transition-colors"
+              >
+                Close unpinned
+              </button>
+            )}
             <button
-              onClick={() => setPanels(prev => prev.filter(p => p.pinned))}
-              className="font-mono text-[10px] px-2 py-1 rounded border border-[var(--border)] text-[var(--text-3)] hover:text-[var(--red)] transition-colors ml-auto"
+              onClick={togglePause}
+              className={cn(
+                "flex items-center gap-1.5 font-mono text-[11px] px-3 py-1 rounded border transition-colors",
+                paused
+                  ? "border-amber/60 bg-amber/15 text-amber"
+                  : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text-2)] hover:border-blue/40 hover:text-blue"
+              )}
+              title={paused ? "Resume auto-refresh" : "Pause auto-refresh"}
             >
-              Close unpinned
+              {paused ? <Play size={12} /> : <Pause size={12} />}
+              {paused ? "resume" : "pause"}
             </button>
-          )}
+          </div>
         </div>
       </div>
 
@@ -203,7 +247,7 @@ export default function ExpiryMode({ refreshKey = 0 }) {
               <ExpiryPanel
                 key={p.id}
                 {...p}
-                refreshKey={refreshKey}
+                refreshKey={localRefreshKey}
                 onClose={handleClose}
                 onTogglePin={handleTogglePin}
               />

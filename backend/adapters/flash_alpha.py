@@ -147,7 +147,12 @@ class FlashAlphaAdapter:
         resp = await self._client.get(f"/flow/signals/{sym}/summary", params=params)
         resp.raise_for_status()
         data = resp.json()
-        top_signals = [_parse_signal(s) for s in (data.get("top_signals") or [])]
+        raw_top = sorted(
+            data.get("top_signals") or [],
+            key=lambda s: s.get("ts") or "",
+            reverse=True,
+        )
+        top_signals = [_parse_signal(s) for s in raw_top]
         return FlowSignalsSummary(
             symbol=data.get("symbol", sym),
             as_of=data.get("as_of", datetime.now(timezone.utc).isoformat()),

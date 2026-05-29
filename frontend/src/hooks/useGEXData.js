@@ -9,10 +9,13 @@ export function useGEXData() {
   const [error, setError] = useState(null);
   const [elapsed, setElapsed] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [paused, setPaused] = useState(false);
   const intervalRef = useRef(null);
   const tickRef = useRef(null);
+  const pausedRef = useRef(false);
 
   const load = useCallback(async () => {
+    if (pausedRef.current) return;
     setLoading(true);
     setError(null);
     setElapsed(0);
@@ -27,29 +30,47 @@ export function useGEXData() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
+  const startIntervals = useCallback(() => {
+    clearInterval(intervalRef.current);
+    clearInterval(tickRef.current);
     intervalRef.current = setInterval(load, REFRESH_INTERVAL * 1000);
     tickRef.current = setInterval(
-      () => setElapsed((e) => Math.min(e + 1, REFRESH_INTERVAL)),
+      () => { if (!pausedRef.current) setElapsed((e) => Math.min(e + 1, REFRESH_INTERVAL)); },
       1000,
     );
+  }, [load]);
+
+  useEffect(() => {
+    load();
+    startIntervals();
     return () => {
       clearInterval(intervalRef.current);
       clearInterval(tickRef.current);
     };
-  }, [load]);
+  }, [load, startIntervals]);
 
   const refresh = useCallback(() => {
+    if (pausedRef.current) return;
     clearInterval(intervalRef.current);
     clearInterval(tickRef.current);
     load();
-    intervalRef.current = setInterval(load, REFRESH_INTERVAL * 1000);
-    tickRef.current = setInterval(
-      () => setElapsed((e) => Math.min(e + 1, REFRESH_INTERVAL)),
-      1000,
-    );
-  }, [load]);
+    startIntervals();
+  }, [load, startIntervals]);
+
+  const togglePause = useCallback(() => {
+    setPaused((prev) => {
+      const next = !prev;
+      pausedRef.current = next;
+      if (next) {
+        clearInterval(intervalRef.current);
+        clearInterval(tickRef.current);
+      } else {
+        load();
+        startIntervals();
+      }
+      return next;
+    });
+  }, [load, startIntervals]);
 
   const bumpRefreshKey = useCallback(() => {
     setRefreshKey((k) => k + 1);
@@ -64,5 +85,7 @@ export function useGEXData() {
     bumpRefreshKey,
     REFRESH_INTERVAL,
     refreshKey,
+    paused,
+    togglePause,
   };
 }

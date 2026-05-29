@@ -22,6 +22,8 @@ export default function UOAMode() {
     filters,
     setFilters,
     REFRESH_INTERVAL,
+    paused,
+    togglePause,
   } = useFlowSignals()
 
   const {
@@ -62,6 +64,8 @@ export default function UOAMode() {
         refresh={refresh}
         elapsed={elapsed}
         REFRESH_INTERVAL={REFRESH_INTERVAL}
+        paused={paused}
+        togglePause={togglePause}
       />
 
       <UOAWatchlistRow
