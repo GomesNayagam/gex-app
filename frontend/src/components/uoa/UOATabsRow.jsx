@@ -46,9 +46,3 @@ export default function UOATabsRow({ watchlist, activeSymbol, allData, onSelect 
     </div>
   )
 }
-
-function fmtM(val) {
-  if (val >= 1_000_000) return (val / 1_000_000).toFixed(1) + "M"
-  if (val >= 1_000) return (val / 1_000).toFixed(0) + "K"
-  return val.toFixed(0)
-}
