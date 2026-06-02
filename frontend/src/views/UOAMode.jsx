@@ -110,6 +110,7 @@ export default function UOAMode() {
             signal={activeSignal}
             symbol={activeSymbol}
             chain={signalsData?.chain}
+            windowMinutes={filters.windowMinutes}
             onClose={() => setActiveSignal(null)}
           />
         )}
