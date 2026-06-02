@@ -413,6 +413,99 @@ body.docked .pin-badge { display: flex; }
 /* ── Scrollable content area ─────────────── */
 .tape-content { height: calc(100vh - 36px - 42px - 38px - 27px); overflow-y: auto; }
 .variant-a .tape-content, .variant-b .tape-content { /* handled per variant */ }
+
+/* ── Variant D — Top Movers Leaderboard ─── */
+.lb-strip {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0; background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+.lb-strip > .lb-col + .lb-col { border-left: 1px solid var(--color-border); }
+.lb-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 10px;
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--color-text-dim);
+}
+.lb-header .lb-title { color: var(--color-text-muted); font-weight: 700; }
+.lb-header .lb-title.bull { color: var(--color-bull); }
+.lb-header .lb-title.bear { color: var(--color-bear); }
+.lb-header .lb-meta { margin-left: auto; color: var(--color-text-dim); font-size: 10px; letter-spacing: 0; text-transform: none; }
+.lb-strip-top {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 12px; background: #0d0d14;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 10px; color: var(--color-text-muted);
+}
+.lb-strip-top .lb-strip-title { font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text); }
+.lb-strip-top .lb-strip-window {
+  padding: 1px 6px; border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  font-family: var(--font-mono); color: var(--color-text-muted);
+}
+.lb-strip-top .lb-strip-updated { margin-left: auto; color: var(--color-text-dim); }
+
+.lb-col-grid-header {
+  display: grid;
+  grid-template-columns: 18px 48px 90px 1fr 50px;
+  gap: 6px; padding: 4px 10px;
+  font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--color-text-dim);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.lb-row {
+  display: grid;
+  grid-template-columns: 18px 48px 90px 1fr 50px;
+  gap: 6px; padding: 5px 10px;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-subtle);
+  cursor: pointer; transition: background 0.1s;
+}
+.lb-row:hover { background: var(--color-surface-2); }
+.lb-row:last-child { border-bottom: none; }
+
+.lb-rank { font-size: 10px; color: var(--color-text-dim); font-weight: 600; }
+.lb-sym {
+  font-size: var(--text-sm); font-weight: 700;
+  color: var(--color-text);
+  display: flex; align-items: center; gap: 4px;
+}
+.lb-sym .lb-pin { width: 5px; height: 5px; border-radius: 50%; background: var(--color-primary); }
+.lb-net { font-size: var(--text-sm); font-weight: 700; font-family: var(--font-mono); white-space: nowrap; }
+.lb-net.bull { color: var(--color-bull); }
+.lb-net.bear { color: var(--color-bear); }
+
+/* magnitude bar + B/S split combined cell */
+.lb-mag {
+  display: flex; flex-direction: column; gap: 3px;
+  min-width: 0;
+}
+.lb-mag-bar {
+  height: 4px; background: var(--color-border); border-radius: var(--radius-full); overflow: hidden;
+}
+.lb-mag-fill { height: 100%; border-radius: var(--radius-full); }
+.lb-mag-fill.bull { background: var(--color-bull); }
+.lb-mag-fill.bear { background: var(--color-bear); }
+.lb-bs {
+  display: flex; height: 4px; border-radius: var(--radius-full); overflow: hidden;
+  background: var(--color-border);
+}
+.lb-bs-buy { background: var(--color-bull); height: 100%; }
+.lb-bs-sell { background: var(--color-bear); height: 100%; }
+.lb-bs-pct {
+  display: flex; justify-content: space-between;
+  font-size: 9px; color: var(--color-text-dim); font-family: var(--font-mono);
+}
+
+.lb-last { font-size: 10px; color: var(--color-text-muted); font-family: var(--font-mono); text-align: right; white-space: nowrap; }
+.lb-last.stale { color: var(--color-text-dim); }
+
+@media (max-width: 768px) {
+  .lb-strip { grid-template-columns: 1fr; }
+  .lb-strip > .lb-col + .lb-col { border-left: none; border-top: 1px solid var(--color-border); }
+}
 </style>
 </head>
 <body>
@@ -423,6 +516,7 @@ body.docked .pin-badge { display: flex; }
   <button class="variant-tab active" onclick="showVariant('a', this)">A: Tape (2-line density)</button>
   <button class="variant-tab" onclick="showVariant('b', this)">B: Compact (1-line)</button>
   <button class="variant-tab" onclick="showVariant('c', this)">C: Card layout</button>
+  <button class="variant-tab" onclick="showVariant('d', this)">D: + Leaderboard</button>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════ -->
@@ -993,6 +1087,387 @@ body.docked .pin-badge { display: flex; }
   </div>
 </div><!-- /variant-c -->
 
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- VARIANT D — Top Movers Leaderboard + Tape              -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div id="variant-d" class="variant">
+
+  <!-- Top bar (same as A) -->
+  <div class="top-bar">
+    <span class="top-bar-label">Flow Signals</span>
+    <div class="sym-pill"><span>SPX</span><span class="caret">▾</span></div>
+    <div class="pill-group">
+      <button class="pill" onclick="setPill(this, 'win-d')">60m</button>
+      <button class="pill active" onclick="setPill(this, 'win-d')">240m</button>
+      <button class="pill" onclick="setPill(this, 'win-d')">1d</button>
+    </div>
+    <div class="score-wrap">
+      <span>minScore</span>
+      <input type="range" min="0" max="100" value="60" oninput="document.getElementById('sv-d').textContent=this.value">
+      <span class="score-val" id="sv-d">60</span>
+    </div>
+    <div class="toggle-group">
+      <button class="toggle active-all" onclick="setIntent(this,'int-d')">ALL</button>
+      <button class="toggle" onclick="setIntent(this,'int-d')">▲BULL</button>
+      <button class="toggle" onclick="setIntent(this,'int-d')">▼BEAR</button>
+    </div>
+    <button class="dte-toggle" onclick="this.classList.toggle('on')">0DTE</button>
+    <button class="refresh-btn">⟳</button>
+    <span class="clock">12:04 ET</span>
+  </div>
+
+  <!-- Summary strip (compact, same vocabulary as A) -->
+  <div class="summary-strip">
+    <span class="s-sym">SPX</span>
+    <span class="s-spot">5,832.40</span>
+    <span class="s-divider">·</span>
+    <span class="s-count">14 signals</span>
+    <span class="s-divider">·</span>
+    <span class="prem-amt bull">Bull $18.2M</span>
+    <span class="prem-amt bear">Bear $6.4M</span>
+    <span class="s-divider">·</span>
+    <span>Net <span class="net-val pos">+$11.8M</span></span>
+    <span class="s-updated">12:04:08</span>
+  </div>
+
+  <!-- ── LEADERBOARD STRIP ────────────────── -->
+  <div class="lb-strip-top">
+    <span class="lb-strip-title">Top Movers</span>
+    <span class="lb-strip-window">60m</span>
+    <span class="lb-strip-updated">generated 17:02:16 UTC · refresh in 23s ⟳</span>
+  </div>
+  <div class="lb-strip">
+
+    <!-- BUYERS -->
+    <div class="lb-col">
+      <div class="lb-header">
+        <span class="lb-title bull">▲ Buyers</span>
+        <span>Top 10 · net positive premium · excludes SPX / SPY / QQQ</span>
+        <span class="lb-meta">window 60m</span>
+      </div>
+      <div class="lb-col-grid-header">
+        <div>#</div><div>SYM</div><div>NET $</div><div>MAG · B/S</div><div>LAST</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('AMD')">
+        <div class="lb-rank">1</div><div class="lb-sym">AMD</div>
+        <div class="lb-net bull">+$19.8M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bull" style="width:100%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:62%"></div><div class="lb-bs-sell" style="width:38%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">62%</span><span style="color:var(--color-bear)">38%</span></div>
+        </div>
+        <div class="lb-last">3s</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('MU')">
+        <div class="lb-rank">2</div><div class="lb-sym">MU</div>
+        <div class="lb-net bull">+$13.1M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bull" style="width:66%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:54%"></div><div class="lb-bs-sell" style="width:46%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">54%</span><span style="color:var(--color-bear)">46%</span></div>
+        </div>
+        <div class="lb-last">5s</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('NVDA')">
+        <div class="lb-rank">3</div>
+        <div class="lb-sym"><span class="lb-pin" title="in watchlist"></span>NVDA</div>
+        <div class="lb-net bull">+$9.2M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bull" style="width:46%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:58%"></div><div class="lb-bs-sell" style="width:42%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">58%</span><span style="color:var(--color-bear)">42%</span></div>
+        </div>
+        <div class="lb-last">11s</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('AAPL')">
+        <div class="lb-rank">4</div><div class="lb-sym">AAPL</div>
+        <div class="lb-net bull">+$4.1M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bull" style="width:21%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:55%"></div><div class="lb-bs-sell" style="width:45%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">55%</span><span style="color:var(--color-bear)">45%</span></div>
+        </div>
+        <div class="lb-last stale">22s</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('GOOGL')">
+        <div class="lb-rank">5</div><div class="lb-sym">GOOGL</div>
+        <div class="lb-net bull">+$3.4M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bull" style="width:17%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:57%"></div><div class="lb-bs-sell" style="width:43%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">57%</span><span style="color:var(--color-bear)">43%</span></div>
+        </div>
+        <div class="lb-last stale">31s</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('TLT')">
+        <div class="lb-rank">6</div><div class="lb-sym">TLT</div>
+        <div class="lb-net bull">+$2.7M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bull" style="width:14%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:51%"></div><div class="lb-bs-sell" style="width:49%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">51%</span><span style="color:var(--color-bear)">49%</span></div>
+        </div>
+        <div class="lb-last stale">1m</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('AMZN')">
+        <div class="lb-rank">7</div><div class="lb-sym">AMZN</div>
+        <div class="lb-net bull">+$2.2M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bull" style="width:11%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:53%"></div><div class="lb-bs-sell" style="width:47%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">53%</span><span style="color:var(--color-bear)">47%</span></div>
+        </div>
+        <div class="lb-last stale">1m</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('COIN')">
+        <div class="lb-rank">8</div><div class="lb-sym">COIN</div>
+        <div class="lb-net bull">+$1.6M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bull" style="width:8%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:60%"></div><div class="lb-bs-sell" style="width:40%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">60%</span><span style="color:var(--color-bear)">40%</span></div>
+        </div>
+        <div class="lb-last stale">2m</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('SMCI')">
+        <div class="lb-rank">9</div><div class="lb-sym">SMCI</div>
+        <div class="lb-net bull">+$1.1M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bull" style="width:6%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:56%"></div><div class="lb-bs-sell" style="width:44%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">56%</span><span style="color:var(--color-bear)">44%</span></div>
+        </div>
+        <div class="lb-last stale">3m</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('BABA')">
+        <div class="lb-rank">10</div><div class="lb-sym">BABA</div>
+        <div class="lb-net bull">+$0.8M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bull" style="width:4%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:52%"></div><div class="lb-bs-sell" style="width:48%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">52%</span><span style="color:var(--color-bear)">48%</span></div>
+        </div>
+        <div class="lb-last stale">4m</div>
+      </div>
+    </div>
+
+    <!-- SELLERS -->
+    <div class="lb-col">
+      <div class="lb-header">
+        <span class="lb-title bear">▼ Sellers</span>
+        <span>Top 10 · net negative premium · excludes SPX / SPY / QQQ</span>
+        <span class="lb-meta">window 60m</span>
+      </div>
+      <div class="lb-col-grid-header">
+        <div>#</div><div>SYM</div><div>NET $</div><div>MAG · B/S</div><div>LAST</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('TSLA')">
+        <div class="lb-rank">1</div><div class="lb-sym">TSLA</div>
+        <div class="lb-net bear">−$6.4M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bear" style="width:100%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:44%"></div><div class="lb-bs-sell" style="width:56%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">44%</span><span style="color:var(--color-bear)">56%</span></div>
+        </div>
+        <div class="lb-last">7s</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('META')">
+        <div class="lb-rank">2</div><div class="lb-sym">META</div>
+        <div class="lb-net bear">−$3.2M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bear" style="width:50%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:47%"></div><div class="lb-bs-sell" style="width:53%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">47%</span><span style="color:var(--color-bear)">53%</span></div>
+        </div>
+        <div class="lb-last">18s</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('IWM')">
+        <div class="lb-rank">3</div><div class="lb-sym">IWM</div>
+        <div class="lb-net bear">−$1.9M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bear" style="width:30%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:49%"></div><div class="lb-bs-sell" style="width:51%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">49%</span><span style="color:var(--color-bear)">51%</span></div>
+        </div>
+        <div class="lb-last stale">45s</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('MSFT')">
+        <div class="lb-rank">4</div><div class="lb-sym">MSFT</div>
+        <div class="lb-net bear">−$1.7M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bear" style="width:27%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:46%"></div><div class="lb-bs-sell" style="width:54%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">46%</span><span style="color:var(--color-bear)">54%</span></div>
+        </div>
+        <div class="lb-last stale">52s</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('NFLX')">
+        <div class="lb-rank">5</div><div class="lb-sym">NFLX</div>
+        <div class="lb-net bear">−$1.3M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bear" style="width:20%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:45%"></div><div class="lb-bs-sell" style="width:55%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">45%</span><span style="color:var(--color-bear)">55%</span></div>
+        </div>
+        <div class="lb-last stale">1m</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('AVGO')">
+        <div class="lb-rank">6</div><div class="lb-sym">AVGO</div>
+        <div class="lb-net bear">−$0.9M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bear" style="width:14%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:48%"></div><div class="lb-bs-sell" style="width:52%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">48%</span><span style="color:var(--color-bear)">52%</span></div>
+        </div>
+        <div class="lb-last stale">2m</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('PLTR')">
+        <div class="lb-rank">7</div><div class="lb-sym">PLTR</div>
+        <div class="lb-net bear">−$0.7M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bear" style="width:11%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:43%"></div><div class="lb-bs-sell" style="width:57%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">43%</span><span style="color:var(--color-bear)">57%</span></div>
+        </div>
+        <div class="lb-last stale">2m</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('DIS')">
+        <div class="lb-rank">8</div><div class="lb-sym">DIS</div>
+        <div class="lb-net bear">−$0.5M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bear" style="width:8%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:47%"></div><div class="lb-bs-sell" style="width:53%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">47%</span><span style="color:var(--color-bear)">53%</span></div>
+        </div>
+        <div class="lb-last stale">3m</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('INTC')">
+        <div class="lb-rank">9</div><div class="lb-sym">INTC</div>
+        <div class="lb-net bear">−$0.4M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bear" style="width:6%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:45%"></div><div class="lb-bs-sell" style="width:55%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">45%</span><span style="color:var(--color-bear)">55%</span></div>
+        </div>
+        <div class="lb-last stale">4m</div>
+      </div>
+
+      <div class="lb-row" onclick="activateLB('GLD')">
+        <div class="lb-rank">10</div><div class="lb-sym">GLD</div>
+        <div class="lb-net bear">−$0.3M</div>
+        <div class="lb-mag">
+          <div class="lb-mag-bar"><div class="lb-mag-fill bear" style="width:5%"></div></div>
+          <div class="lb-bs"><div class="lb-bs-buy" style="width:46%"></div><div class="lb-bs-sell" style="width:54%"></div></div>
+          <div class="lb-bs-pct"><span style="color:var(--color-bull)">46%</span><span style="color:var(--color-bear)">54%</span></div>
+        </div>
+        <div class="lb-last stale">5m</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Signal tape header below leaderboard -->
+  <div class="tape-header tape-inset">
+    <div>SCORE</div>
+    <div>TIME</div>
+    <div>CONTRACT</div>
+    <div>FLOW</div>
+    <div>BREAKDOWN</div>
+  </div>
+
+  <!-- Reuse a couple of variant A rows so traders see the full context -->
+  <div class="tape-inset" style="height:calc(100vh - 36px - 42px - 38px - 27px - 200px); overflow-y:auto">
+    <div class="signal-row" onclick="openDrawer('d', 0)">
+      <div class="score-chip">
+        <div class="score-num" style="color:var(--color-score-elite)">
+          <span class="score-dot" style="background:var(--color-score-elite)"></span>92
+        </div>
+        <div class="score-intent intent-bull">▲BULL</div>
+      </div>
+      <div class="time-col">12:03:14</div>
+      <div class="contract-col">
+        <div class="contract-main">SPX 5850 <span class="right-call">C</span>&nbsp;06-21 28d</div>
+        <div class="contract-sub">$4.20 × 1,200 = <span class="prem-highlight">$504K</span></div>
+        <div class="tags-row">
+          <span class="tag tag-whale">whale</span>
+          <span class="tag tag-golden">golden</span>
+          <span class="tag tag-sweep">sweep</span>
+        </div>
+      </div>
+      <div class="flow-col">
+        <div class="flow-struct sweep">SWEEP ⇧⇧</div>
+        <div class="flow-agg">above_ask</div>
+        <div class="flow-oc">
+          <span class="oc-badge oc-open">OPEN</span>
+          <span>0.92</span>
+        </div>
+      </div>
+      <div class="breakdown-col">
+        <div class="breakdown-bar" id="bd-d-0"></div>
+        <div class="bd-legend">
+          <span class="bd-lbl">P</span><span class="bd-lbl">S</span>
+          <span class="bd-lbl">A</span><span class="bd-lbl">W</span>
+          <span class="bd-lbl">O</span><span class="bd-lbl">T</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="signal-row" onclick="openDrawer('d', 1)">
+      <div class="score-chip">
+        <div class="score-num" style="color:var(--color-score-elite)">
+          <span class="score-dot" style="background:var(--color-score-elite)"></span>84
+        </div>
+        <div class="score-intent intent-bear">▼BEAR</div>
+      </div>
+      <div class="time-col">12:01:58</div>
+      <div class="contract-col">
+        <div class="contract-main">SPX 5800 <span class="right-put">P</span>&nbsp;05-31 7d</div>
+        <div class="contract-sub">$9.10 × 600 = <span class="prem-highlight">$546K</span></div>
+        <div class="tags-row">
+          <span class="tag tag-golden">golden</span>
+          <span class="tag tag-sweep">sweep</span>
+        </div>
+      </div>
+      <div class="flow-col">
+        <div class="flow-struct sweep">SWEEP ⇧</div>
+        <div class="flow-agg">at_ask</div>
+        <div class="flow-oc">
+          <span class="oc-badge oc-open">OPEN</span>
+          <span>0.78</span>
+        </div>
+      </div>
+      <div class="breakdown-col">
+        <div class="breakdown-bar" id="bd-d-1"></div>
+        <div class="bd-legend">
+          <span class="bd-lbl">P</span><span class="bd-lbl">S</span>
+          <span class="bd-lbl">A</span><span class="bd-lbl">W</span>
+          <span class="bd-lbl">O</span><span class="bd-lbl">T</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /variant-d -->
+
 <!-- ════════════════════════════════════════ -->
 <!-- DETAIL DRAWER (shared)                   -->
 <!-- ════════════════════════════════════════ -->
@@ -1186,7 +1661,7 @@ const SEG_COLORS = ['#3b82f6','#22c55e','#f59e0b','#a78bfa','#34d399','#94a3b8']
 const SEG_KEYS   = ['premium','size_vs_oi','aggressor','sweep','opening_bias','tenor'];
 
 function renderBars() {
-  ['a','b','c'].forEach(v => {
+  ['a','b','c','d'].forEach(v => {
     SIGNALS.forEach((sig, i) => {
       const el = document.getElementById(`bd-${v}-${i}`);
       if (!el) return;
@@ -1242,6 +1717,15 @@ function doRefresh(v) {
   const rows = document.querySelectorAll(`#variant-${v} .signal-row`);
   rows.forEach(r => { r.style.opacity = '0.4'; });
   setTimeout(() => rows.forEach(r => { r.style.opacity = '1'; }), 600);
+}
+
+// ── Leaderboard click (sketch stub) ────────
+function activateLB(sym) {
+  // In the real app this would: addSymbol(sym) if missing, then setActiveSymbol(sym)
+  document.querySelectorAll('#variant-d .lb-row').forEach(r => r.style.background = '');
+  event.currentTarget.style.background = 'var(--color-surface-2)';
+  document.querySelectorAll('#variant-d .sym-pill span').forEach(s => { if (s.classList.contains('caret')) return; s.textContent = sym; });
+  document.querySelectorAll('#variant-d .s-sym').forEach(s => s.textContent = sym);
 }
 
 // ── Drawer ────────────────────────────────
