@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { fetchFlowSignals, fetchFlowSummary } from "@/api";
+import { fetchFlowSignals } from "@/api";
 import { getRefreshInterval } from "@/lib/refreshSettings";
 const LS_FILTERS = "uoa-filters";
 const LS_WATCHLIST = "uoa-watchlist";
@@ -52,7 +52,7 @@ export function useFlowSignals() {
   const [activeSymbol, setActiveSymbolState] = useState(() =>
     loadActiveSymbol(loadWatchlist()),
   );
-  // allData: { [symbol]: { signals: FlowSignalsResponse|null, summary: FlowSignalsSummary|null, loading: bool, error: string|null } }
+  // allData: { [symbol]: { signals: FlowSignalsResponse|null, loading: bool, error: string|null } }
   const [allData, setAllData] = useState({});
   const [elapsed, setElapsed] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -142,17 +142,14 @@ export function useFlowSignals() {
 
     const results = await Promise.allSettled(
       syms.map(async (sym) => {
-        const [signalsData, summaryData] = await Promise.all([
-          fetchFlowSignals(sym, {
-            windowMinutes: f.windowMinutes,
-            minScore: f.minScore,
-            intent: f.intent,
-            structure: f.structure,
-            expiry,
-          }),
-          fetchFlowSummary(sym, { windowMinutes: f.windowMinutes, expiry }),
-        ]);
-        return { sym, signalsData, summaryData };
+        const signalsData = await fetchFlowSignals(sym, {
+          windowMinutes: f.windowMinutes,
+          minScore: f.minScore,
+          intent: f.intent,
+          structure: f.structure,
+          expiry,
+        });
+        return { sym, signalsData };
       }),
     );
 
@@ -161,10 +158,9 @@ export function useFlowSignals() {
       syms.forEach((sym, idx) => {
         const result = results[idx];
         if (result.status === "fulfilled") {
-          const { signalsData, summaryData } = result.value;
+          const { signalsData } = result.value;
           next[sym] = {
             signals: signalsData,
-            summary: summaryData,
             loading: false,
             error: null,
           };
