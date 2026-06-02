@@ -6,15 +6,8 @@ export default function UOATabsRow({ watchlist, activeSymbol, allData, onSelect 
     >
       {watchlist.map((sym) => {
         const entry = allData[sym]
-        const summary = entry?.summary
         const isActive = sym === activeSymbol
-        const count = summary?.signal_count ?? (entry?.loading ? "…" : 0)
-        const bull = summary?.bullish_premium ?? 0
-        const bear = summary?.bearish_premium ?? 0
-        const net = bull - bear
-        const dotColor = net > 0 ? "#22c55e" : net < 0 ? "#f43f5e" : "#d97706"
-        const netLabel = summary ? (net >= 0 ? `▲$${fmtM(bull)}` : `▼$${fmtM(bear)}`) : null
-        const netColor = net >= 0 ? "#22c55e" : "#f43f5e"
+        const count = entry?.loading ? "…" : (entry?.signals?.signals?.length ?? 0)
 
         return (
           <button
@@ -33,7 +26,7 @@ export default function UOATabsRow({ watchlist, activeSymbol, allData, onSelect 
             <span
               style={{
                 width: 6, height: 6, borderRadius: "50%",
-                background: summary ? dotColor : "#3d3d50",
+                background: isActive ? "#3b82f6" : "#3d3d50",
                 display: "inline-block", flexShrink: 0,
               }}
             />
@@ -47,9 +40,6 @@ export default function UOATabsRow({ watchlist, activeSymbol, allData, onSelect 
             >
               {count}
             </span>
-            {netLabel && (
-              <span style={{ color: netColor, fontSize: "9px" }}>{netLabel}</span>
-            )}
           </button>
         )
       })}

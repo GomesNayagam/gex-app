@@ -4,7 +4,6 @@ import { useLeaderboard } from "@/hooks/useLeaderboard"
 import UOATopBar from "@/components/uoa/UOATopBar"
 import UOAWatchlistRow from "@/components/uoa/UOAWatchlistRow"
 import UOATabsRow from "@/components/uoa/UOATabsRow"
-import UOASummaryStrip from "@/components/uoa/UOASummaryStrip"
 import UOALeaderboard from "@/components/uoa/UOALeaderboard"
 import SignalTape from "@/components/uoa/SignalTape"
 import SignalDetailDrawer from "@/components/uoa/SignalDetailDrawer"
@@ -43,7 +42,7 @@ export default function UOAMode() {
   const [activeSignal, setActiveSignal] = useState(null)
 
   const entry = allData[activeSymbol] ?? {}
-  const { signals: signalsData, summary, loading, error } = entry
+  const { signals: signalsData, loading, error } = entry
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -83,14 +82,7 @@ export default function UOAMode() {
         onSelect={setActiveSymbol}
       />
 
-      {summary && (
-        <UOASummaryStrip
-          summary={summary}
-          spot={signalsData?.underlying_price}
-        />
-      )}
-
-      <div className="flex flex-1 overflow-hidden relative">
+<div className="flex flex-1 overflow-hidden relative">
         {loading && !signalsData && (
           <div className="flex-1 flex items-center justify-center font-mono text-[12px] text-[var(--text-3)]">
             Loading flow signals…

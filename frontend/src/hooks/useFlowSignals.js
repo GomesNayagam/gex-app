@@ -52,7 +52,7 @@ export function useFlowSignals() {
   const [activeSymbol, setActiveSymbolState] = useState(() =>
     loadActiveSymbol(loadWatchlist()),
   );
-  // allData: { [symbol]: { signals: FlowSignalsResponse|null, summary: FlowSignalsSummary|null, loading: bool, error: string|null } }
+  // allData: { [symbol]: { signals: FlowSignalsResponse|null, loading: bool, error: string|null } }
   const [allData, setAllData] = useState({});
   const [elapsed, setElapsed] = useState(0);
   const [paused, setPaused] = useState(false);
