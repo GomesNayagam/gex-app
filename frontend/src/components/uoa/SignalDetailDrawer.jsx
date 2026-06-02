@@ -78,15 +78,17 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain, win
   });
   const [summary, setSummary] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState(false);
 
   useEffect(() => {
     if (!signal?.expiry || !symbol) return;
     let cancelled = false;
     setSummary(null);
+    setSummaryError(false);
     setSummaryLoading(true);
     fetchFlowSummary(symbol, { windowMinutes, expiry: signal.expiry })
       .then((data) => { if (!cancelled) { setSummary(data); setSummaryLoading(false); } })
-      .catch(() => { if (!cancelled) setSummaryLoading(false); });
+      .catch(() => { if (!cancelled) { setSummaryLoading(false); setSummaryError(true); } });
     return () => { cancelled = true; };
   }, [symbol, signal?.expiry, windowMinutes]);
 
@@ -235,7 +237,7 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain, win
 
         <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-4">
           {/* Expiry Summary */}
-          {(summaryLoading || summary) && (
+          {(summaryLoading || summary || summaryError) && (
             <div>
               <span className="text-[var(--text-3)] uppercase tracking-wider text-[10px] block mb-2">
                 Expiry Flow Summary
@@ -245,9 +247,11 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain, win
                   <div className="h-3 w-3/4 rounded bg-[var(--surface-2)] animate-pulse" />
                   <div className="h-3 w-1/2 rounded bg-[var(--surface-2)] animate-pulse" />
                 </div>
+              ) : summaryError ? (
+                <span className="text-[10px] text-[var(--text-3)]">failed to load</span>
               ) : summary ? (
                 <div className="flex flex-col gap-1">
-                  <Row label="signals" value={summary.signal_count} />
+                  <Row label="signals" value={summary.signal_count != null ? summary.signal_count : "—"} />
                   <Row label="bull premium" value={summary.bullish_premium != null ? `$${(summary.bullish_premium / 1e6).toFixed(1)}M` : null} cls="text-green-400" />
                   <Row label="bear premium" value={summary.bearish_premium != null ? `$${(summary.bearish_premium / 1e6).toFixed(1)}M` : null} cls="text-red-400" />
                   {summary.net_premium != null && (
