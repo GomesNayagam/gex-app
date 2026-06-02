@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { fmtPremium } from "@/lib/format";
 import ScoreBreakdownBar from "./ScoreBreakdownBar";
+import { fetchFlowSummary } from "@/api";
 
 const LS_PINNED = "uoa-drawer-pinned";
 const LS_WIDTH = "uoa-drawer-width";
@@ -56,7 +57,7 @@ function Row({ label, value, cls }) {
   );
 }
 
-export default function SignalDetailDrawer({ signal, symbol, onClose, chain }) {
+export default function SignalDetailDrawer({ signal, symbol, onClose, chain, windowMinutes = 240 }) {
   const [pinned, setPinned] = useState(() => {
     try {
       return localStorage.getItem(LS_PINNED) === "true";
@@ -75,6 +76,20 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain }) {
       return DEFAULT_WIDTH;
     }
   });
+  const [summary, setSummary] = useState(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+
+  useEffect(() => {
+    if (!signal?.expiry || !symbol) return;
+    let cancelled = false;
+    setSummary(null);
+    setSummaryLoading(true);
+    fetchFlowSummary(symbol, { windowMinutes, expiry: signal.expiry })
+      .then((data) => { if (!cancelled) { setSummary(data); setSummaryLoading(false); } })
+      .catch(() => { if (!cancelled) setSummaryLoading(false); });
+    return () => { cancelled = true; };
+  }, [symbol, signal?.expiry, windowMinutes]);
+
   const navigate = useNavigate();
   const dragState = useRef(null);
 
@@ -219,6 +234,33 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain }) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-4">
+          {/* Expiry Summary */}
+          {(summaryLoading || summary) && (
+            <div>
+              <span className="text-[var(--text-3)] uppercase tracking-wider text-[10px] block mb-2">
+                Expiry Flow Summary
+              </span>
+              {summaryLoading ? (
+                <div className="flex flex-col gap-1">
+                  <div className="h-3 w-3/4 rounded bg-[var(--surface-2)] animate-pulse" />
+                  <div className="h-3 w-1/2 rounded bg-[var(--surface-2)] animate-pulse" />
+                </div>
+              ) : summary ? (
+                <div className="flex flex-col gap-1">
+                  <Row label="signals" value={summary.signal_count} />
+                  <Row label="bull premium" value={summary.bullish_premium != null ? `$${(summary.bullish_premium / 1e6).toFixed(1)}M` : null} cls="text-green-400" />
+                  <Row label="bear premium" value={summary.bearish_premium != null ? `$${(summary.bearish_premium / 1e6).toFixed(1)}M` : null} cls="text-red-400" />
+                  {summary.net_premium != null && (
+                    <Row
+                      label="net premium"
+                      value={`$${(summary.net_premium / 1e6).toFixed(1)}M`}
+                      cls={summary.net_premium >= 0 ? "text-green-400" : "text-red-400"}
+                    />
+                  )}
+                </div>
+              ) : null}
+            </div>
+          )}
           {/* Score */}
           <div>
             <div className="flex items-center justify-between mb-2">
