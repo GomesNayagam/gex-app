@@ -20,9 +20,12 @@ export function useLeaderboard({ window = 60, n = 10 } = {}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [elapsed, setElapsed] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   const intervalRef = useRef(null);
   const tickRef = useRef(null);
+  const pausedRef = useRef(false);
   const excludeRef = useRef(excludeList);
   excludeRef.current = excludeList;
 
@@ -33,6 +36,7 @@ export function useLeaderboard({ window = 60, n = 10 } = {}) {
     try {
       const raw = await fetchLeaderboard({ window, n });
       setRawData(raw);
+      setLastUpdated(new Date());
     } catch (e) {
       setError(e.message);
     } finally {
@@ -41,15 +45,36 @@ export function useLeaderboard({ window = 60, n = 10 } = {}) {
   }, [window, n]);
 
   const refresh = useCallback(() => {
+    if (pausedRef.current) return;
     load();
     clearInterval(intervalRef.current);
     clearInterval(tickRef.current);
-    intervalRef.current = setInterval(load, REFRESH_INTERVAL * 1000);
+    intervalRef.current = setInterval(() => { if (!pausedRef.current) load(); }, REFRESH_INTERVAL * 1000);
     tickRef.current = setInterval(
       () => setElapsed((e) => Math.min(e + 1, REFRESH_INTERVAL)),
       1000,
     );
   }, [load]);
+
+  const pause = useCallback(() => {
+    pausedRef.current = true;
+    setPaused(true);
+    clearInterval(intervalRef.current);
+    clearInterval(tickRef.current);
+  }, []);
+
+  const resume = useCallback(() => {
+    pausedRef.current = false;
+    setPaused(false);
+    load();
+    clearInterval(intervalRef.current);
+    clearInterval(tickRef.current);
+    intervalRef.current = setInterval(() => { if (!pausedRef.current) load(); }, REFRESH_INTERVAL * 1000);
+    tickRef.current = setInterval(
+      () => setElapsed((e) => Math.min(e + 1, REFRESH_INTERVAL)),
+      1000,
+    );
+  }, [load, REFRESH_INTERVAL]);
 
   useEffect(() => {
     refresh();
@@ -103,5 +128,9 @@ export function useLeaderboard({ window = 60, n = 10 } = {}) {
     excludeList,
     addExclude,
     removeExclude,
+    paused,
+    lastUpdated,
+    pause,
+    resume,
   };
 }

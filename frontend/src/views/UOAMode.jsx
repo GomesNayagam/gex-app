@@ -32,6 +32,10 @@ export default function UOAMode() {
     excludeList: lbExclude,
     addExclude: lbAddExclude,
     removeExclude: lbRemoveExclude,
+    paused: lbPaused,
+    lastUpdated: lbLastUpdated,
+    pause: lbPause,
+    resume: lbResume,
   } = useLeaderboard()
 
   const handleLeaderboardActivate = (sym) => {
@@ -55,6 +59,10 @@ export default function UOAMode() {
         excludeList={lbExclude}
         onAddExclude={lbAddExclude}
         onRemoveExclude={lbRemoveExclude}
+        paused={lbPaused}
+        lastUpdated={lbLastUpdated}
+        onPause={lbPause}
+        onResume={lbResume}
       />
 
       <UOATopBar
