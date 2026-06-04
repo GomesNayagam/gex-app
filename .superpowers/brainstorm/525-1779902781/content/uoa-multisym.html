@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>UOA Multi-Symbol Mockup</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0a0a0f;
+  color: #e2e2e8;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  min-height: 100vh;
+}
+
+/* ── TOP BAR ── */
+.top-bar {
+  background: #111118;
+  border-bottom: 1px solid #1e1e2a;
+  padding: 6px 12px;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.top-bar-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; color: #6b6b80; text-transform: uppercase; }
+.pill { padding: 2px 8px; font-size: 11px; border-radius: 2px; border: 1px solid #1e1e2a; background: transparent; color: #6b6b80; cursor: pointer; font-family: monospace; }
+.pill.active { background: #3b82f6; color: #fff; border-color: #3b82f6; font-weight: 700; }
+.pill-group { display: flex; gap: 2px; }
+.score-wrap { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #6b6b80; }
+.score-wrap input[type=range] { width: 70px; accent-color: #3b82f6; }
+.score-val { color: #e2e2e8; font-weight: 600; min-width: 18px; }
+.toggle-group { display: flex; gap: 1px; }
+.toggle { padding: 2px 7px; font-size: 10px; border-radius: 2px; border: 1px solid #1e1e2a; background: transparent; color: #6b6b80; cursor: pointer; font-family: monospace; letter-spacing: .03em; }
+.toggle.active-bull { background: #14532d; color: #22c55e; border-color: #14532d; }
+.toggle.active-bear { background: #4c0519; color: #f43f5e; border-color: #4c0519; }
+.toggle.active-all  { background: #16161f; color: #e2e2e8; border-color: #333348; }
+.toggle.active-swp  { background: #1e3a5f; color: #3b82f6; border-color: #1e3a5f; }
+.dte-toggle { padding: 2px 7px; font-size: 10px; border-radius: 2px; border: 1px solid #1e1e2a; background: transparent; color: #6b6b80; cursor: pointer; }
+.sep { color: #3d3d50; }
+
+/* ── WATCHLIST ROW ── */
+.watchlist-row {
+  background: #0f0f18;
+  border-bottom: 1px solid #1e1e2a;
+  padding: 5px 12px;
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+.wl-label { font-size: 10px; color: #6b6b80; letter-spacing: .08em; text-transform: uppercase; margin-right: 2px; }
+.sym-chip {
+  display: flex; align-items: center; gap: 3px;
+  padding: 2px 8px; border-radius: 2px; border: 1px solid #1e1e2a;
+  font-size: 11px; font-weight: 700; cursor: pointer; transition: all .15s;
+}
+.sym-chip.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+.sym-chip:not(.active) { background: #16161f; color: #e2e2e8; border-color: #1e1e2a; }
+.sym-chip .x-btn { color: #6b6b80; font-size: 10px; margin-left: 2px; }
+.sym-chip.active .x-btn { color: rgba(255,255,255,.6); }
+.add-sym-input {
+  background: transparent; border: 1px dashed #333348; border-radius: 2px;
+  color: #6b6b80; font-family: monospace; font-size: 11px;
+  padding: 2px 8px; width: 70px; outline: none;
+}
+.add-sym-input::placeholder { color: #3d3d50; }
+
+/* ── TABS ── */
+.tabs-row {
+  background: #111118;
+  border-bottom: 1px solid #1e1e2a;
+  display: flex; align-items: stretch;
+}
+.tab {
+  padding: 6px 16px; font-size: 11px; font-weight: 700; cursor: pointer;
+  border-right: 1px solid #1e1e2a; border-bottom: 2px solid transparent;
+  color: #6b6b80; transition: all .15s; white-space: nowrap;
+  display: flex; align-items: center; gap: 6px;
+}
+.tab:hover { color: #e2e2e8; background: #16161f; }
+.tab.active { color: #e2e2e8; border-bottom-color: #3b82f6; background: #0f0f18; }
+.tab .tab-count {
+  font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 10px;
+  background: #1e1e2a; color: #6b6b80;
+}
+.tab.active .tab-count { background: rgba(59,130,246,.2); color: #3b82f6; }
+.tab .tab-bull { color: #22c55e; font-size: 9px; }
+.tab .tab-bear { color: #f43f5e; font-size: 9px; }
+.tab .tab-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+/* ── SUMMARY STRIP ── */
+.summary-strip {
+  background: #16161f; border-bottom: 1px solid #1e1e2a;
+  padding: 5px 12px; display: flex; align-items: center; gap: 14px; font-size: 11px;
+}
+.s-sym { font-weight: 700; font-size: 12px; }
+.s-spot { color: #e2e2e8; font-weight: 600; }
+.s-div { color: #3d3d50; }
+.s-bull { color: #22c55e; }
+.s-bear { color: #f43f5e; }
+.s-net-pos { color: #22c55e; font-weight: 700; }
+.s-muted { color: #6b6b80; }
+.prem-bar { width: 70px; height: 5px; border-radius: 9999px; background: #1e1e2a; overflow: hidden; display: inline-block; vertical-align: middle; margin: 0 3px; }
+.prem-bar-fill { height: 100%; border-radius: 9999px; background: #22c55e; }
+
+/* ── TABLE HEADER ── */
+.tape-header {
+  display: grid; grid-template-columns: 52px 64px 1fr 150px 110px;
+  padding: 4px 12px; background: #111118; border-bottom: 1px solid #1e1e2a;
+  font-size: 9px; color: #3d3d50; letter-spacing: .06em; text-transform: uppercase;
+}
+
+/* ── SIGNAL ROWS ── */
+.signal-row {
+  border-bottom: 1px solid #16161f;
+  padding: 6px 12px 5px; cursor: pointer; transition: background .1s;
+  display: grid; grid-template-columns: 52px 64px 1fr 150px 110px;
+  gap: 0; align-items: start;
+}
+.signal-row:hover { background: #111118; }
+.signal-row.active-row { background: #14161f; border-left: 2px solid #3b82f6; }
+
+.score-chip { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.score-num { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 3px; }
+.score-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.score-intent { font-size: 9px; font-weight: 700; letter-spacing: .04em; }
+.intent-bull { color: #22c55e; }
+.intent-bear { color: #f43f5e; }
+
+.time-col { font-size: 10px; color: #6b6b80; padding-top: 2px; }
+
+.contract-col { padding: 0 8px; }
+.contract-main { font-size: 12px; font-weight: 600; color: #e2e2e8; white-space: nowrap; }
+.right-call { color: #22c55e; }
+.right-put  { color: #f43f5e; }
+.contract-sub { font-size: 10px; color: #6b6b80; margin-top: 2px; }
+.prem-hl { color: #e2e2e8; }
+.tags-row { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 4px; }
+.tag { font-size: 9px; padding: 1px 4px; border-radius: 2px; border: 1px solid; letter-spacing: .03em; white-space: nowrap; }
+.tag-whale   { border-color: #d4a017; color: #d4a017; }
+.tag-golden  { background: #f59e0b; color: #000; border-color: #f59e0b; }
+.tag-sweep   { border-color: #3b82f6; color: #3b82f6; }
+.tag-opening { border-color: #2d4a2d; color: #4ade80; }
+.tag-closing { border-color: #4a2d2d; color: #f87171; }
+.tag-block   { border-color: #4b5563; color: #6b7280; }
+
+.flow-col { font-size: 11px; }
+.flow-struct { font-weight: 700; font-size: 10px; letter-spacing: .06em; }
+.flow-struct.sweep { color: #3b82f6; }
+.flow-struct.block { color: #6b6b80; }
+.flow-agg { color: #6b6b80; font-size: 10px; margin-top: 2px; }
+.flow-oc { display: flex; align-items: center; gap: 5px; margin-top: 3px; font-size: 10px; color: #6b6b80; }
+.oc-open { color: #22c55e; font-weight: 700; }
+.oc-close { color: #f43f5e; font-weight: 700; }
+
+.bd-bar { display: flex; gap: 1px; height: 12px; border-radius: 2px; overflow: hidden; }
+.bd-seg { border-radius: 1px; }
+.bd-legend { display: flex; gap: 0; margin-top: 2px; font-size: 8px; color: #3d3d50; }
+.bd-lbl { width: calc(100% / 6); text-align: center; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div style="max-width:900px;margin:0 auto;padding:20px;color:#6b6b80;font-size:11px;font-family:monospace">
+  <div style="color:#e2e2e8;font-size:14px;font-weight:700;margin-bottom:4px">UOA Multi-Symbol — Layout Preview</div>
+  <div style="margin-bottom:16px">Watchlist row below the top bar. Tabs separate each symbol's signal tape.</div>
+</div>
+
+<div style="max-width:900px;margin:0 auto;border:1px solid #1e1e2a;border-radius:4px;overflow:hidden">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <span class="top-bar-label">Flow Signals</span>
+    <span class="sep">·</span>
+    <div class="pill-group">
+      <span class="pill">60m</span>
+      <span class="pill active">240m</span>
+      <span class="pill">1d</span>
+    </div>
+    <span class="sep">·</span>
+    <div class="score-wrap">
+      <span>SCORE≥</span>
+      <input type="range" min="0" max="100" value="60" disabled>
+      <span class="score-val">60</span>
+    </div>
+    <span class="sep">·</span>
+    <div class="toggle-group">
+      <span class="toggle active-all">ALL</span>
+      <span class="toggle">▲BULL</span>
+      <span class="toggle">▼BEAR</span>
+    </div>
+    <div class="toggle-group">
+      <span class="toggle active-all">ALL</span>
+      <span class="toggle">SWEEP</span>
+      <span class="toggle">BLOCK</span>
+    </div>
+    <span class="dte-toggle">0DTE</span>
+  </div>
+
+  <!-- WATCHLIST ROW (new) -->
+  <div class="watchlist-row">
+    <span class="wl-label">Watch</span>
+    <div class="sym-chip active">SPX <span class="x-btn">✕</span></div>
+    <div class="sym-chip">SPY <span class="x-btn">✕</span></div>
+    <div class="sym-chip">QQQ <span class="x-btn">✕</span></div>
+    <div class="sym-chip">NVDA <span class="x-btn">✕</span></div>
+    <input class="add-sym-input" placeholder="+ TICKER" disabled>
+  </div>
+
+  <!-- TABS (one per symbol) -->
+  <div class="tabs-row">
+    <div class="tab active">
+      <span class="score-dot" style="background:#22c55e"></span>
+      SPX
+      <span class="tab-count">14</span>
+      <span class="tab-bull">▲$18.2M</span>
+    </div>
+    <div class="tab">
+      <span class="score-dot" style="background:#3b82f6"></span>
+      SPY
+      <span class="tab-count">6</span>
+      <span class="tab-bull">▲$4.1M</span>
+    </div>
+    <div class="tab">
+      <span class="score-dot" style="background:#d97706"></span>
+      QQQ
+      <span class="tab-count">9</span>
+      <span class="tab-bear">▼$2.8M</span>
+    </div>
+    <div class="tab">
+      <span class="score-dot" style="background:#22c55e"></span>
+      NVDA
+      <span class="tab-count">3</span>
+      <span class="tab-bull">▲$11.0M</span>
+    </div>
+  </div>
+
+  <!-- SUMMARY STRIP (for active tab: SPX) -->
+  <div class="summary-strip">
+    <span class="s-sym">SPX</span>
+    <span class="s-spot">5,832.40</span>
+    <span class="s-div">·</span>
+    <span class="s-muted">Signals <span style="color:#e2e2e8">14</span></span>
+    <span class="s-div">·</span>
+    <span class="s-bull">Bull $18.2M</span>
+    <div class="prem-bar"><div class="prem-bar-fill" style="width:74%"></div></div>
+    <span class="s-bear">Bear $6.4M</span>
+    <span class="s-div">·</span>
+    <span class="s-muted">Net <span class="s-net-pos">+$11.8M</span></span>
+  </div>
+
+  <!-- TABLE HEADER -->
+  <div class="tape-header">
+    <div>SCORE</div><div>TIME</div><div>CONTRACT</div><div>FLOW</div><div>BREAKDOWN</div>
+  </div>
+
+  <!-- SIGNAL ROWS (SPX tab) -->
+  <div class="signal-row active-row">
+    <div class="score-chip">
+      <div class="score-num"><span class="score-dot" style="background:#22c55e"></span><span style="color:#22c55e">92</span></div>
+      <div class="score-intent intent-bull">▲BULL</div>
+    </div>
+    <div class="time-col">12:03:14</div>
+    <div class="contract-col">
+      <div class="contract-main">5850 <span class="right-call">C</span> 06-21 <span style="color:#3d3d50">28d</span></div>
+      <div class="contract-sub">$4.20 × 1,200 = <span class="prem-hl">$504K</span></div>
+      <div class="tags-row">
+        <span class="tag tag-whale">whale</span>
+        <span class="tag tag-golden">golden</span>
+        <span class="tag tag-sweep">sweep</span>
+        <span class="tag tag-opening">opening</span>
+      </div>
+    </div>
+    <div class="flow-col">
+      <div class="flow-struct sweep">SWEEP ⇧⇧</div>
+      <div class="flow-agg">above_ask</div>
+      <div class="flow-oc"><span class="oc-open">OPEN</span> 0.92</div>
+    </div>
+    <div>
+      <div class="bd-bar">
+        <div class="bd-seg" style="background:#3b82f6;width:22%"></div>
+        <div class="bd-seg" style="background:#22c55e;width:19%"></div>
+        <div class="bd-seg" style="background:#f59e0b;width:17%"></div>
+        <div class="bd-seg" style="background:#a78bfa;width:24%"></div>
+        <div class="bd-seg" style="background:#34d399;width:13%"></div>
+        <div class="bd-seg" style="background:#94a3b8;width:5%"></div>
+      </div>
+      <div class="bd-legend">
+        <span class="bd-lbl" style="color:#3b82f6">P</span>
+        <span class="bd-lbl" style="color:#22c55e">S</span>
+        <span class="bd-lbl" style="color:#f59e0b">A</span>
+        <span class="bd-lbl" style="color:#a78bfa">W</span>
+        <span class="bd-lbl" style="color:#34d399">O</span>
+        <span class="bd-lbl" style="color:#94a3b8">T</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="signal-row">
+    <div class="score-chip">
+      <div class="score-num"><span class="score-dot" style="background:#22c55e"></span><span style="color:#22c55e">84</span></div>
+      <div class="score-intent intent-bear">▼BEAR</div>
+    </div>
+    <div class="time-col">12:01:58</div>
+    <div class="contract-col">
+      <div class="contract-main">5800 <span class="right-put">P</span> 05-31 <span style="color:#3d3d50">7d</span></div>
+      <div class="contract-sub">$9.10 × 600 = <span class="prem-hl">$546K</span></div>
+      <div class="tags-row">
+        <span class="tag tag-golden">golden</span>
+        <span class="tag tag-sweep">sweep</span>
+        <span class="tag tag-opening">opening</span>
+      </div>
+    </div>
+    <div class="flow-col">
+      <div class="flow-struct sweep">SWEEP ⇧</div>
+      <div class="flow-agg">at_ask</div>
+      <div class="flow-oc"><span class="oc-open">OPEN</span> 0.78</div>
+    </div>
+    <div>
+      <div class="bd-bar">
+        <div class="bd-seg" style="background:#3b82f6;width:20%"></div>
+        <div class="bd-seg" style="background:#22c55e;width:17%"></div>
+        <div class="bd-seg" style="background:#f59e0b;width:22%"></div>
+        <div class="bd-seg" style="background:#a78bfa;width:26%"></div>
+        <div class="bd-seg" style="background:#34d399;width:10%"></div>
+        <div class="bd-seg" style="background:#94a3b8;width:5%"></div>
+      </div>
+      <div class="bd-legend">
+        <span class="bd-lbl" style="color:#3b82f6">P</span>
+        <span class="bd-lbl" style="color:#22c55e">S</span>
+        <span class="bd-lbl" style="color:#f59e0b">A</span>
+        <span class="bd-lbl" style="color:#a78bfa">W</span>
+        <span class="bd-lbl" style="color:#34d399">O</span>
+        <span class="bd-lbl" style="color:#94a3b8">T</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="signal-row">
+    <div class="score-chip">
+      <div class="score-num"><span class="score-dot" style="background:#3b82f6"></span><span style="color:#3b82f6">71</span></div>
+      <div class="score-intent intent-bull">▲BULL</div>
+    </div>
+    <div class="time-col">11:58:42</div>
+    <div class="contract-col">
+      <div class="contract-main">5900 <span class="right-call">C</span> 06-21 <span style="color:#3d3d50">28d</span></div>
+      <div class="contract-sub">$2.80 × 800 = <span class="prem-hl">$224K</span></div>
+      <div class="tags-row">
+        <span class="tag tag-block">block</span>
+        <span class="tag tag-closing">closing</span>
+      </div>
+    </div>
+    <div class="flow-col">
+      <div class="flow-struct block">BLOCK ⇧</div>
+      <div class="flow-agg">at_ask</div>
+      <div class="flow-oc"><span class="oc-close">CLOSE</span> 0.65</div>
+    </div>
+    <div>
+      <div class="bd-bar">
+        <div class="bd-seg" style="background:#3b82f6;width:17%"></div>
+        <div class="bd-seg" style="background:#22c55e;width:14%"></div>
+        <div class="bd-seg" style="background:#f59e0b;width:20%"></div>
+        <div class="bd-seg" style="background:#a78bfa;width:0%"></div>
+        <div class="bd-seg" style="background:#34d399;width:30%"></div>
+        <div class="bd-seg" style="background:#94a3b8;width:19%"></div>
+      </div>
+      <div class="bd-legend">
+        <span class="bd-lbl" style="color:#3b82f6">P</span>
+        <span class="bd-lbl" style="color:#22c55e">S</span>
+        <span class="bd-lbl" style="color:#f59e0b">A</span>
+        <span class="bd-lbl" style="color:#a78bfa">W</span>
+        <span class="bd-lbl" style="color:#34d399">O</span>
+        <span class="bd-lbl" style="color:#94a3b8">T</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer note -->
+  <div style="padding:10px 12px;border-top:1px solid #1e1e2a;font-size:10px;color:#3d3d50">
+    Switching tabs loads that symbol's tape · All symbols share the same filters (window, score, intent, structure) · Each tab shows a live signal count badge and net premium direction
+  </div>
+
+</div>
+
+<div style="max-width:900px;margin:16px auto;padding:0 0 40px;font-size:11px;color:#6b6b80;font-family:monospace">
+  <div style="margin-bottom:8px;color:#e2e2e8;font-weight:700">Key elements in this design:</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div style="background:#111118;border:1px solid #1e1e2a;border-radius:3px;padding:10px">
+      <div style="color:#3b82f6;font-weight:700;margin-bottom:4px">WATCH row</div>
+      Symbol chips below the top bar. Click to make active. ✕ to remove. Type to add new ticker.
+    </div>
+    <div style="background:#111118;border:1px solid #1e1e2a;border-radius:3px;padding:10px">
+      <div style="color:#3b82f6;font-weight:700;margin-bottom:4px">Tabs</div>
+      One tab per symbol. Each shows live signal count + net bull/bear premium at a glance.
+    </div>
+    <div style="background:#111118;border:1px solid #1e1e2a;border-radius:3px;padding:10px">
+      <div style="color:#3b82f6;font-weight:700;margin-bottom:4px">Shared filters</div>
+      Window, minScore, intent, structure, 0DTE apply to ALL symbols simultaneously.
+    </div>
+    <div style="background:#111118;border:1px solid #1e1e2a;border-radius:3px;padding:10px">
+      <div style="color:#3b82f6;font-weight:700;margin-bottom:4px">Dot indicator</div>
+      Tab dot color = net bias (green=bull dominant, red=bear dominant, amber=mixed).
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
