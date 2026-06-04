@@ -8,6 +8,7 @@ import {
   getAllRefreshIntervals,
   setRefreshInterval,
 } from "@/lib/refreshSettings"
+import { getChatModel, setChatModel } from "@/lib/chatSettings"
 
 const ACCENT = "bg-blue"
 
@@ -80,6 +81,31 @@ function RefreshIntervals() {
   )
 }
 
+function AIModelInput() {
+  const [value, setValue] = useState(() => getChatModel())
+
+  function onChange(e) {
+    setValue(e.target.value)
+    setChatModel(e.target.value)
+  }
+
+  return (
+    <div className="space-y-2">
+      <input
+        type="text"
+        value={value}
+        onChange={onChange}
+        placeholder="deepseek/deepseek-v4-flash"
+        className="w-full font-mono text-[11px] bg-[var(--surface-2)] text-[var(--text-1)] border border-[var(--border)] rounded-sm px-3 py-2 focus:outline-none focus:border-[var(--blue)] placeholder:text-[var(--text-3)]"
+      />
+      <p className="font-mono text-[9px] leading-relaxed text-[var(--text-3)]">
+        OpenRouter model slug, e.g. <code>anthropic/claude-sonnet-4-5</code>. Leave blank to use
+        the server default. See openrouter.ai/models.
+      </p>
+    </div>
+  )
+}
+
 export default function Settings() {
   const { data } = useGEXData()
   const source = data?.source ?? data?.adapter ?? "—"
@@ -99,6 +125,13 @@ export default function Settings() {
             Refresh Intervals
           </h2>
           <RefreshIntervals />
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="font-mono text-[11px] uppercase tracking-widest text-[var(--text-3)] mb-4">
+            AI Assistant
+          </h2>
+          <AIModelInput />
         </section>
 
         <section className="space-y-3">

@@ -17,6 +17,7 @@ from backend.config import settings
 from backend.routers import gex, intraday, system
 from backend.routers import dealer_risk
 from backend.routers import flow_signals
+from backend.routers import chat
 from backend.services import snapshots
 
 
@@ -44,6 +45,19 @@ async def _snapshot_loop(app: FastAPI):
             pass
 
 
+def _setup_logfire(app: FastAPI):
+    if not settings.logfire_token:
+        return
+    try:
+        import logfire
+        logfire.configure(token=settings.logfire_token, service_name=settings.logfire_service_name)
+        logfire.instrument_pydantic_ai()
+        logfire.instrument_fastapi(app)
+        logfire.instrument_httpx()
+    except Exception:
+        pass  # Logfire is optional — never block startup
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     adapter, name = _build_adapter()
@@ -63,6 +77,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+_setup_logfire(app)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -76,3 +92,4 @@ app.include_router(gex.router)
 app.include_router(intraday.router)
 app.include_router(dealer_risk.router)
 app.include_router(flow_signals.router)
+app.include_router(chat.router)
