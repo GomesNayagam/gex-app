@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     openrouter_model: str = "deepseek/deepseek-v4-flash"
     logfire_token: Optional[str] = None
-    logfire_service_name: str = "gex-chat"
+    logfire_service_name: str = "gex-app"
     chat_max_messages_per_session: int = 30
     chat_max_tokens: int = 2048
     chat_max_tool_iterations: int = 6
