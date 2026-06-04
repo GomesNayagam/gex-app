@@ -10,7 +10,7 @@ import asyncio
 from typing import Any, Optional
 from pydantic import BaseModel, Field
 from pydantic_ai import Agent, RunContext
-from pydantic_ai.models.openai import OpenAIModel
+from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
 from config import settings
 
@@ -21,14 +21,15 @@ from config import settings
 OPENROUTER_API_KEY = settings.openrouter_api_key   # <-- your OpenRouter key
 
 # Pick any model from openrouter.ai/models
-# Good tool-calling options:
+# Good tool-calling options: check from openrouter and choose cheaper one.
 #   "anthropic/claude-sonnet-4-5"
 #   "openai/gpt-4o"
 #   "google/gemini-2.5-pro"
 #   "mistralai/mistral-large"
-OPENROUTER_MODEL = "anthropic/claude-sonnet-4-5"
+#.  "deepseek/deepseek-v4-flash"
+OPENROUTER_MODEL = "deepseek/deepseek-v4-flash"
 
-model = OpenAIModel(
+model = OpenAIChatModel(
     OPENROUTER_MODEL,
     provider=OpenAIProvider(
         base_url="https://openrouter.ai/api/v1",
