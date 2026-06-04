@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Flame,
+  BotMessageSquare,
 } from "lucide-react";
 import { useSidebar } from "@/hooks/useSidebar";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ const NAV_ITEMS = [
   { to: "/watch", icon: Star, label: "Flow List" },
   { to: "/expiry", icon: CalendarRange, label: "Gamma Horizon" },
   { to: "/uoa", icon: Flame, label: "Flow Signals" },
+  { to: "/agent", icon: BotMessageSquare, label: "Agent" },
   { to: "/settings", icon: Settings2, label: "Settings" },
 ];
 

@@ -5,6 +5,7 @@ import WatchlistMode from "@/views/WatchlistMode"
 import ExpiryMode from "@/views/ExpiryMode"
 import Settings from "@/views/Settings"
 import UOAMode from "@/views/UOAMode"
+import AgentView from "@/views/AgentView"
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
           <Route path="/watch" element={<WatchlistMode />} />
           <Route path="/expiry" element={<ExpiryMode />} />
           <Route path="/uoa" element={<UOAMode />} />
+          <Route path="/agent" element={<AgentView />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/b3" replace />} />
         </Routes>

@@ -1,6 +1,5 @@
 import Sidebar from "./Sidebar"
 import TopBar from "./TopBar"
-import { ChatWidget } from "@/components/ai/ChatWidget"
 
 export default function AppShell({ children }) {
   return (
@@ -12,7 +11,6 @@ export default function AppShell({ children }) {
           {children}
         </main>
       </div>
-      <ChatWidget />
     </div>
   )
 }
