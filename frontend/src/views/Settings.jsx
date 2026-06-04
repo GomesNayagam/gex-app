@@ -89,6 +89,7 @@ function RefreshIntervals() {
 function AgentModelsSection() {
   const [custom, setCustom] = useState(() => getCustomModels())
   const [draft, setDraft] = useState("")
+  // refinePersona uses sessions loaded at mount time; navigating from AgentView first ensures freshness
   const { refinePersona } = useAISessions()
   const [refining, setRefining] = useState(false)
   const [refined, setRefined] = useState(false)

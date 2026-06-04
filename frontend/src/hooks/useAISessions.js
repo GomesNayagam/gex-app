@@ -43,6 +43,8 @@ function makeSession(model) {
   }
 }
 
+let _refining = false // module-level flag to prevent concurrent persona refinement
+
 export function useAISessions() {
   const [{ sessions, activeId }, setState] = useState(() => {
     const s = loadState()
@@ -125,7 +127,10 @@ export function useAISessions() {
     const isFirst = activeSession.messages.length === 0
     const autoTitle = isFirst ? text.trim().slice(0, 60) : null
 
-    let historyMessages = []
+    // Derive history BEFORE _set — React's setState updater can be deferred,
+    // so capturing inside the updater risks historyMessages being empty when streamChat is called.
+    const historyMessages = [...activeSession.messages, userMsg]
+
     _set((prev) => {
       const sessions = prev.sessions.map(s => {
         if (s.id !== prev.activeId) return s
@@ -134,7 +139,6 @@ export function useAISessions() {
           messages: [...s.messages, userMsg, assistantMsg],
         }
         if (autoTitle) updated.title = autoTitle
-        historyMessages = [...s.messages, userMsg]
         return updated
       })
       return { ...prev, sessions }
@@ -238,20 +242,23 @@ export function useAISessions() {
   }, [sessions])
 
   async function _runRefinement(sessionsToAnalyze) {
-    const currentPersona = getPersona()
-    const summaries = sessionsToAnalyze
-      .filter(s => s.messages.length > 0)
-      .map(s => {
-        const msgs = s.messages
-          .map(m => `${m.role === "user" ? "User" : "Agent"}: ${m.content}`)
-          .join("\n")
-        return `Session "${s.title}":\n${msgs}`
-      })
-      .join("\n\n---\n\n")
+    if (_refining) return
+    _refining = true
+    try {
+      const currentPersona = getPersona()
+      const summaries = sessionsToAnalyze
+        .filter(s => s.messages.length > 0)
+        .map(s => {
+          const msgs = s.messages
+            .map(m => `${m.role === "user" ? "User" : "Agent"}: ${m.content}`)
+            .join("\n")
+          return `Session "${s.title}":\n${msgs}`
+        })
+        .join("\n\n---\n\n")
 
-    if (!summaries) return
+      if (!summaries) return
 
-    const prompt = `You are updating a trading assistant's persona prompt based on observed user behavior.
+      const prompt = `You are updating a trading assistant's persona prompt based on observed user behavior.
 
 Current persona (may be empty):
 ${currentPersona || "(none)"}
@@ -266,18 +273,21 @@ Write a concise 2-4 sentence persona prompt in second person ("The user...") des
 
 Output ONLY the persona text, no preamble.`
 
-    let refined = ""
-    await streamChat(
-      {
-        sessionId: "persona-refinement-" + genId(),
-        messages: [{ role: "user", content: prompt }],
-        model: MODELS[0],
-      },
-      (event) => {
-        if (event.type === "text") refined += event.delta
-      }
-    )
-    if (refined.trim()) savePersona(refined.trim())
+      let refined = ""
+      await streamChat(
+        {
+          sessionId: "persona-refinement-" + genId(),
+          messages: [{ role: "user", content: prompt }],
+          model: MODELS[0],
+        },
+        (event) => {
+          if (event.type === "text") refined += event.delta
+        }
+      )
+      if (refined.trim()) savePersona(refined.trim())
+    } finally {
+      _refining = false
+    }
   }
 
   const refinePersona = useCallback(async () => {
