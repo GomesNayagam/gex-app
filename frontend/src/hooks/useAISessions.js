@@ -49,6 +49,8 @@ export function useAISessions() {
     // Ensure there's always at least one session
     if (s.sessions.length === 0) {
       const blank = makeSession()
+      persistSessions([blank])
+      persistActive(blank.id)
       return { sessions: [blank], activeId: blank.id }
     }
     const aid = s.activeId && s.sessions.find(x => x.id === s.activeId)
@@ -74,7 +76,7 @@ export function useAISessions() {
     // Trigger persona refinement on the session being left
     const leaving = sessions.find(s => s.id === activeId)
     if (leaving && leaving.messages.length > 0) {
-      _runRefinement([leaving]).catch(() => {})
+      setTimeout(() => { _runRefinement([leaving]).catch(() => {}) }, 0)
     }
     const blank = makeSession(getAllModels()[0])
     _set(prev => ({
@@ -123,7 +125,7 @@ export function useAISessions() {
     const isFirst = activeSession.messages.length === 0
     const autoTitle = isFirst ? text.trim().slice(0, 60) : null
 
-    let historyMessages
+    let historyMessages = []
     _set((prev) => {
       const sessions = prev.sessions.map(s => {
         if (s.id !== prev.activeId) return s
@@ -158,7 +160,7 @@ export function useAISessions() {
           if (event.type === "text") {
             _set(prev => {
               const sessions = prev.sessions.map(s => {
-                if (s.id !== prev.activeId) return s
+                if (s.id !== sessionId) return s
                 const msgs = [...s.messages]
                 const last = msgs[msgs.length - 1]
                 if (last?.role === "assistant") {
@@ -171,7 +173,7 @@ export function useAISessions() {
           } else if (event.type === "tool") {
             _set(prev => {
               const sessions = prev.sessions.map(s => {
-                if (s.id !== prev.activeId) return s
+                if (s.id !== sessionId) return s
                 const msgs = [...s.messages]
                 const last = msgs[msgs.length - 1]
                 if (last?.role === "assistant") {
@@ -184,7 +186,7 @@ export function useAISessions() {
           } else if (event.type === "error") {
             _set(prev => {
               const sessions = prev.sessions.map(s => {
-                if (s.id !== prev.activeId) return s
+                if (s.id !== sessionId) return s
                 const msgs = [...s.messages]
                 const last = msgs[msgs.length - 1]
                 if (last?.role === "assistant") {
@@ -200,7 +202,7 @@ export function useAISessions() {
     } catch (err) {
       _set(prev => {
         const sessions = prev.sessions.map(s => {
-          if (s.id !== prev.activeId) return s
+          if (s.id !== sessionId) return s
           const msgs = [...s.messages]
           const last = msgs[msgs.length - 1]
           if (last?.role === "assistant") {
