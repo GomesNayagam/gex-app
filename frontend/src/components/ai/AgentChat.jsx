@@ -12,7 +12,7 @@ const SUGGESTED = [
   "SPX key levels today?",
 ]
 
-export function AgentChat({ session, loading, onSend, onExport, onModelChange, onCopyMessage }) {
+export function AgentChat({ session, loading, onSend, onExport, onModelChange, onCopyMessage, onFeedback }) {
   const scrollRef = useRef(null)
   const allModels = getAllModels()
 
@@ -67,7 +67,7 @@ export function AgentChat({ session, loading, onSend, onExport, onModelChange, o
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-0">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-5 flex flex-col divide-y divide-[var(--border)]">
         {session.messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
             <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-3)] text-center">
@@ -96,6 +96,7 @@ export function AgentChat({ session, loading, onSend, onExport, onModelChange, o
               message={msg}
               isStreaming={loading && i === session.messages.length - 1 && msg.role === "assistant"}
               onCopy={onCopyMessage}
+              onFeedback={onFeedback}
             />
           ))
         )}

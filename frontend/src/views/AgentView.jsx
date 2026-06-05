@@ -16,6 +16,7 @@ export default function AgentView() {
     loading,
     copyMessage,
     exportSession,
+    setMessageFeedback,
   } = useAISessions()
 
   return (
@@ -35,6 +36,7 @@ export default function AgentView() {
         onExport={exportSession}
         onModelChange={setSessionModel}
         onCopyMessage={copyMessage}
+        onFeedback={(messageId, feedback) => setMessageFeedback(activeSession?.id, messageId, feedback)}
       />
     </div>
   )

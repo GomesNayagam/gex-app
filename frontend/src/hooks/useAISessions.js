@@ -225,6 +225,20 @@ export function useAISessions() {
     navigator.clipboard.writeText(content).catch(() => {})
   }, [])
 
+  const setMessageFeedback = useCallback((sessionId, messageId, feedback) => {
+    _set(prev => ({
+      ...prev,
+      sessions: prev.sessions.map(s =>
+        s.id !== sessionId ? s : {
+          ...s,
+          messages: s.messages.map(m =>
+            m.id !== messageId ? m : { ...m, feedback }
+          ),
+        }
+      ),
+    }))
+  }, [])
+
   const exportSession = useCallback((id) => {
     const session = sessions.find(s => s.id === id)
     if (!session) return
@@ -258,6 +272,19 @@ export function useAISessions() {
 
       if (!summaries) return
 
+      // Collect rated responses across all sessions
+      const liked = sessionsToAnalyze.flatMap(s =>
+        s.messages.filter(m => m.role === "assistant" && m.feedback === "positive").map(m => m.content.slice(0, 300))
+      )
+      const disliked = sessionsToAnalyze.flatMap(s =>
+        s.messages.filter(m => m.role === "assistant" && m.feedback === "negative").map(m => m.content.slice(0, 300))
+      )
+
+      const feedbackSection = [
+        liked.length ? `Responses the user rated POSITIVELY (emulate this style/depth):\n${liked.map(r => `- ${r}`).join("\n")}` : "",
+        disliked.length ? `Responses the user rated NEGATIVELY (avoid this style/depth):\n${disliked.map(r => `- ${r}`).join("\n")}` : "",
+      ].filter(Boolean).join("\n\n")
+
       const prompt = `You are updating a trading assistant's persona prompt based on observed user behavior.
 
 Current persona (may be empty):
@@ -265,11 +292,13 @@ ${currentPersona || "(none)"}
 
 Recent sessions:
 ${summaries}
+${feedbackSection ? `\nUser feedback on responses:\n${feedbackSection}` : ""}
 
 Write a concise 2-4 sentence persona prompt in second person ("The user...") describing:
 - Their trading instruments of focus (SPX, SPY, QQQ, etc.)
 - Their most common question types (gamma flip, key levels, 0DTE, etc.)
 - Their preferred response style (brief data, detailed analysis, etc.)
+- Any response style preferences inferred from their feedback (if available)
 
 Output ONLY the persona text, no preamble.`
 
@@ -315,5 +344,6 @@ Output ONLY the persona text, no preamble.`
     copyMessage,
     exportSession,
     refinePersona,
+    setMessageFeedback,
   }
 }

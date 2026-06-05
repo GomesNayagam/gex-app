@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Copy, Check } from "lucide-react"
+import { Copy, Check, ThumbsUp, ThumbsDown } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { cn } from "@/lib/utils"
@@ -30,7 +30,7 @@ const mdComponents = {
   td: ({ children }) => <td className="px-2 py-1 border border-[var(--border)] text-[var(--text-1)]">{children}</td>,
 }
 
-export function ChatMessage({ message, isStreaming, onCopy }) {
+export function ChatMessage({ message, isStreaming, onCopy, onFeedback }) {
   const isUser = message.role === "user"
   const isEmpty = !message.content && !isStreaming
   const toolNames = message.toolNames || []
@@ -43,7 +43,7 @@ export function ChatMessage({ message, isStreaming, onCopy }) {
   }
 
   return (
-    <div className={cn("group flex flex-col gap-1 mb-4", isUser ? "items-end" : "items-start")}>
+    <div className={cn("group flex flex-col gap-1 py-4", isUser ? "items-end" : "items-start")}>
       <div className="relative max-w-[88%]">
         <div
           className={cn(
@@ -82,6 +82,34 @@ export function ChatMessage({ message, isStreaming, onCopy }) {
           </button>
         )}
       </div>
+      {!isUser && message.content && !isStreaming && onFeedback && (
+        <div className="flex items-center gap-1 mt-1 px-0.5">
+          <button
+            onClick={() => onFeedback(message.id, message.feedback === "positive" ? null : "positive")}
+            className={cn(
+              "flex items-center gap-1 px-2 py-1 rounded-sm border text-[9px] font-mono uppercase tracking-wider transition-colors",
+              message.feedback === "positive"
+                ? "border-green-500/50 text-green-400 bg-green-500/10"
+                : "border-[var(--border)] text-[var(--text-3)] hover:border-green-500/50 hover:text-green-400"
+            )}
+            title="Good response"
+          >
+            <ThumbsUp size={10} /> Good
+          </button>
+          <button
+            onClick={() => onFeedback(message.id, message.feedback === "negative" ? null : "negative")}
+            className={cn(
+              "flex items-center gap-1 px-2 py-1 rounded-sm border text-[9px] font-mono uppercase tracking-wider transition-colors",
+              message.feedback === "negative"
+                ? "border-red-500/50 text-red-400 bg-red-500/10"
+                : "border-[var(--border)] text-[var(--text-3)] hover:border-red-500/50 hover:text-red-400"
+            )}
+            title="Bad response"
+          >
+            <ThumbsDown size={10} /> Bad
+          </button>
+        </div>
+      )}
       {toolNames.length > 0 && (
         <div className="flex flex-wrap gap-1 px-1">
           {[...new Set(toolNames)].map((name) => (
