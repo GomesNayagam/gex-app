@@ -4,8 +4,11 @@ Ported from backend/flashalpha_agent.py with proper imports, streaming, and erro
 """
 
 import json
+import logging
 from datetime import date
 from typing import Any, AsyncIterator, Optional
+
+logger = logging.getLogger(__name__)
 
 import httpx
 from pydantic import BaseModel, Field
@@ -216,7 +219,8 @@ def _make_tool_fn(spec: dict, input_model: type[BaseModel]):
         except httpx.TimeoutException:
             return {"error": "Request timed out"}
         except Exception as e:
-            return {"error": str(e)}
+            logger.exception("Tool %s failed", spec["name"])
+            return {"error": "Tool request failed"}
 
     tool_fn.__name__ = spec["name"]
     tool_fn.__doc__ = spec["description"]
@@ -300,8 +304,9 @@ async def stream_chat(
 
     try:
         agent = _get_agent(model_name)
-    except Exception as e:
-        yield _sse({"type": "error", "message": f"Agent init error: {e}"})
+    except Exception:
+        logger.exception("Agent init failed for model %s", model_name)
+        yield _sse({"type": "error", "message": "Agent initialization failed"})
         yield _sse({"type": "done"})
         return
 
@@ -330,7 +335,8 @@ async def stream_chat(
                             if isinstance(event, FunctionToolCallEvent):
                                 yield _sse({"type": "tool", "name": event.part.tool_name})
 
-    except Exception as e:
-        yield _sse({"type": "error", "message": str(e)})
+    except Exception:
+        logger.exception("Chat stream error")
+        yield _sse({"type": "error", "message": "An error occurred while processing your request"})
 
     yield _sse({"type": "done"})

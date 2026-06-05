@@ -1,7 +1,10 @@
+import logging
 import httpx
 from fastapi import APIRouter, HTTPException
 from backend.config import settings
 from backend.models import DealerRisk
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["Dealer Risk"])
 
@@ -23,4 +26,5 @@ async def get_dealer_risk(symbol: str):
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=502, detail=str(e))
+        logger.exception("Dealer risk fetch failed for %s", symbol)
+        raise HTTPException(status_code=502, detail="Upstream error fetching dealer risk")

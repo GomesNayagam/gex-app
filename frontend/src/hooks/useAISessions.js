@@ -3,7 +3,7 @@ import { streamChat } from "@/api"
 import { getAllModels, getPersona, savePersona, MODELS } from "@/lib/chatSettings"
 
 function genId() {
-  return Math.random().toString(36).slice(2, 10)
+  return crypto.randomUUID()
 }
 
 const SESSIONS_KEY = "ai-sessions"
@@ -194,7 +194,7 @@ export function useAISessions() {
                 const msgs = [...s.messages]
                 const last = msgs[msgs.length - 1]
                 if (last?.role === "assistant") {
-                  msgs[msgs.length - 1] = { ...last, content: `Error: ${event.message}`, error: true }
+                  msgs[msgs.length - 1] = { ...last, content: "An error occurred. Please try again.", error: true }
                 }
                 return { ...s, messages: msgs }
               })
@@ -210,7 +210,7 @@ export function useAISessions() {
           const msgs = [...s.messages]
           const last = msgs[msgs.length - 1]
           if (last?.role === "assistant") {
-            msgs[msgs.length - 1] = { ...last, content: `Error: ${err.message}`, error: true }
+            msgs[msgs.length - 1] = { ...last, content: "An error occurred. Please try again.", error: true }
           }
           return { ...s, messages: msgs }
         })
