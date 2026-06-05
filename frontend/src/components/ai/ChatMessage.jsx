@@ -32,8 +32,6 @@ const mdComponents = {
 
 export function ChatMessage({ message, isStreaming, onCopy, onFeedback }) {
   const isUser = message.role === "user"
-  const isEmpty = !message.content && !isStreaming
-  const toolNames = message.toolNames || []
   const [copied, setCopied] = useState(false)
 
   function handleCopy() {
@@ -42,9 +40,11 @@ export function ChatMessage({ message, isStreaming, onCopy, onFeedback }) {
     setTimeout(() => setCopied(false), 1500)
   }
 
+  const showActions = !isUser && message.content && !isStreaming
+
   return (
     <div className={cn("group flex flex-col gap-1 py-4", isUser ? "items-end" : "items-start")}>
-      <div className="relative max-w-[88%]">
+      <div className="max-w-[88%]">
         <div
           className={cn(
             "rounded-sm px-3 py-2.5 font-mono text-[11px] leading-relaxed break-words",
@@ -67,59 +67,54 @@ export function ChatMessage({ message, isStreaming, onCopy, onFeedback }) {
             <span className="inline-block w-1.5 h-3 bg-[var(--blue)] ml-0.5 animate-pulse align-middle" />
           )}
         </div>
-        {!isUser && message.content && onCopy && (
-          <button
-            onClick={handleCopy}
-            className={cn(
-              "absolute -top-2 -right-2 hidden group-hover:flex",
-              "items-center justify-center w-6 h-6 rounded-sm",
-              "bg-[var(--surface-2)] border border-[var(--border)]",
-              "text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
-            )}
-            title="Copy"
-          >
-            {copied ? <Check size={10} className="text-green-400" /> : <Copy size={10} />}
-          </button>
-        )}
       </div>
-      {!isUser && message.content && !isStreaming && onFeedback && (
+
+      {/* Action row: Good / Bad / Copy — below assistant messages only */}
+      {showActions && (
         <div className="flex items-center gap-1 mt-1 px-0.5">
-          <button
-            onClick={() => onFeedback(message.id, message.feedback === "positive" ? null : "positive")}
-            className={cn(
-              "flex items-center gap-1 px-2 py-1 rounded-sm border text-[9px] font-mono uppercase tracking-wider transition-colors",
-              message.feedback === "positive"
-                ? "border-green-500/50 text-green-400 bg-green-500/10"
-                : "border-[var(--border)] text-[var(--text-3)] hover:border-green-500/50 hover:text-green-400"
-            )}
-            title="Good response"
-          >
-            <ThumbsUp size={10} /> Good
-          </button>
-          <button
-            onClick={() => onFeedback(message.id, message.feedback === "negative" ? null : "negative")}
-            className={cn(
-              "flex items-center gap-1 px-2 py-1 rounded-sm border text-[9px] font-mono uppercase tracking-wider transition-colors",
-              message.feedback === "negative"
-                ? "border-red-500/50 text-red-400 bg-red-500/10"
-                : "border-[var(--border)] text-[var(--text-3)] hover:border-red-500/50 hover:text-red-400"
-            )}
-            title="Bad response"
-          >
-            <ThumbsDown size={10} /> Bad
-          </button>
-        </div>
-      )}
-      {toolNames.length > 0 && (
-        <div className="flex flex-wrap gap-1 px-1">
-          {[...new Set(toolNames)].map((name) => (
-            <span
-              key={name}
-              className="font-mono text-[9px] text-[var(--text-3)] bg-[var(--surface-2)] border border-[var(--border)] rounded-sm px-1.5 py-0.5"
+          {onFeedback && (
+            <>
+              <button
+                onClick={() => onFeedback(message.id, message.feedback === "positive" ? null : "positive")}
+                className={cn(
+                  "flex items-center gap-1 px-2 py-1 rounded-sm border text-[9px] font-mono uppercase tracking-wider transition-colors",
+                  message.feedback === "positive"
+                    ? "border-green-500/50 text-green-400 bg-green-500/10"
+                    : "border-[var(--border)] text-[var(--text-3)] hover:border-green-500/50 hover:text-green-400"
+                )}
+                title="Good response"
+              >
+                <ThumbsUp size={10} /> Good
+              </button>
+              <button
+                onClick={() => onFeedback(message.id, message.feedback === "negative" ? null : "negative")}
+                className={cn(
+                  "flex items-center gap-1 px-2 py-1 rounded-sm border text-[9px] font-mono uppercase tracking-wider transition-colors",
+                  message.feedback === "negative"
+                    ? "border-red-500/50 text-red-400 bg-red-500/10"
+                    : "border-[var(--border)] text-[var(--text-3)] hover:border-red-500/50 hover:text-red-400"
+                )}
+                title="Bad response"
+              >
+                <ThumbsDown size={10} /> Bad
+              </button>
+            </>
+          )}
+          {onCopy && (
+            <button
+              onClick={handleCopy}
+              className={cn(
+                "flex items-center gap-1 px-2 py-1 rounded-sm border text-[9px] font-mono uppercase tracking-wider transition-colors",
+                copied
+                  ? "border-[var(--blue)]/50 text-[var(--blue)] bg-[var(--blue-dim)]"
+                  : "border-[var(--border)] text-[var(--text-3)] hover:border-[var(--blue)]/50 hover:text-[var(--text-1)]"
+              )}
+              title="Copy"
             >
-              ⛁ {name}
-            </span>
-          ))}
+              {copied ? <Check size={10} /> : <Copy size={10} />}
+              {copied ? "Copied" : "Copy"}
+            </button>
+          )}
         </div>
       )}
     </div>
