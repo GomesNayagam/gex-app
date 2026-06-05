@@ -21,7 +21,8 @@ export function ChatInput({ onSend, disabled }) {
   }
 
   return (
-    <div className="flex items-end gap-2 border-t border-[var(--border)] p-3 bg-[var(--surface-1)]">
+    <div className="px-6 py-3">
+      <div className="flex items-end gap-2 max-w-3xl mx-auto w-full">
       <textarea
         ref={textareaRef}
         rows={1}
@@ -31,12 +32,12 @@ export function ChatInput({ onSend, disabled }) {
         disabled={disabled}
         placeholder="Ask about GEX, levels, vol…"
         className={cn(
-          "flex-1 resize-none rounded-sm border border-[var(--border)] bg-[var(--surface-2)]",
-          "px-3 py-2 font-mono text-[11px] text-[var(--text-1)] placeholder:text-[var(--text-3)]",
+          "flex-1 resize-none rounded-lg border border-[var(--border)] bg-[var(--surface-2)]",
+          "px-3 py-2 font-mono text-[13px] text-[var(--text-1)] placeholder:text-[var(--text-3)]",
           "focus:outline-none focus:border-[var(--blue)] max-h-[120px] overflow-y-auto",
           "disabled:opacity-50"
         )}
-        style={{ height: "auto", minHeight: "36px" }}
+        style={{ height: "72px", minHeight: "72px" }}
         onInput={(e) => {
           e.target.style.height = "auto"
           e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px"
@@ -46,7 +47,7 @@ export function ChatInput({ onSend, disabled }) {
         onClick={submit}
         disabled={disabled || !value.trim()}
         className={cn(
-          "h-9 w-9 flex items-center justify-center rounded-sm shrink-0",
+          "h-9 w-9 flex items-center justify-center rounded-lg shrink-0",
           "bg-[var(--blue)] text-white font-mono text-[13px]",
           "disabled:opacity-40 hover:opacity-80 transition-opacity"
         )}
@@ -54,6 +55,7 @@ export function ChatInput({ onSend, disabled }) {
       >
         →
       </button>
+      </div>
     </div>
   )
 }

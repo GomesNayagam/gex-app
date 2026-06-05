@@ -67,9 +67,10 @@ export function AgentChat({ session, loading, onSend, onExport, onModelChange, o
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-5 flex flex-col divide-y divide-[var(--border)]">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-5 flex flex-col">
         {session.messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
+          <div className="flex flex-col items-center justify-center h-full gap-3">
+            <div className="w-full max-w-3xl mx-auto px-6 flex flex-col items-center gap-3">
             <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-3)] text-center">
               Ask about GEX, key levels, volatility, and more
             </p>
@@ -88,17 +89,24 @@ export function AgentChat({ session, loading, onSend, onExport, onModelChange, o
                 </button>
               ))}
             </div>
+            </div>
           </div>
         ) : (
-          session.messages.map((msg, i) => (
-            <ChatMessage
-              key={msg.id || i}
-              message={msg}
-              isStreaming={loading && i === session.messages.length - 1 && msg.role === "assistant"}
-              onCopy={onCopyMessage}
-              onFeedback={onFeedback}
-            />
-          ))
+          session.messages.map((msg, i) => {
+            const prevUser = msg.role === "assistant"
+              ? [...session.messages].slice(0, i).reverse().find(m => m.role === "user")
+              : null
+            return (
+              <ChatMessage
+                key={msg.id || i}
+                message={msg}
+                isStreaming={loading && i === session.messages.length - 1 && msg.role === "assistant"}
+                onCopy={onCopyMessage}
+                onFeedback={onFeedback}
+                onRegenerate={prevUser && !loading ? () => onSend(prevUser.content) : undefined}
+              />
+            )
+          })
         )}
       </div>
 
