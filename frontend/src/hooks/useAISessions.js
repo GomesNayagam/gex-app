@@ -194,7 +194,7 @@ export function useAISessions() {
                 const msgs = [...s.messages]
                 const last = msgs[msgs.length - 1]
                 if (last?.role === "assistant") {
-                  msgs[msgs.length - 1] = { ...last, content: `Error: ${event.message}`, error: true }
+                  msgs[msgs.length - 1] = { ...last, content: "An error occurred. Please try again.", error: true }
                 }
                 return { ...s, messages: msgs }
               })
@@ -210,7 +210,7 @@ export function useAISessions() {
           const msgs = [...s.messages]
           const last = msgs[msgs.length - 1]
           if (last?.role === "assistant") {
-            msgs[msgs.length - 1] = { ...last, content: `Error: ${err.message}`, error: true }
+            msgs[msgs.length - 1] = { ...last, content: "An error occurred. Please try again.", error: true }
           }
           return { ...s, messages: msgs }
         })
