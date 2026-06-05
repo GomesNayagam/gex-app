@@ -91,3 +91,38 @@ export async function fetchLeaderboard({ window = 60, n = 15 } = {}) {
   if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
   return res.json();
 }
+
+/**
+ * Stream a chat turn as SSE events: {type, delta?/name?/message?}.
+ * Uses fetch + ReadableStream because EventSource cannot POST a body.
+ */
+export async function streamChat({ sessionId, messages, model }, onEvent) {
+  const body = { session_id: sessionId, messages }
+  if (model) body.model = model
+
+  const res = await fetch(`${BASE}/api/chat/stream`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  })
+
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buf = ""
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buf += decoder.decode(value, { stream: true })
+    const parts = buf.split("\n\n")
+    buf = parts.pop() ?? ""
+    for (const part of parts) {
+      const line = part.trim()
+      if (!line.startsWith("data:")) continue
+      try {
+        const event = JSON.parse(line.slice(5).trim())
+        onEvent(event)
+      } catch {}
+    }
+  }
+}

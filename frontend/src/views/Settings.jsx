@@ -8,6 +8,12 @@ import {
   getAllRefreshIntervals,
   setRefreshInterval,
 } from "@/lib/refreshSettings"
+import {
+  MODELS,
+  getCustomModels,
+  saveCustomModels,
+} from "@/lib/chatSettings"
+import { useAISessions } from "@/hooks/useAISessions"
 
 const ACCENT = "bg-blue"
 
@@ -80,6 +86,107 @@ function RefreshIntervals() {
   )
 }
 
+function AgentModelsSection() {
+  const [custom, setCustom] = useState(() => getCustomModels())
+  const [draft, setDraft] = useState("")
+  // refinePersona uses sessions loaded at mount time; navigating from AgentView first ensures freshness
+  const { refinePersona } = useAISessions()
+  const [refining, setRefining] = useState(false)
+  const [refined, setRefined] = useState(false)
+
+  function addModel() {
+    const trimmed = draft.trim()
+    if (!trimmed || custom.includes(trimmed) || MODELS.includes(trimmed)) return
+    const next = [...custom, trimmed]
+    setCustom(next)
+    saveCustomModels(next)
+    setDraft("")
+  }
+
+  function removeModel(m) {
+    const next = custom.filter(x => x !== m)
+    setCustom(next)
+    saveCustomModels(next)
+  }
+
+  async function handleRefine() {
+    setRefining(true)
+    try {
+      await refinePersona()
+      setRefined(true)
+      setTimeout(() => setRefined(false), 2000)
+    } finally {
+      setRefining(false)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-1">
+        <p className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-3)]">Built-in models</p>
+        {MODELS.map(m => (
+          <div key={m} className="font-mono text-[10px] text-[var(--text-2)] px-2 py-1 bg-[var(--surface-2)] border border-[var(--border)] rounded-sm">
+            {m}
+          </div>
+        ))}
+      </div>
+
+      {custom.length > 0 && (
+        <div className="space-y-1">
+          <p className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-3)]">Custom models</p>
+          {custom.map(m => (
+            <div key={m} className="flex items-center gap-2">
+              <span className="flex-1 font-mono text-[10px] text-[var(--text-2)] px-2 py-1 bg-[var(--surface-2)] border border-[var(--border)] rounded-sm truncate">
+                {m}
+              </span>
+              <button
+                onClick={() => removeModel(m)}
+                className="font-mono text-[9px] text-[var(--text-3)] hover:text-red-400 transition-colors px-1"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && addModel()}
+          placeholder="openrouter model slug…"
+          className="flex-1 font-mono text-[10px] bg-[var(--surface-2)] text-[var(--text-1)] border border-[var(--border)] rounded-sm px-2 py-1.5 focus:outline-none focus:border-[var(--blue)] placeholder:text-[var(--text-3)]"
+        />
+        <button
+          onClick={addModel}
+          className="font-mono text-[9px] uppercase tracking-wider px-3 py-1.5 border border-[var(--border)] rounded-sm text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--text-1)] transition-colors"
+        >
+          Add
+        </button>
+      </div>
+
+      <button
+        onClick={handleRefine}
+        disabled={refining}
+        className={cn(
+          "w-full font-mono text-[10px] uppercase tracking-wider py-2 rounded-sm border transition-colors",
+          refined
+            ? "border-green-500/50 text-green-400"
+            : "border-[var(--border)] text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--text-1)]",
+          refining && "opacity-50 cursor-not-allowed"
+        )}
+      >
+        {refining ? "Refining…" : refined ? "Refined ✓" : "Refine Agent Now"}
+      </button>
+      <p className="font-mono text-[9px] leading-relaxed text-[var(--text-3)]">
+        Analyzes your last 5 sessions to silently tune the agent's persona toward your trading style.
+      </p>
+    </div>
+  )
+}
+
 export default function Settings() {
   const { data } = useGEXData()
   const source = data?.source ?? data?.adapter ?? "—"
@@ -99,6 +206,13 @@ export default function Settings() {
             Refresh Intervals
           </h2>
           <RefreshIntervals />
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="font-mono text-[11px] uppercase tracking-widest text-[var(--text-3)] mb-4">
+            Agent Models
+          </h2>
+          <AgentModelsSection />
         </section>
 
         <section className="space-y-3">
