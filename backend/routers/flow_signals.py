@@ -1,7 +1,10 @@
 import asyncio
+import logging
 from fastapi import APIRouter, Request, HTTPException, Query
 from backend.models import FlowSignalsResponse, FlowSignalsSummary, LeaderboardResponse
 from backend.services.cache import cache
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/flow", tags=["flow-signals"])
 
@@ -29,7 +32,8 @@ async def get_flow_signals(
             limit=limit,
         )
     except Exception as e:
-        raise HTTPException(status_code=502, detail=str(e))
+        logger.exception("Flow signals fetch failed for %s", symbol)
+        raise HTTPException(status_code=502, detail="Upstream error fetching flow signals")
 
 
 @router.get("/signals/{symbol}/summary", response_model=FlowSignalsSummary)
@@ -47,7 +51,8 @@ async def get_flow_signals_summary(
             expiry=expiry,
         )
     except Exception as e:
-        raise HTTPException(status_code=502, detail=str(e))
+        logger.exception("Flow signals summary fetch failed for %s", symbol)
+        raise HTTPException(status_code=502, detail="Upstream error fetching flow signals summary")
 
 
 @router.get("/signals/watchlist", response_model=list[FlowSignalsSummary])
@@ -82,4 +87,5 @@ async def get_leaderboard(
         cache.set(cache_key, result)
         return result
     except Exception as e:
-        raise HTTPException(status_code=502, detail=str(e))
+        logger.exception("Leaderboard fetch failed")
+        raise HTTPException(status_code=502, detail="Upstream error fetching leaderboard")

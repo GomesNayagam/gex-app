@@ -1,7 +1,10 @@
+import logging
 from fastapi import APIRouter, HTTPException, Query, Request
 from typing import Optional
 from datetime import datetime, timezone
 from backend.models import InstrumentGEX, GEXResponse
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["GEX"])
 
@@ -40,7 +43,8 @@ async def get_all_gex(
             data = await _fetch_cached(request, sym, expiry="0dte")
             instruments.append(_filter_strikes(data, strikes))
         except Exception as e:
-            raise HTTPException(status_code=502, detail=f"Upstream error: {e}")
+            logger.exception("Upstream fetch failed for %s", sym)
+            raise HTTPException(status_code=502, detail="Upstream error fetching GEX data")
     return GEXResponse(
         instruments=instruments,
         as_of=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
@@ -58,9 +62,11 @@ async def get_gex_by_symbol(
     try:
         data = await _fetch_cached(request, symbol.upper(), expiry=expiry)
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        logger.warning("Symbol not found: %s", symbol)
+        raise HTTPException(status_code=404, detail="Symbol not found")
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Upstream error: {e}")
+        logger.exception("Upstream fetch failed for %s", symbol)
+        raise HTTPException(status_code=502, detail="Upstream error fetching GEX data")
 
     if strikes:
         spot_idx = next((i for i, s in enumerate(data.strikes) if s.is_spot), len(data.strikes) // 2)
