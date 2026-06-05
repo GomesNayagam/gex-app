@@ -3,7 +3,7 @@ import { streamChat } from "@/api"
 import { getAllModels, getPersona, savePersona, MODELS } from "@/lib/chatSettings"
 
 function genId() {
-  return Math.random().toString(36).slice(2, 10)
+  return crypto.randomUUID()
 }
 
 const SESSIONS_KEY = "ai-sessions"
