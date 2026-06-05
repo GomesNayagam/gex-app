@@ -84,7 +84,7 @@ export function ChatMessage({ message, isStreaming, onCopy, onFeedback }) {
                 )}
                 title="Good response"
               >
-                <ThumbsUp size={10} /> Good
+                <ThumbsUp size={10} />
               </button>
               <button
                 onClick={() => onFeedback(message.id, message.feedback === "negative" ? null : "negative")}
@@ -96,7 +96,7 @@ export function ChatMessage({ message, isStreaming, onCopy, onFeedback }) {
                 )}
                 title="Bad response"
               >
-                <ThumbsDown size={10} /> Bad
+                <ThumbsDown size={10} />
               </button>
             </>
           )}
@@ -112,7 +112,6 @@ export function ChatMessage({ message, isStreaming, onCopy, onFeedback }) {
               title="Copy"
             >
               {copied ? <Check size={10} /> : <Copy size={10} />}
-              {copied ? "Copied" : "Copy"}
             </button>
           )}
         </div>
