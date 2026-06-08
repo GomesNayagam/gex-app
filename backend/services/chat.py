@@ -174,6 +174,94 @@ class FlashAlphaDeps(BaseModel):
     api_key: Optional[str] = None
 
 
+class OrchestratorDeps(BaseModel):
+    """Deps for the orchestrator agent — carries the FlashAlpha key for
+    delegated specialist runs and the shared SSE event queue (set per-request)."""
+
+    model_config = {"arbitrary_types_allowed": True}
+
+    api_key: Optional[str] = None
+    event_queue: Any = None  # asyncio.Queue, injected by stream_chat per request
+
+
+_ORCHESTRATOR_PROMPT_TEMPLATE = (
+    "You are the option GEX Quant Analyst Orchestrator (today: {today}), coordinating a team of "
+    "domain-specialist agents over live FlashAlpha options data. "
+    "You have NO direct data tools of your own — you can only delegate. Specialists:\n"
+    "{roster}\n"
+    "Rules: "
+    "1. Read the user's question and identify which specialist domain(s) it touches. "
+    "2. Delegate to the relevant specialist(s) by calling their delegation tool with a "
+    "focused sub-question — call more than one in the same turn when the question spans "
+    "domains (e.g. both exposure and volatility for a cross-domain ask). "
+    "3. Wait for all delegated findings, then produce ONE synthesized, leveled answer in "
+    "clean markdown — never invent data yourself, only restate and connect what the "
+    "specialists reported. "
+    "4. NEVER start your response with 'I', 'Let me', 'Me', or any first-person preamble "
+    "— go straight to the synthesis. "
+    "5. Use ## headers, **bold** key values, and tables when comparing across domains. "
+    "6. If a specialist reports an error, acknowledge the gap honestly rather than "
+    "inventing a substitute answer for that domain."
+)
+
+_SPECIALIST_PROMPT_TEMPLATE = (
+    "You are the {label}, a specialist in {description} (today: {today}). "
+    "Rules: "
+    "1. Always call the relevant tool before answering any market question — never invent "
+    "numbers. "
+    "2. Be concise and data-driven: lead with the most actionable number or level, then "
+    "context. "
+    "3. Respond as plain, dense findings (no markdown headers, no greeting, no "
+    "first-person preamble) — your output is consumed by another agent for synthesis, "
+    "not shown directly to the end user."
+)
+
+
+def _specialist_system_prompt(spec: dict) -> str:
+    return _SPECIALIST_PROMPT_TEMPLATE.format(
+        label=spec["label"], description=spec["description"], today=date.today().isoformat()
+    )
+
+
+def _orchestrator_system_prompt() -> str:
+    roster = "\n".join(
+        f"- {spec['label']} (`delegate_to_{spec['name']}_agent`): {spec['description']}"
+        for spec in SPECIALIST_REGISTRY
+    )
+    return _ORCHESTRATOR_PROMPT_TEMPLATE.format(today=date.today().isoformat(), roster=roster)
+
+
+SPECIALIST_REGISTRY: list[dict] = [
+    {
+        "name": "exposure",
+        "label": "Exposure Agent",
+        "description": "gamma/delta/vanna/charm exposure, key options-derived levels, and dealer positioning",
+        "tool_names": [
+            "get_gex", "get_key_levels", "get_exposure_summary",
+            "get_dex", "get_vex", "get_chex",
+        ],
+    },
+    {
+        "name": "volatility",
+        "label": "Volatility Agent",
+        "description": "implied/realized volatility, skew, term structure, options pricing greeks, and stock summaries",
+        "tool_names": [
+            "get_volatility_analysis", "get_bsm_greeks",
+            "get_implied_vol", "get_stock_summary",
+        ],
+    },
+    {
+        "name": "market_structure",
+        "label": "Market Structure Agent",
+        "description": "live quotes, options-flow narrative, 0DTE dynamics, max pain, available symbols, and account status",
+        "tool_names": [
+            "get_stock_quote", "get_narrative", "get_zero_dte",
+            "get_max_pain"
+        ],
+    },
+]
+
+
 def _build_input_model(spec: dict) -> type[BaseModel]:
     fields: dict = {}
     for param in spec["path_params"]:
