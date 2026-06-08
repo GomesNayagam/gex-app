@@ -3,6 +3,7 @@ AI chat service: dynamic Pydantic AI agent over all FlashAlpha REST endpoints.
 Ported from backend/flashalpha_agent.py with proper imports, streaming, and error handling.
 """
 
+import asyncio
 import json
 import logging
 from datetime import date
@@ -449,54 +450,75 @@ async def stream_chat(
 ) -> AsyncIterator[str]:
     """Stream SSE-encoded events for a chat turn.
 
+    The orchestrator's run is driven as a background task that pushes its own
+    events (and each delegated specialist pushes its own, tagged) onto one
+    shared queue; this generator simply drains that queue in order.
+
     Yields newline-delimited `data: <json>\\n\\n` strings of the form:
-        {type: "text", delta: "..."}
-        {type: "tool", name: "get_gex"}
+        {type: "text", delta: "..."}                                   — orchestrator text
+        {type: "tool", name: "delegate_to_exposure_agent"}             — orchestrator delegation call
+        {type: "agent_event", agent: "exposure", kind: "start"}        — specialist lifecycle
+        {type: "agent_event", agent: "exposure", kind: "tool", name}
+        {type: "agent_event", agent: "exposure", kind: "text", delta}
+        {type: "agent_event", agent: "exposure", kind: "done", summary}
         {type: "error", message: "..."}
         {type: "done"}
     """
     model_name = model or settings.openrouter_model
-    deps = FlashAlphaDeps(api_key=settings.flash_alpha_api_key)
     user_prompt, history = _convert_history(messages)
 
     def _sse(payload: dict) -> str:
         return f"data: {json.dumps(payload)}\n\n"
 
     try:
-        agent = _get_agent(model_name)
+        orchestrator = _get_orchestrator(model_name)
     except Exception:
         logger.exception("Agent init failed for model %s", model_name)
         yield _sse({"type": "error", "message": "Agent initialization failed"})
         yield _sse({"type": "done"})
         return
 
+    queue: asyncio.Queue = asyncio.Queue()
+    deps = OrchestratorDeps(api_key=settings.flash_alpha_api_key, event_queue=queue)
+    _SENTINEL = object()
+
+    async def _run_orchestrator() -> None:
+        try:
+            async with orchestrator.iter(
+                user_prompt,
+                message_history=history or None,
+                deps=deps,
+                model_settings={"max_tokens": settings.chat_max_tokens},
+            ) as agent_run:
+                async for node in agent_run:
+                    if isinstance(node, End):
+                        break
+
+                    if isinstance(node, ModelRequestNode):
+                        async with node.stream(agent_run.ctx) as agent_stream:
+                            async for event in agent_stream:
+                                if isinstance(event, PartDeltaEvent) and isinstance(event.delta, TextPartDelta):
+                                    await queue.put({"type": "text", "delta": event.delta.content_delta})
+
+                    elif isinstance(node, CallToolsNode):
+                        async with node.stream(agent_run.ctx) as events:
+                            async for event in events:
+                                if isinstance(event, FunctionToolCallEvent):
+                                    await queue.put({"type": "tool", "name": event.part.tool_name})
+        except Exception:
+            logger.exception("Chat stream error")
+            await queue.put({"type": "error", "message": "An error occurred while processing your request"})
+        finally:
+            await queue.put(_SENTINEL)
+
+    task = asyncio.create_task(_run_orchestrator())
     try:
-        async with agent.iter(
-            user_prompt,
-            message_history=history or None,
-            deps=deps,
-            model_settings={"max_tokens": settings.chat_max_tokens},
-        ) as agent_run:
-            async for node in agent_run:
-                if isinstance(node, End):
-                    break
-
-                if isinstance(node, ModelRequestNode):
-                    # Stream text deltas from the model response
-                    async with node.stream(agent_run.ctx) as agent_stream:
-                        async for event in agent_stream:
-                            if isinstance(event, PartDeltaEvent) and isinstance(event.delta, TextPartDelta):
-                                yield _sse({"type": "text", "delta": event.delta.content_delta})
-
-                elif isinstance(node, CallToolsNode):
-                    # Emit tool call names as they are invoked
-                    async with node.stream(agent_run.ctx) as events:
-                        async for event in events:
-                            if isinstance(event, FunctionToolCallEvent):
-                                yield _sse({"type": "tool", "name": event.part.tool_name})
-
-    except Exception:
-        logger.exception("Chat stream error")
-        yield _sse({"type": "error", "message": "An error occurred while processing your request"})
+        while True:
+            item = await queue.get()
+            if item is _SENTINEL:
+                break
+            yield _sse(item)
+    finally:
+        await task
 
     yield _sse({"type": "done"})
