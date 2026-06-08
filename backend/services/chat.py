@@ -154,20 +154,6 @@ ENDPOINT_SPEC: list[dict] = [
         "path_params": ["symbol"],
         "query_params": ["expiration"],
     },
-    {
-        "name": "get_active_symbols",
-        "description": "List symbols currently cached with live data.",
-        "path": "/v1/symbols",
-        "path_params": [],
-        "query_params": [],
-    },
-    {
-        "name": "get_account_info",
-        "description": "Get account info and API quota/rate limit status.",
-        "path": "/v1/account",
-        "path_params": [],
-        "query_params": [],
-    },
 ]
 
 

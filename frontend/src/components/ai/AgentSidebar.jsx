@@ -1,6 +1,8 @@
 import { useState } from "react"
-import { Plus, Pencil, Trash2, Check, X } from "lucide-react"
+import { Plus, Pencil, Trash2, Check, X, PanelLeftClose, PanelLeftOpen, MessageSquare } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+const COLLAPSE_KEY = "gex.agentSidebar.collapsed"
 
 function relativeTime(ts) {
   const diff = Date.now() - ts
@@ -87,19 +89,80 @@ function SessionRow({ session, isActive, onSelect, onRename, onDelete }) {
 }
 
 export function AgentSidebar({ sessions, activeId, onSelect, onNew, onRename, onDelete }) {
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(COLLAPSE_KEY) === "true"
+    } catch {
+      return false
+    }
+  })
+
+  function toggleCollapsed() {
+    setCollapsed(prev => {
+      const next = !prev
+      try { localStorage.setItem(COLLAPSE_KEY, String(next)) } catch {}
+      return next
+    })
+  }
+
+  if (collapsed) {
+    return (
+      <div className="flex flex-col w-12 shrink-0 border-r border-[var(--border)] bg-[var(--surface-1)] overflow-hidden items-center py-3 gap-2">
+        <button
+          onClick={toggleCollapsed}
+          className="p-1.5 rounded-sm text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--surface-3)] transition-colors"
+          title="Expand sidebar"
+        >
+          <PanelLeftOpen size={14} />
+        </button>
+        <button
+          onClick={onNew}
+          className="p-1.5 rounded-sm border border-[var(--border)] text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--text-1)] transition-colors"
+          title="New Chat"
+        >
+          <Plus size={14} />
+        </button>
+        <div className="flex-1 overflow-y-auto w-full flex flex-col items-center gap-1 mt-1">
+          {sessions.map(session => (
+            <button
+              key={session.id}
+              onClick={() => onSelect(session.id)}
+              title={session.title}
+              className={cn(
+                "p-1.5 rounded-sm border-l-2 transition-colors",
+                session.id === activeId
+                  ? "border-[var(--blue)] bg-[var(--blue-dim)] text-[var(--text-1)]"
+                  : "border-transparent text-[var(--text-3)] hover:bg-[var(--surface-3)] hover:text-[var(--text-1)]"
+              )}
+            >
+              <MessageSquare size={14} />
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col w-60 shrink-0 border-r border-[var(--border)] bg-[var(--surface-1)] overflow-hidden">
-      <div className="p-3 border-b border-[var(--border)] shrink-0">
+      <div className="p-3 border-b border-[var(--border)] shrink-0 flex items-center gap-2">
         <button
           onClick={onNew}
           className={cn(
-            "w-full flex items-center justify-center gap-2 py-2 rounded-sm",
+            "flex-1 flex items-center justify-center gap-2 py-2 rounded-sm",
             "font-mono text-[10px] uppercase tracking-wider",
             "border border-[var(--border)] text-[var(--text-2)]",
             "hover:border-[var(--blue)] hover:text-[var(--text-1)] transition-colors"
           )}
         >
           <Plus size={12} /> New Chat
+        </button>
+        <button
+          onClick={toggleCollapsed}
+          className="p-2 rounded-sm text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--surface-3)] transition-colors shrink-0"
+          title="Collapse sidebar"
+        >
+          <PanelLeftClose size={14} />
         </button>
       </div>
       <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
