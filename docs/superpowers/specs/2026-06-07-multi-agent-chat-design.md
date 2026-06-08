@@ -6,7 +6,7 @@ The current AI chat (`backend/services/chat.py`, `backend/routers/chat.py`) runs
 
 - Forces one model to juggle tool selection across very different domains (gamma exposure, volatility, market structure/pricing), diluting prompt focus and tool-choice accuracy.
 - Handles multi-domain questions ("compare SPX gamma regime to QQQ volatility skew and suggest a trade") by sequentially calling tools one at a time inside a single agent loop — slower and harder to reason about than running independent specialists concurrently.
-- Gives the user no visibility into *how* the answer was assembled — `toolNames` is tracked per assistant message in `useAISessions.js` but never rendered in `ChatMessage.jsx`.
+- Gives the user no visibility into _how_ the answer was assembled — `toolNames` is tracked per assistant message in `useAISessions.js` but never rendered in `ChatMessage.jsx`.
 
 ## Goals
 
@@ -47,7 +47,7 @@ SPECIALIST_REGISTRY: list[dict] = [
         "description": "Quotes, narrative, 0DTE analytics, max pain, symbols, account.",
         "system_prompt": "...",
         "tool_names": ["get_stock_quote", "get_narrative", "get_zero_dte",
-                       "get_max_pain", "get_active_symbols", "get_account_info"],
+                       "get_max_pain",],
     },
 ]
 ```
@@ -70,7 +70,7 @@ When the orchestrator's model emits multiple delegation tool-calls in a single t
 
 ### Streaming: unifying orchestrator + specialist events
 
-Today, `stream_chat` iterates a single agent's run and emits SSE frames directly. With delegation, specialist events arrive *during* a tool call, nested inside the orchestrator's run. To keep ordering and avoid blocking:
+Today, `stream_chat` iterates a single agent's run and emits SSE frames directly. With delegation, specialist events arrive _during_ a tool call, nested inside the orchestrator's run. To keep ordering and avoid blocking:
 
 - `stream_chat` creates one shared `asyncio.Queue`.
 - The orchestrator's `agent.iter()` consumption runs as a background task; as it produces text deltas / tool-call events, it pushes them onto the queue tagged `agent: "orchestrator"`.
