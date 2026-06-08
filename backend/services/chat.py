@@ -398,6 +398,31 @@ def _make_delegation_tool(spec: dict, model_name: str):
     return delegate_fn
 
 
+def _build_orchestrator_agent(model_name: str) -> Agent:
+    model = OpenAIChatModel(
+        model_name,
+        provider=OpenRouterProvider(api_key=settings.openrouter_api_key),
+    )
+    a = Agent(
+        model,
+        deps_type=OrchestratorDeps,
+        system_prompt=_orchestrator_system_prompt(),
+    )
+    for spec in SPECIALIST_REGISTRY:
+        a.tool(_make_delegation_tool(spec, model_name))
+    return a
+
+
+# Module-level orchestrator agent cache: key = model_name
+_orchestrators: dict[str, Agent] = {}
+
+
+def _get_orchestrator(model_name: str) -> Agent:
+    if model_name not in _orchestrators:
+        _orchestrators[model_name] = _build_orchestrator_agent(model_name)
+    return _orchestrators[model_name]
+
+
 def _convert_history(messages: list[dict]) -> tuple[str, list]:
     """Convert [{role, content}] array to (user_prompt, message_history).
 
