@@ -315,7 +315,10 @@ def _make_tool_fn(spec: dict, input_model: type[BaseModel]):
     return tool_fn
 
 
-def _build_agent(model_name: str) -> Agent:
+_ENDPOINT_BY_NAME: dict[str, dict] = {spec["name"]: spec for spec in ENDPOINT_SPEC}
+
+
+def _build_specialist_agent(spec: dict, model_name: str) -> Agent:
     model = OpenAIChatModel(
         model_name,
         provider=OpenRouterProvider(api_key=settings.openrouter_api_key),
@@ -323,32 +326,25 @@ def _build_agent(model_name: str) -> Agent:
     a = Agent(
         model,
         deps_type=FlashAlphaDeps,
-        system_prompt=(
-            f"You are GEX Analyst, a professional options market intelligence system (today: {date.today().isoformat()}). "
-            "You have access to live FlashAlpha options data via tools. "
-            "Rules: "
-            "1. NEVER start a response with 'I', 'Let me', 'Me', or any first-person preamble — go straight to the data. "
-            "2. Always call the relevant tool before answering any market question — never invent numbers. "
-            "3. Format responses in clean markdown: use ## headers, **bold** key values, and tables for structured data. "
-            "4. Be concise and data-driven. Lead with the most actionable number or level, then context. "
-            "5. For key levels questions: always include gamma flip, call wall, put wall, and spot relative to those levels. "
-            "6. For entry/exit suggestions: state the level, direction, and invalidation strike explicitly."
-        ),
+        system_prompt=_specialist_system_prompt(spec),
     )
-    for spec in ENDPOINT_SPEC:
-        input_model = _build_input_model(spec)
-        a.tool(_make_tool_fn(spec, input_model))
+    for tool_name in spec["tool_names"]:
+        endpoint = _ENDPOINT_BY_NAME[tool_name]
+        input_model = _build_input_model(endpoint)
+        a.tool(_make_tool_fn(endpoint, input_model))
     return a
 
 
-# Module-level agent cache: key = model_name
-_agents: dict[str, Agent] = {}
+# Module-level specialist agent cache: key = (specialist_name, model_name)
+_specialist_agents: dict[tuple[str, str], Agent] = {}
 
 
-def _get_agent(model_name: str) -> Agent:
-    if model_name not in _agents:
-        _agents[model_name] = _build_agent(model_name)
-    return _agents[model_name]
+def _get_specialist_agent(name: str, model_name: str) -> Agent:
+    key = (name, model_name)
+    if key not in _specialist_agents:
+        spec = next(s for s in SPECIALIST_REGISTRY if s["name"] == name)
+        _specialist_agents[key] = _build_specialist_agent(spec, model_name)
+    return _specialist_agents[key]
 
 
 def _convert_history(messages: list[dict]) -> tuple[str, list]:
