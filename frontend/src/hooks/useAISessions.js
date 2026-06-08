@@ -121,7 +121,7 @@ export function useAISessions() {
     if (!text.trim() || loading || !activeSession) return
 
     const userMsg = { role: "user", content: text.trim(), id: genId() }
-    const assistantMsg = { role: "assistant", content: "", id: genId(), toolNames: [] }
+    const assistantMsg = { role: "assistant", content: "", id: genId(), toolNames: [], subAgents: [] }
 
     // Auto-title from first message
     const isFirst = activeSession.messages.length === 0
@@ -182,6 +182,37 @@ export function useAISessions() {
                 const last = msgs[msgs.length - 1]
                 if (last?.role === "assistant") {
                   msgs[msgs.length - 1] = { ...last, toolNames: [...(last.toolNames || []), event.name] }
+                }
+                return { ...s, messages: msgs }
+              })
+              return { ...prev, sessions }
+            })
+          } else if (event.type === "agent_event") {
+            _set(prev => {
+              const sessions = prev.sessions.map(s => {
+                if (s.id !== sessionId) return s
+                const msgs = [...s.messages]
+                const last = msgs[msgs.length - 1]
+                if (last?.role === "assistant") {
+                  const subAgents = [...(last.subAgents || [])]
+                  let idx = subAgents.findIndex(a => a.name === event.agent)
+                  if (idx === -1) {
+                    subAgents.push({ name: event.agent, label: event.agent, status: "running", toolNames: [], summary: "" })
+                    idx = subAgents.length - 1
+                  }
+                  const agentEntry = { ...subAgents[idx] }
+                  if (event.kind === "start") {
+                    agentEntry.status = "running"
+                  } else if (event.kind === "tool") {
+                    agentEntry.toolNames = [...agentEntry.toolNames, event.name]
+                  } else if (event.kind === "done") {
+                    agentEntry.status = "done"
+                    agentEntry.summary = event.summary || ""
+                  }
+                  // "text" deltas are intentionally not accumulated into the trace —
+                  // the trace shows tools called + a final summary, not a transcript.
+                  subAgents[idx] = agentEntry
+                  msgs[msgs.length - 1] = { ...last, subAgents }
                 }
                 return { ...s, messages: msgs }
               })
