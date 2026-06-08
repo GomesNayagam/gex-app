@@ -347,6 +347,57 @@ def _get_specialist_agent(name: str, model_name: str) -> Agent:
     return _specialist_agents[key]
 
 
+def _make_delegation_tool(spec: dict, model_name: str):
+    """Build an orchestrator tool that runs the named specialist, forwarding its
+    streamed events (tagged with the specialist's name) onto the shared queue in
+    `ctx.deps.event_queue`, and returning its final text as the tool result."""
+
+    async def delegate_fn(ctx: RunContext[OrchestratorDeps], query: str) -> str:
+        queue = ctx.deps.event_queue
+        agent = _get_specialist_agent(spec["name"], model_name)
+        deps = FlashAlphaDeps(api_key=ctx.deps.api_key)
+        tag = spec["name"]
+
+        await queue.put({"type": "agent_event", "agent": tag, "kind": "start"})
+        try:
+            async with agent.iter(query, deps=deps) as run:
+                async for node in run:
+                    if isinstance(node, End):
+                        break
+                    if isinstance(node, ModelRequestNode):
+                        async with node.stream(run.ctx) as agent_stream:
+                            async for event in agent_stream:
+                                if isinstance(event, PartDeltaEvent) and isinstance(event.delta, TextPartDelta):
+                                    await queue.put({
+                                        "type": "agent_event", "agent": tag,
+                                        "kind": "text", "delta": event.delta.content_delta,
+                                    })
+                    elif isinstance(node, CallToolsNode):
+                        async with node.stream(run.ctx) as events:
+                            async for event in events:
+                                if isinstance(event, FunctionToolCallEvent):
+                                    await queue.put({
+                                        "type": "agent_event", "agent": tag,
+                                        "kind": "tool", "name": event.part.tool_name,
+                                    })
+                output = run.result.output if run.result else ""
+        except Exception:
+            logger.exception("Specialist %s failed", tag)
+            await queue.put({"type": "agent_event", "agent": tag, "kind": "done", "summary": "Failed to complete"})
+            return json.dumps({"error": f"{spec['label']} failed to complete its analysis"})
+
+        summary = (output or "").strip().replace("\n", " ")[:200]
+        await queue.put({"type": "agent_event", "agent": tag, "kind": "done", "summary": summary})
+        return output
+
+    delegate_fn.__name__ = f"delegate_to_{spec['name']}_agent"
+    delegate_fn.__doc__ = (
+        f"Delegate to the {spec['label']}, a specialist in {spec['description']}. "
+        "Pass a focused sub-question covering only what this specialist should answer."
+    )
+    return delegate_fn
+
+
 def _convert_history(messages: list[dict]) -> tuple[str, list]:
     """Convert [{role, content}] array to (user_prompt, message_history).
 
