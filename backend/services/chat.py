@@ -519,6 +519,10 @@ async def stream_chat(
                 break
             yield _sse(item)
     finally:
-        await task
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
 
     yield _sse({"type": "done"})
