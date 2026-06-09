@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { useGEXData } from "@/hooks/useGEXData"
+import { getGEXSource, setGEXSource } from "@/api"
 import { useTheme } from "@/hooks/useTheme"
 import {
   REFRESH_STREAMS,
@@ -187,6 +188,39 @@ function AgentModelsSection() {
   )
 }
 
+function GEXSourceToggle() {
+  const [source, setSource] = useState(getGEXSource)
+
+  function pick(v) {
+    setGEXSource(v)
+    setSource(v)
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        {["flow", "exposure"].map((v) => (
+          <button
+            key={v}
+            onClick={() => pick(v)}
+            className={cn(
+              "flex-1 font-mono text-[11px] uppercase tracking-wider py-2 rounded-sm border transition-colors",
+              source === v
+                ? "border-[var(--blue)] text-[var(--blue)] bg-[var(--blue)]/10"
+                : "border-[var(--border)] text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--text-1)]"
+            )}
+          >
+            {v}
+          </button>
+        ))}
+      </div>
+      <p className="font-mono text-[9px] leading-relaxed text-[var(--text-3)]">
+        Switch to <strong>exposure</strong> if the /flow endpoint is down. Takes effect on next refresh.
+      </p>
+    </div>
+  )
+}
+
 export default function Settings() {
   const { data } = useGEXData()
   const source = data?.source ?? data?.adapter ?? "—"
@@ -213,6 +247,13 @@ export default function Settings() {
             Agent Models
           </h2>
           <AgentModelsSection />
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="font-mono text-[11px] uppercase tracking-widest text-[var(--text-3)] mb-4">
+            GEX Endpoint
+          </h2>
+          <GEXSourceToggle />
         </section>
 
         <section className="space-y-3">
