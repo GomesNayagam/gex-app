@@ -198,3 +198,33 @@ def test_specialists_without_prompt_extra_unchanged():
     prompt = chat._specialist_system_prompt(spec)
     # base template ends here; nothing appended for specialists lacking prompt_extra
     assert prompt.endswith("not shown directly to the end user.")
+
+
+@pytest.mark.asyncio
+async def test_bars_indicator_tool_returns_error_dict_on_http_error(monkeypatch):
+    import httpx
+
+    class _FakeResp:
+        status_code = 503
+        text = "service unavailable"
+
+        def raise_for_status(self):
+            raise httpx.HTTPStatusError("503", request=httpx.Request("GET", "http://x"), response=self)
+
+    class _FakeClient:
+        def __init__(self, *a, **k): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): return False
+        async def get(self, url, params=None, headers=None):
+            return _FakeResp()
+
+    monkeypatch.setattr(httpx, "AsyncClient", _FakeClient)
+
+    endpoint = chat._ENDPOINT_BY_NAME["get_stock_bars_with_indicators"]
+    input_model = chat._build_input_model(endpoint)
+    tool_fn = chat._make_bars_indicator_tool_fn(endpoint, input_model)
+    ctx = type("Ctx", (), {"deps": chat.FlashAlphaDeps(api_key="k")})()
+
+    result = await tool_fn(ctx, input_model(symbol="SPY"))
+    assert "error" in result
+    assert "bars_count" not in result

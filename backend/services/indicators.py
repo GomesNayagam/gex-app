@@ -34,7 +34,7 @@ def compute_vwap(bars: list[dict], latest_close: float) -> dict[str, Any]:
         position = "below"
     else:
         position = "at"
-    return {"latest": latest, "close_vs_vwap": diff, "position": position}
+    return {"latest": latest, "close_vs_vwap": round(diff, 4), "position": position}
 
 
 def compute_obv(bars: list[dict]) -> dict[str, Any]:

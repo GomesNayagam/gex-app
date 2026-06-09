@@ -1,5 +1,7 @@
 """Unit tests for backend/services/indicators.py — pure indicator math, no I/O."""
 
+import pytest
+
 from backend.services import indicators
 
 
@@ -162,6 +164,16 @@ def test_build_summary_empty_bars():
     assert summary["obv"]["current"] == 0
     assert summary["cumulative_delta"]["total"] == 0
     assert summary["vwap"]["latest"] is None
+
+
+def test_macd_pins_known_values():
+    closes = [100.0 + i for i in range(40)]
+    result = indicators.compute_macd(closes)
+    assert result["macd_line"] == pytest.approx(5.773455, abs=1e-6)
+    assert result["signal_line"] == pytest.approx(5.22935, abs=1e-6)
+    assert result["histogram"] == pytest.approx(0.544104, abs=1e-6)
+    assert result["crossover"] == "bullish"
+    assert result["window_short"] is False
 
 
 def test_build_summary_single_bar():
