@@ -14,3 +14,13 @@ dependencies = [
     "tzdata>=2026.2",
     "uvicorn[standard]>=0.30.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.4.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["."]

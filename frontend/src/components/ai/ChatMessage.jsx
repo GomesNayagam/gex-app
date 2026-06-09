@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { Copy, Check, ThumbsUp, ThumbsDown, RotateCcw } from "lucide-react";
+import {
+  Copy,
+  Check,
+  ThumbsUp,
+  ThumbsDown,
+  RotateCcw,
+  ChevronDown,
+  ChevronRight,
+  Loader2,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
@@ -69,6 +78,68 @@ const mdComponents = {
   ),
 };
 
+function AgentTrace({ subAgents }) {
+  const [open, setOpen] = useState(false);
+  if (!subAgents || subAgents.length === 0) return null;
+
+  return (
+    <div className="mt-1.5 border border-[var(--border)] rounded-sm">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center gap-1.5 px-2 py-1.5 text-[10px] font-mono uppercase tracking-wider text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
+      >
+        {open ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+        <span>Agent trace</span>
+        <span className="text-[var(--text-3)]/70 normal-case tracking-normal">
+          ({subAgents.filter((a) => a.status === "done").length}/
+          {subAgents.length} done)
+        </span>
+      </button>
+      {open && (
+        <div className="border-t border-[var(--border)] divide-y divide-[var(--border)]">
+          {subAgents.map((agent) => (
+            <div key={agent.name} className="px-2 py-1.5 text-[11px] font-mono">
+              <div className="flex items-center gap-1.5">
+                {agent.status === "running" ? (
+                  <Loader2
+                    size={11}
+                    className="animate-spin text-[var(--blue)]"
+                  />
+                ) : (
+                  <span className="w-[11px] h-[11px] rounded-full bg-green-500/60 inline-block" />
+                )}
+                <span className="text-[var(--text-1)] font-semibold">
+                  {agent.label || agent.name}
+                </span>
+                <span className="text-[var(--text-3)] uppercase tracking-wider text-[9px]">
+                  {agent.status === "running" ? "running" : "done"}
+                </span>
+              </div>
+              {agent.toolNames.length > 0 && (
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {agent.toolNames.map((name, i) => (
+                    <span
+                      key={`${name}-${i}`}
+                      className="px-1.5 py-0.5 rounded-sm bg-[var(--surface-3)] text-[var(--text-2)] text-[9px]"
+                    >
+                      {name}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {agent.summary && (
+                <p className="mt-1 text-[var(--text-2)] leading-snug">
+                  {agent.summary}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ChatMessage({ message, isStreaming, onCopy, onFeedback, onRegenerate }) {
   const isUser = message.role === "user";
   const [copied, setCopied] = useState(false);
@@ -116,6 +187,7 @@ export function ChatMessage({ message, isStreaming, onCopy, onFeedback, onRegene
             <span className="inline-block w-1.5 h-3 bg-[var(--blue)] ml-0.5 animate-pulse align-middle" />
           )}
         </div>
+        {!isUser && <AgentTrace subAgents={message.subAgents} />}
       </div>
 
       {/* Action row: Good / Bad / Copy — below assistant messages only */}

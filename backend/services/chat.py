@@ -3,6 +3,7 @@ AI chat service: dynamic Pydantic AI agent over all FlashAlpha REST endpoints.
 Ported from backend/flashalpha_agent.py with proper imports, streaming, and error handling.
 """
 
+import asyncio
 import json
 import logging
 from datetime import date
@@ -21,6 +22,7 @@ from pydantic_ai.providers.openrouter import OpenRouterProvider
 from pydantic_graph import End
 
 from backend.config import settings
+from backend.services import indicators
 
 # ─── FlashAlpha base URL (bare host — spec paths include their own /v1 prefixes)
 FLASHALPHA_BASE = "https://lab.flashalpha.com"
@@ -154,17 +156,14 @@ ENDPOINT_SPEC: list[dict] = [
         "query_params": ["expiration"],
     },
     {
-        "name": "get_active_symbols",
-        "description": "List symbols currently cached with live data.",
-        "path": "/v1/symbols",
-        "path_params": [],
-        "query_params": [],
-    },
-    {
-        "name": "get_account_info",
-        "description": "Get account info and API quota/rate limit status.",
-        "path": "/v1/account",
-        "path_params": [],
+        "name": "get_stock_bars_with_indicators",
+        "description": (
+            "Fetch a 60-minute window of 1-minute OHLCV + flow bars and compute "
+            "MACD, OBV, Cumulative Delta, and VWAP. Returns a compact pre-computed "
+            "indicator summary for an intraday long/short technical read."
+        ),
+        "path": "/v1/flow/stocks/{symbol}/bars",
+        "path_params": ["symbol"],
         "query_params": [],
     },
 ]
@@ -172,6 +171,116 @@ ENDPOINT_SPEC: list[dict] = [
 
 class FlashAlphaDeps(BaseModel):
     api_key: Optional[str] = None
+
+
+class OrchestratorDeps(BaseModel):
+    """Deps for the orchestrator agent — carries the FlashAlpha key for
+    delegated specialist runs and the shared SSE event queue (set per-request)."""
+
+    model_config = {"arbitrary_types_allowed": True}
+
+    api_key: Optional[str] = None
+    event_queue: Any = None  # asyncio.Queue, injected by stream_chat per request
+
+
+_ORCHESTRATOR_PROMPT_TEMPLATE = (
+    "You are the option GEX Quant Analyst Orchestrator (today: {today}), coordinating a team of "
+    "domain-specialist agents over live FlashAlpha options data. "
+    "You have NO direct data tools of your own — you can only delegate. Specialists:\n"
+    "{roster}\n"
+    "Rules: "
+    "1. Read the user's question and identify which specialist domain(s) it touches. "
+    "2. Delegate to the relevant specialist(s) by calling their delegation tool with a "
+    "focused sub-question — call more than one in the same turn when the question spans "
+    "domains (e.g. both exposure and volatility for a cross-domain ask). "
+    "3. Wait for all delegated findings, then produce ONE synthesized, leveled answer in "
+    "clean markdown — never invent data yourself, only restate and connect what the "
+    "specialists reported. "
+    "4. NEVER start your response with 'I', 'Let me', 'Me', or any first-person preamble "
+    "— go straight to the synthesis. "
+    "5. Use ## headers, **bold** key values, and tables when comparing across domains. "
+    "6. If a specialist reports an error, acknowledge the gap honestly rather than "
+    "inventing a substitute answer for that domain."
+)
+
+_SPECIALIST_PROMPT_TEMPLATE = (
+    "You are the {label}, a specialist in {description} (today: {today}). "
+    "Rules: "
+    "1. Always call the relevant tool before answering any market question — never invent "
+    "numbers. "
+    "2. Be concise and data-driven: lead with the most actionable number or level, then "
+    "context. "
+    "3. Respond as plain, dense findings (no markdown headers, no greeting, no "
+    "first-person preamble) — your output is consumed by another agent for synthesis, "
+    "not shown directly to the end user."
+)
+
+
+def _specialist_system_prompt(spec: dict) -> str:
+    base = _SPECIALIST_PROMPT_TEMPLATE.format(
+        label=spec["label"], description=spec["description"], today=date.today().isoformat()
+    )
+    extra = spec.get("prompt_extra", "")
+    return f"{base} {extra}".rstrip() if extra else base
+
+
+def _orchestrator_system_prompt() -> str:
+    roster = "\n".join(
+        f"- {spec['label']} (`delegate_to_{spec['name']}_agent`): {spec['description']}"
+        for spec in SPECIALIST_REGISTRY
+    )
+    return _ORCHESTRATOR_PROMPT_TEMPLATE.format(today=date.today().isoformat(), roster=roster)
+
+
+SPECIALIST_REGISTRY: list[dict] = [
+    {
+        "name": "exposure",
+        "label": "Exposure Agent",
+        "description": "gamma/delta/vanna/charm exposure, key options-derived levels, and dealer positioning",
+        "tool_names": [
+            "get_gex", "get_key_levels", "get_exposure_summary",
+            "get_dex", "get_vex", "get_chex",
+        ],
+    },
+    {
+        "name": "volatility",
+        "label": "Volatility Agent",
+        "description": "implied/realized volatility, skew, term structure, options pricing greeks, and stock summaries",
+        "tool_names": [
+            "get_volatility_analysis", "get_bsm_greeks",
+            "get_implied_vol", "get_stock_summary",
+        ],
+    },
+    {
+        "name": "market_structure",
+        "label": "Market Structure Agent",
+        "description": "live quotes, options-flow narrative, 0DTE dynamics, max pain, available symbols, and account status",
+        "tool_names": [
+            "get_stock_quote", "get_narrative", "get_zero_dte",
+            "get_max_pain"
+        ],
+    },
+    {
+        "name": "technical_analyst",
+        "label": "Technical Analyst Agent",
+        "description": (
+            "intraday momentum and order-flow technicals (MACD, OBV, Cumulative "
+            "Delta, VWAP) over a 60-minute window to call long/short bias"
+        ),
+        "tool_names": ["get_stock_bars_with_indicators"],
+        "prompt_extra": (
+            "After calling the tool, weigh the four signals together and output a "
+            "verdict: **LONG**, **SHORT**, or **NEUTRAL**, a confidence "
+            "(low/medium/high), then one line of evidence citing the specific "
+            "indicator values that drove it. MACD crossover = momentum direction; "
+            "OBV trend = volume confirmation; Cumulative Delta = live buy/sell "
+            "pressure; VWAP position = whether price is above/below the session's "
+            "volume-weighted fair value (above confirms long bias, below confirms "
+            "short). When the signals disagree, favor NEUTRAL and say why. If "
+            "window_short is true or data is thin, temper confidence."
+        ),
+    },
+]
 
 
 def _build_input_model(spec: dict) -> type[BaseModel]:
@@ -227,7 +336,44 @@ def _make_tool_fn(spec: dict, input_model: type[BaseModel]):
     return tool_fn
 
 
-def _build_agent(model_name: str) -> Agent:
+def _make_bars_indicator_tool_fn(spec: dict, input_model: type[BaseModel]):
+    """Like _make_tool_fn but hardcodes resolution=1m&minutes=60 and post-processes
+    the raw bars through indicators.build_indicator_summary instead of returning them."""
+
+    async def tool_fn(ctx: RunContext[FlashAlphaDeps], params: input_model) -> dict[str, Any]:
+        symbol = (getattr(params, "symbol", "") or "").upper()
+        path = spec["path"].replace("{symbol}", symbol)
+        query = {"resolution": "1m", "minutes": 60}
+
+        try:
+            async with httpx.AsyncClient(timeout=15) as client:
+                resp = await client.get(
+                    f"{FLASHALPHA_BASE}{path}",
+                    params=query,
+                    headers={"X-Api-Key": ctx.deps.api_key},
+                )
+                resp.raise_for_status()
+                data = resp.json()
+        except httpx.HTTPStatusError as e:
+            return {"error": f"HTTP {e.response.status_code}: {e.response.text[:200]}"}
+        except httpx.TimeoutException:
+            return {"error": "Request timed out"}
+        except Exception:
+            logger.exception("Tool %s failed", spec["name"])
+            return {"error": "Tool request failed"}
+
+        bars = data.get("bars", []) if isinstance(data, dict) else []
+        return indicators.build_indicator_summary(symbol, bars)
+
+    tool_fn.__name__ = spec["name"]
+    tool_fn.__doc__ = spec["description"]
+    return tool_fn
+
+
+_ENDPOINT_BY_NAME: dict[str, dict] = {spec["name"]: spec for spec in ENDPOINT_SPEC}
+
+
+def _build_specialist_agent(spec: dict, model_name: str) -> Agent:
     model = OpenAIChatModel(
         model_name,
         provider=OpenRouterProvider(api_key=settings.openrouter_api_key),
@@ -235,32 +381,104 @@ def _build_agent(model_name: str) -> Agent:
     a = Agent(
         model,
         deps_type=FlashAlphaDeps,
-        system_prompt=(
-            f"You are GEX Analyst, a professional options market intelligence system (today: {date.today().isoformat()}). "
-            "You have access to live FlashAlpha options data via tools. "
-            "Rules: "
-            "1. NEVER start a response with 'I', 'Let me', 'Me', or any first-person preamble — go straight to the data. "
-            "2. Always call the relevant tool before answering any market question — never invent numbers. "
-            "3. Format responses in clean markdown: use ## headers, **bold** key values, and tables for structured data. "
-            "4. Be concise and data-driven. Lead with the most actionable number or level, then context. "
-            "5. For key levels questions: always include gamma flip, call wall, put wall, and spot relative to those levels. "
-            "6. For entry/exit suggestions: state the level, direction, and invalidation strike explicitly."
-        ),
+        system_prompt=_specialist_system_prompt(spec),
     )
-    for spec in ENDPOINT_SPEC:
-        input_model = _build_input_model(spec)
-        a.tool(_make_tool_fn(spec, input_model))
+    for tool_name in spec["tool_names"]:
+        endpoint = _ENDPOINT_BY_NAME[tool_name]
+        input_model = _build_input_model(endpoint)
+        if tool_name == "get_stock_bars_with_indicators":
+            a.tool(_make_bars_indicator_tool_fn(endpoint, input_model))
+        else:
+            a.tool(_make_tool_fn(endpoint, input_model))
     return a
 
 
-# Module-level agent cache: key = model_name
-_agents: dict[str, Agent] = {}
+# Module-level specialist agent cache: key = (specialist_name, model_name)
+_specialist_agents: dict[tuple[str, str], Agent] = {}
 
 
-def _get_agent(model_name: str) -> Agent:
-    if model_name not in _agents:
-        _agents[model_name] = _build_agent(model_name)
-    return _agents[model_name]
+def _get_specialist_agent(name: str, model_name: str) -> Agent:
+    key = (name, model_name)
+    if key not in _specialist_agents:
+        spec = next(s for s in SPECIALIST_REGISTRY if s["name"] == name)
+        _specialist_agents[key] = _build_specialist_agent(spec, model_name)
+    return _specialist_agents[key]
+
+
+def _make_delegation_tool(spec: dict, model_name: str):
+    """Build an orchestrator tool that runs the named specialist, forwarding its
+    streamed events (tagged with the specialist's name) onto the shared queue in
+    `ctx.deps.event_queue`, and returning its final text as the tool result."""
+
+    async def delegate_fn(ctx: RunContext[OrchestratorDeps], query: str) -> str:
+        queue = ctx.deps.event_queue
+        agent = _get_specialist_agent(spec["name"], model_name)
+        deps = FlashAlphaDeps(api_key=ctx.deps.api_key)
+        tag = spec["name"]
+
+        await queue.put({"type": "agent_event", "agent": tag, "kind": "start"})
+        try:
+            async with agent.iter(query, deps=deps) as run:
+                async for node in run:
+                    if isinstance(node, End):
+                        break
+                    if isinstance(node, ModelRequestNode):
+                        async with node.stream(run.ctx) as agent_stream:
+                            async for event in agent_stream:
+                                if isinstance(event, PartDeltaEvent) and isinstance(event.delta, TextPartDelta):
+                                    await queue.put({
+                                        "type": "agent_event", "agent": tag,
+                                        "kind": "text", "delta": event.delta.content_delta,
+                                    })
+                    elif isinstance(node, CallToolsNode):
+                        async with node.stream(run.ctx) as events:
+                            async for event in events:
+                                if isinstance(event, FunctionToolCallEvent):
+                                    await queue.put({
+                                        "type": "agent_event", "agent": tag,
+                                        "kind": "tool", "name": event.part.tool_name,
+                                    })
+                output = run.result.output if run.result else ""
+        except Exception:
+            logger.exception("Specialist %s failed", tag)
+            await queue.put({"type": "agent_event", "agent": tag, "kind": "done", "summary": "Failed to complete"})
+            return json.dumps({"error": f"{spec['label']} failed to complete its analysis"})
+
+        summary = (output or "").strip().replace("\n", " ")[:200]
+        await queue.put({"type": "agent_event", "agent": tag, "kind": "done", "summary": summary})
+        return output
+
+    delegate_fn.__name__ = f"delegate_to_{spec['name']}_agent"
+    delegate_fn.__doc__ = (
+        f"Delegate to the {spec['label']}, a specialist in {spec['description']}. "
+        "Pass a focused sub-question covering only what this specialist should answer."
+    )
+    return delegate_fn
+
+
+def _build_orchestrator_agent(model_name: str) -> Agent:
+    model = OpenAIChatModel(
+        model_name,
+        provider=OpenRouterProvider(api_key=settings.openrouter_api_key),
+    )
+    a = Agent(
+        model,
+        deps_type=OrchestratorDeps,
+        system_prompt=_orchestrator_system_prompt(),
+    )
+    for spec in SPECIALIST_REGISTRY:
+        a.tool(_make_delegation_tool(spec, model_name))
+    return a
+
+
+# Module-level orchestrator agent cache: key = model_name
+_orchestrators: dict[str, Agent] = {}
+
+
+def _get_orchestrator(model_name: str) -> Agent:
+    if model_name not in _orchestrators:
+        _orchestrators[model_name] = _build_orchestrator_agent(model_name)
+    return _orchestrators[model_name]
 
 
 def _convert_history(messages: list[dict]) -> tuple[str, list]:
@@ -289,54 +507,79 @@ async def stream_chat(
 ) -> AsyncIterator[str]:
     """Stream SSE-encoded events for a chat turn.
 
+    The orchestrator's run is driven as a background task that pushes its own
+    events (and each delegated specialist pushes its own, tagged) onto one
+    shared queue; this generator simply drains that queue in order.
+
     Yields newline-delimited `data: <json>\\n\\n` strings of the form:
-        {type: "text", delta: "..."}
-        {type: "tool", name: "get_gex"}
+        {type: "text", delta: "..."}                                   — orchestrator text
+        {type: "tool", name: "delegate_to_exposure_agent"}             — orchestrator delegation call
+        {type: "agent_event", agent: "exposure", kind: "start"}        — specialist lifecycle
+        {type: "agent_event", agent: "exposure", kind: "tool", name}
+        {type: "agent_event", agent: "exposure", kind: "text", delta}
+        {type: "agent_event", agent: "exposure", kind: "done", summary}
         {type: "error", message: "..."}
         {type: "done"}
     """
     model_name = model or settings.openrouter_model
-    deps = FlashAlphaDeps(api_key=settings.flash_alpha_api_key)
     user_prompt, history = _convert_history(messages)
 
     def _sse(payload: dict) -> str:
         return f"data: {json.dumps(payload)}\n\n"
 
     try:
-        agent = _get_agent(model_name)
+        orchestrator = _get_orchestrator(model_name)
     except Exception:
         logger.exception("Agent init failed for model %s", model_name)
         yield _sse({"type": "error", "message": "Agent initialization failed"})
         yield _sse({"type": "done"})
         return
 
+    queue: asyncio.Queue = asyncio.Queue()
+    deps = OrchestratorDeps(api_key=settings.flash_alpha_api_key, event_queue=queue)
+    _SENTINEL = object()
+
+    async def _run_orchestrator() -> None:
+        try:
+            async with orchestrator.iter(
+                user_prompt,
+                message_history=history or None,
+                deps=deps,
+                model_settings={"max_tokens": settings.chat_max_tokens},
+            ) as agent_run:
+                async for node in agent_run:
+                    if isinstance(node, End):
+                        break
+
+                    if isinstance(node, ModelRequestNode):
+                        async with node.stream(agent_run.ctx) as agent_stream:
+                            async for event in agent_stream:
+                                if isinstance(event, PartDeltaEvent) and isinstance(event.delta, TextPartDelta):
+                                    await queue.put({"type": "text", "delta": event.delta.content_delta})
+
+                    elif isinstance(node, CallToolsNode):
+                        async with node.stream(agent_run.ctx) as events:
+                            async for event in events:
+                                if isinstance(event, FunctionToolCallEvent):
+                                    await queue.put({"type": "tool", "name": event.part.tool_name})
+        except Exception:
+            logger.exception("Chat stream error")
+            await queue.put({"type": "error", "message": "An error occurred while processing your request"})
+        finally:
+            await queue.put(_SENTINEL)
+
+    task = asyncio.create_task(_run_orchestrator())
     try:
-        async with agent.iter(
-            user_prompt,
-            message_history=history or None,
-            deps=deps,
-            model_settings={"max_tokens": settings.chat_max_tokens},
-        ) as agent_run:
-            async for node in agent_run:
-                if isinstance(node, End):
-                    break
-
-                if isinstance(node, ModelRequestNode):
-                    # Stream text deltas from the model response
-                    async with node.stream(agent_run.ctx) as agent_stream:
-                        async for event in agent_stream:
-                            if isinstance(event, PartDeltaEvent) and isinstance(event.delta, TextPartDelta):
-                                yield _sse({"type": "text", "delta": event.delta.content_delta})
-
-                elif isinstance(node, CallToolsNode):
-                    # Emit tool call names as they are invoked
-                    async with node.stream(agent_run.ctx) as events:
-                        async for event in events:
-                            if isinstance(event, FunctionToolCallEvent):
-                                yield _sse({"type": "tool", "name": event.part.tool_name})
-
-    except Exception:
-        logger.exception("Chat stream error")
-        yield _sse({"type": "error", "message": "An error occurred while processing your request"})
+        while True:
+            item = await queue.get()
+            if item is _SENTINEL:
+                break
+            yield _sse(item)
+    finally:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
 
     yield _sse({"type": "done"})
