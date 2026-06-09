@@ -35,3 +35,40 @@ def compute_vwap(bars: list[dict], latest_close: float) -> dict[str, Any]:
     else:
         position = "at"
     return {"latest": latest, "close_vs_vwap": diff, "position": position}
+
+
+def compute_obv(bars: list[dict]) -> dict[str, Any]:
+    """On-Balance Volume running accumulator.
+
+    Per bar volume = buyVolume + sellVolume + midVolume. Add it when close rises
+    vs. the prior close, subtract when it falls, leave unchanged when equal.
+    `trend` is the sign of OBV's net change from start to end of the window.
+    """
+    obv = 0
+    bars_rising = 0
+    bars_falling = 0
+    prev_close = None
+    for b in bars:
+        volume = b.get("buyVolume", 0) + b.get("sellVolume", 0) + b.get("midVolume", 0)
+        close = b.get("close", 0)
+        if prev_close is not None:
+            if close > prev_close:
+                obv += volume
+                bars_rising += 1
+            elif close < prev_close:
+                obv -= volume
+                bars_falling += 1
+        prev_close = close
+
+    if obv > _EPS:
+        trend = "rising"
+    elif obv < -_EPS:
+        trend = "falling"
+    else:
+        trend = "flat"
+    return {
+        "current": obv,
+        "trend": trend,
+        "bars_rising": bars_rising,
+        "bars_falling": bars_falling,
+    }

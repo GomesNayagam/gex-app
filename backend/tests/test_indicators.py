@@ -60,3 +60,39 @@ def test_vwap_close_equal_is_at():
     bars = [_bar(100, vwap=100.0)]
     result = indicators.compute_vwap(bars, latest_close=100.0)
     assert result["position"] == "at"
+
+
+def test_obv_known_series():
+    # volume per bar = buy + sell + mid
+    bars = [
+        _bar(100, buy=5, sell=5),    # vol 10, no prior close -> OBV 0
+        _bar(101, buy=12, sell=8),   # vol 20, up   -> +20
+        _bar(100, buy=10, sell=20),  # vol 30, down -> -30 -> -10
+        _bar(100, buy=20, sell=20),  # vol 40, flat -> unchanged -> -10
+    ]
+    result = indicators.compute_obv(bars)
+    assert result["current"] == -10
+    assert result["bars_rising"] == 1
+    assert result["bars_falling"] == 1
+
+
+def test_obv_rising_series_trend_rising():
+    bars = [_bar(100, buy=5, sell=5), _bar(101, buy=10, sell=0), _bar(102, buy=10, sell=0)]
+    result = indicators.compute_obv(bars)
+    assert result["current"] == 20
+    assert result["trend"] == "rising"
+    assert result["bars_rising"] == 2
+    assert result["bars_falling"] == 0
+
+
+def test_obv_falling_series_trend_falling():
+    bars = [_bar(102, buy=5, sell=5), _bar(101, buy=0, sell=10), _bar(100, buy=0, sell=10)]
+    result = indicators.compute_obv(bars)
+    assert result["current"] == -20
+    assert result["trend"] == "falling"
+
+
+def test_obv_single_bar_is_zero():
+    result = indicators.compute_obv([_bar(100, buy=5, sell=5)])
+    assert result["current"] == 0
+    assert result["trend"] == "flat"
