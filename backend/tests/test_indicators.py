@@ -96,3 +96,41 @@ def test_obv_single_bar_is_zero():
     result = indicators.compute_obv([_bar(100, buy=5, sell=5)])
     assert result["current"] == 0
     assert result["trend"] == "flat"
+
+
+def test_macd_flat_series_is_flat():
+    closes = [100.0] * 40
+    result = indicators.compute_macd(closes)
+    assert result["macd_line"] == 0.0
+    assert result["signal_line"] == 0.0
+    assert result["histogram"] == 0.0
+    assert result["crossover"] == "flat"
+    assert result["window_short"] is False
+
+
+def test_macd_rising_series_is_bullish():
+    closes = [100.0 + i for i in range(40)]  # strictly increasing
+    result = indicators.compute_macd(closes)
+    assert result["macd_line"] > 0
+    assert result["histogram"] > 0
+    assert result["crossover"] == "bullish"
+
+
+def test_macd_falling_series_is_bearish():
+    closes = [200.0 - i for i in range(40)]  # strictly decreasing
+    result = indicators.compute_macd(closes)
+    assert result["macd_line"] < 0
+    assert result["crossover"] == "bearish"
+
+
+def test_macd_short_window_sets_flag():
+    closes = [100.0 + i for i in range(10)]  # fewer than 26
+    result = indicators.compute_macd(closes)
+    assert result["window_short"] is True
+
+
+def test_macd_empty_series():
+    result = indicators.compute_macd([])
+    assert result["macd_line"] == 0.0
+    assert result["crossover"] == "flat"
+    assert result["window_short"] is True

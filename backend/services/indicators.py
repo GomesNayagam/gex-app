@@ -72,3 +72,60 @@ def compute_obv(bars: list[dict]) -> dict[str, Any]:
         "bars_rising": bars_rising,
         "bars_falling": bars_falling,
     }
+
+
+def _ema_series(values: list[float], period: int) -> list[float]:
+    """EMA aligned to `values` (same length). Seeded with the SMA of the first
+    min(period, len) values, then standard recursion: ema += (v - ema) * k,
+    k = 2/(period+1). Robust to series shorter than `period` (seed shrinks)."""
+    if not values:
+        return []
+    seed_n = min(period, len(values))
+    ema = sum(values[:seed_n]) / seed_n
+    k = 2 / (period + 1)
+    out = [ema]
+    for v in values[1:]:
+        ema = (v - ema) * k + ema
+        out.append(ema)
+    return out
+
+
+def compute_macd(
+    closes: list[float],
+    fast: int = 12,
+    slow: int = 26,
+    signal: int = 9,
+) -> dict[str, Any]:
+    """MACD line = EMA(fast) − EMA(slow); Signal = EMA(signal) of the MACD line;
+    Histogram = MACD − Signal. crossover: bullish when histogram > 0, bearish
+    when < 0, flat when ~0. window_short flags fewer than `slow` closes."""
+    window_short = len(closes) < slow
+    if not closes:
+        return {
+            "macd_line": 0.0, "signal_line": 0.0, "histogram": 0.0,
+            "crossover": "flat", "window_short": True,
+        }
+
+    ema_fast = _ema_series(closes, fast)
+    ema_slow = _ema_series(closes, slow)
+    macd_line_series = [f - s for f, s in zip(ema_fast, ema_slow)]
+    signal_series = _ema_series(macd_line_series, signal)
+
+    macd_line = macd_line_series[-1]
+    signal_line = signal_series[-1]
+    histogram = macd_line - signal_line
+
+    if histogram > _EPS:
+        crossover = "bullish"
+    elif histogram < -_EPS:
+        crossover = "bearish"
+    else:
+        crossover = "flat"
+
+    return {
+        "macd_line": round(macd_line, 6),
+        "signal_line": round(signal_line, 6),
+        "histogram": round(histogram, 6),
+        "crossover": crossover,
+        "window_short": window_short,
+    }
