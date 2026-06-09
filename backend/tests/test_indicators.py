@@ -134,3 +134,39 @@ def test_macd_empty_series():
     assert result["macd_line"] == 0.0
     assert result["crossover"] == "flat"
     assert result["window_short"] is True
+
+
+def test_build_summary_full_shape():
+    bars = [
+        _bar(100.0, buy=10, sell=5, net=5, vwap=99.5),
+        _bar(101.0, buy=20, sell=5, net=15, vwap=100.0),
+        _bar(100.5, buy=8, sell=12, net=-4, vwap=100.2),
+    ]
+    summary = indicators.build_indicator_summary("SPY", bars)
+    assert summary["symbol"] == "SPY"
+    assert summary["bars_count"] == 3
+    assert summary["latest_close"] == 100.5
+    # all four indicator blocks present
+    assert set(summary["macd"]) >= {"macd_line", "signal_line", "histogram", "crossover"}
+    assert set(summary["obv"]) >= {"current", "trend", "bars_rising", "bars_falling"}
+    assert set(summary["cumulative_delta"]) >= {"total", "latest_bar_delta", "bias"}
+    assert set(summary["vwap"]) >= {"latest", "close_vs_vwap", "position"}
+    assert summary["window_short"] is True  # 3 < 26
+
+
+def test_build_summary_empty_bars():
+    summary = indicators.build_indicator_summary("SPY", [])
+    assert summary["bars_count"] == 0
+    assert summary["latest_close"] is None
+    assert summary["macd"]["crossover"] == "flat"
+    assert summary["obv"]["current"] == 0
+    assert summary["cumulative_delta"]["total"] == 0
+    assert summary["vwap"]["latest"] is None
+
+
+def test_build_summary_single_bar():
+    summary = indicators.build_indicator_summary("SPY", [_bar(100.0, net=7, vwap=99.0)])
+    assert summary["bars_count"] == 1
+    assert summary["obv"]["current"] == 0          # no prior close
+    assert summary["cumulative_delta"]["total"] == 7
+    assert summary["window_short"] is True

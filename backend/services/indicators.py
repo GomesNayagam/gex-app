@@ -129,3 +129,35 @@ def compute_macd(
         "crossover": crossover,
         "window_short": window_short,
     }
+
+
+def build_indicator_summary(symbol: str, bars: list[dict]) -> dict[str, Any]:
+    """Compose the compact enriched summary the tool returns. Handles empty
+    bars by emitting zeroed/null indicator blocks (the agent reports it cannot
+    read with no data)."""
+    if not bars:
+        return {
+            "symbol": symbol,
+            "bars_count": 0,
+            "latest_close": None,
+            "window_short": True,
+            "macd": {"macd_line": 0.0, "signal_line": 0.0, "histogram": 0.0,
+                     "crossover": "flat", "window_short": True},
+            "obv": {"current": 0, "trend": "flat", "bars_rising": 0, "bars_falling": 0},
+            "cumulative_delta": {"total": 0, "latest_bar_delta": 0, "bias": "neutral"},
+            "vwap": {"latest": None, "close_vs_vwap": None, "position": "n/a"},
+        }
+
+    closes = [b.get("close", 0.0) for b in bars]
+    latest_close = closes[-1]
+    macd = compute_macd(closes)
+    return {
+        "symbol": symbol,
+        "bars_count": len(bars),
+        "latest_close": latest_close,
+        "window_short": macd["window_short"],
+        "macd": macd,
+        "obv": compute_obv(bars),
+        "cumulative_delta": compute_cumulative_delta(bars),
+        "vwap": compute_vwap(bars, latest_close),
+    }
