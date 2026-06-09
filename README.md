@@ -8,7 +8,7 @@ Built with **FastAPI** (Python) + **React + Vite + Tailwind CSS**.
 
 <img width="1000" height="900" alt="image" src="https://github.com/user-attachments/assets/6cedb173-8c2d-4d61-abc1-6f55eec5df4a" />
 <img width="1000" height="900" alt="Screenshot_2" src="https://github.com/user-attachments/assets/904ceb4b-4bd4-471a-a933-8995088431be" />
-
+<img width="1000" height="900" alt="Screenshot 2026-06-08 at 10 06 10 PM" src="https://github.com/user-attachments/assets/04908a4e-8ac0-428a-9d8f-5aa11ad554fe" />
 
 
 
