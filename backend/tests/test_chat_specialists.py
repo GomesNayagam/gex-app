@@ -129,3 +129,52 @@ async def test_stream_chat_emits_tagged_agent_events_for_parallel_delegation(mon
         assert kinds[0] == "start", (tag, kinds)
         assert kinds[-1] == "done", (tag, kinds)
         assert agent_frames[-1]["summary"], tag
+
+
+import httpx as _httpx
+
+
+@pytest.mark.asyncio
+async def test_bars_indicator_tool_hardcodes_window_and_enriches(monkeypatch):
+    """The dedicated bars tool must inject resolution=1m&minutes=60 and return
+    the enriched indicator summary, not the raw bars."""
+    captured = {}
+
+    class _FakeResp:
+        def raise_for_status(self): pass
+        def json(self):
+            return {
+                "symbol": "SPY", "resolution": "1m", "minutes": 60, "count": 2,
+                "bars": [
+                    {"close": 100.0, "buyVolume": 10, "sellVolume": 5, "midVolume": 0,
+                     "netVolume": 5, "vwap": 99.5},
+                    {"close": 101.0, "buyVolume": 20, "sellVolume": 5, "midVolume": 0,
+                     "netVolume": 15, "vwap": 100.0},
+                ],
+            }
+
+    class _FakeClient:
+        def __init__(self, *a, **k): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): return False
+        async def get(self, url, params=None, headers=None):
+            captured["url"] = url
+            captured["params"] = params
+            return _FakeResp()
+
+    monkeypatch.setattr(_httpx, "AsyncClient", _FakeClient)
+
+    endpoint = chat._ENDPOINT_BY_NAME["get_stock_bars_with_indicators"]
+    input_model = chat._build_input_model(endpoint)
+    tool_fn = chat._make_bars_indicator_tool_fn(endpoint, input_model)
+
+    ctx = type("Ctx", (), {"deps": chat.FlashAlphaDeps(api_key="k")})()
+    result = await tool_fn(ctx, input_model(symbol="spy"))
+
+    # window hardcoded, symbol upper-cased into the path
+    assert captured["params"] == {"resolution": "1m", "minutes": 60}
+    assert captured["url"].endswith("/v1/flow/stocks/SPY/bars")
+    # enriched, not raw
+    assert result["bars_count"] == 2
+    assert "macd" in result and "vwap" in result
+    assert "bars" not in result

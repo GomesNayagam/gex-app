@@ -22,6 +22,7 @@ from pydantic_ai.providers.openrouter import OpenRouterProvider
 from pydantic_graph import End
 
 from backend.config import settings
+from backend.services import indicators
 
 # ─── FlashAlpha base URL (bare host — spec paths include their own /v1 prefixes)
 FLASHALPHA_BASE = "https://lab.flashalpha.com"
@@ -153,6 +154,17 @@ ENDPOINT_SPEC: list[dict] = [
         "path": "/v1/exposure/chex/{symbol}",
         "path_params": ["symbol"],
         "query_params": ["expiration"],
+    },
+    {
+        "name": "get_stock_bars_with_indicators",
+        "description": (
+            "Fetch a 60-minute window of 1-minute OHLCV + flow bars and compute "
+            "MACD, OBV, Cumulative Delta, and VWAP. Returns a compact pre-computed "
+            "indicator summary for an intraday long/short technical read."
+        ),
+        "path": "/v1/flow/stocks/{symbol}/bars",
+        "path_params": ["symbol"],
+        "query_params": [],
     },
 ]
 
@@ -302,6 +314,40 @@ def _make_tool_fn(spec: dict, input_model: type[BaseModel]):
     return tool_fn
 
 
+def _make_bars_indicator_tool_fn(spec: dict, input_model: type[BaseModel]):
+    """Like _make_tool_fn but hardcodes resolution=1m&minutes=60 and post-processes
+    the raw bars through indicators.build_indicator_summary instead of returning them."""
+
+    async def tool_fn(ctx: RunContext[FlashAlphaDeps], params: input_model) -> dict[str, Any]:
+        symbol = (getattr(params, "symbol", "") or "").upper()
+        path = spec["path"].replace("{symbol}", symbol)
+        query = {"resolution": "1m", "minutes": 60}
+
+        try:
+            async with httpx.AsyncClient(timeout=15) as client:
+                resp = await client.get(
+                    f"{FLASHALPHA_BASE}{path}",
+                    params=query,
+                    headers={"X-Api-Key": ctx.deps.api_key},
+                )
+                resp.raise_for_status()
+                data = resp.json()
+        except httpx.HTTPStatusError as e:
+            return {"error": f"HTTP {e.response.status_code}: {e.response.text[:200]}"}
+        except httpx.TimeoutException:
+            return {"error": "Request timed out"}
+        except Exception:
+            logger.exception("Tool %s failed", spec["name"])
+            return {"error": "Tool request failed"}
+
+        bars = data.get("bars", []) if isinstance(data, dict) else []
+        return indicators.build_indicator_summary(symbol, bars)
+
+    tool_fn.__name__ = spec["name"]
+    tool_fn.__doc__ = spec["description"]
+    return tool_fn
+
+
 _ENDPOINT_BY_NAME: dict[str, dict] = {spec["name"]: spec for spec in ENDPOINT_SPEC}
 
 
@@ -318,7 +364,10 @@ def _build_specialist_agent(spec: dict, model_name: str) -> Agent:
     for tool_name in spec["tool_names"]:
         endpoint = _ENDPOINT_BY_NAME[tool_name]
         input_model = _build_input_model(endpoint)
-        a.tool(_make_tool_fn(endpoint, input_model))
+        if tool_name == "get_stock_bars_with_indicators":
+            a.tool(_make_bars_indicator_tool_fn(endpoint, input_model))
+        else:
+            a.tool(_make_tool_fn(endpoint, input_model))
     return a
 
 
