@@ -8,8 +8,8 @@
 
 Add a new **Technical Analyst** specialist agent to the existing multi-agent
 chat orchestration. It fetches a 60-minute window of 1-minute OHLCV + flow bars
-from FlashAlpha, computes three momentum/order-flow indicators in **Python**
-(MACD, OBV, Cumulative Delta), and produces an intraday **LONG / SHORT /
+from FlashAlpha, derives four momentum/order-flow indicators in **Python**
+(MACD, OBV, Cumulative Delta, VWAP), and produces an intraday **LONG / SHORT /
 NEUTRAL** verdict with confidence and evidence. The orchestrator routes
 technical-read questions to it automatically.
 
@@ -53,7 +53,7 @@ technical-read questions to it automatically.
     "name": "get_stock_bars_with_indicators",
     "description": (
         "Fetch a 60-minute window of 1-minute OHLCV + flow bars and compute "
-        "MACD, OBV, and Cumulative Delta. Returns a compact pre-computed "
+        "MACD, OBV, Cumulative Delta, and VWAP. Returns a compact pre-computed "
         "indicator summary for an intraday long/short technical read."
     ),
     "path": "/v1/flow/stocks/{symbol}/bars",
@@ -95,7 +95,8 @@ buyVolume, sellVolume, midVolume, netVolume, tradeCount, biggestTrade
   "window_short": false,
   "macd": { "macd_line": 0.12, "signal_line": 0.08, "histogram": 0.04, "crossover": "bullish" },
   "obv": { "current": 12450, "trend": "rising", "bars_rising": 34, "bars_falling": 21 },
-  "cumulative_delta": { "total": -340, "latest_bar_delta": -1, "bias": "bearish" }
+  "cumulative_delta": { "total": -340, "latest_bar_delta": -1, "bias": "bearish" },
+  "vwap": { "latest": 738.21, "close_vs_vwap": 0.535, "position": "above" }
 }
 ```
 
@@ -117,6 +118,11 @@ sub-dicts above.
 - **Cumulative Delta**: running sum of `netVolume` (`buyVolume − sellVolume`)
   across all bars. `latest_bar_delta` = last bar's `netVolume`. `bias` =
   `"bullish"` if total > 0, `"bearish"` if < 0, `"neutral"` if ~0.
+- **VWAP**: pass-through of the last bar's `vwap` field (FlashAlpha already
+  supplies a session-anchored VWAP per bar — no recomputation needed). `latest` =
+  last bar's `vwap`; `close_vs_vwap` = `latest_close − latest`; `position` =
+  `"above"` when close > VWAP, `"below"` when close < VWAP, `"at"` when ~0. Price
+  above VWAP confirms intraday long bias, below confirms short bias.
 
 ### Edge cases
 
@@ -138,16 +144,18 @@ Append a 4th entry to `SPECIALIST_REGISTRY` (`backend/services/chat.py`):
     "label": "Technical Analyst Agent",
     "description": (
         "intraday momentum and order-flow technicals (MACD, OBV, Cumulative "
-        "Delta) over a 60-minute window to call long/short bias"
+        "Delta, VWAP) over a 60-minute window to call long/short bias"
     ),
     "tool_names": ["get_stock_bars_with_indicators"],
     "prompt_extra": (
-        "After calling the tool, weigh the three signals together and output a "
+        "After calling the tool, weigh the four signals together and output a "
         "verdict: **LONG**, **SHORT**, or **NEUTRAL**, a confidence "
         "(low/medium/high), then one line of evidence citing the specific "
         "indicator values that drove it. MACD crossover = momentum direction; "
         "OBV trend = volume confirmation; Cumulative Delta = live buy/sell "
-        "pressure. When the three disagree, favor NEUTRAL and say why. If "
+        "pressure; VWAP position = whether price is above/below the session's "
+        "volume-weighted fair value (above confirms long bias, below confirms "
+        "short). When the signals disagree, favor NEUTRAL and say why. If "
         "window_short is true or data is thin, temper confidence."
     ),
 }
@@ -169,7 +177,7 @@ User: "Is SPY a long or short right now?"
   → orchestrator delegates → delegate_to_technical_analyst_agent("SPY long/short technical read")
     → Technical Analyst calls get_stock_bars_with_indicators(symbol="SPY")
       → Python: GET /v1/flow/stocks/SPY/bars?resolution=1m&minutes=60
-      → Python: compute MACD / OBV / Cumulative Delta over ~60 bars (indicators.py)
+      → Python: compute MACD / OBV / Cumulative Delta / VWAP over ~60 bars (indicators.py)
       → returns compact indicator dict
     → Technical Analyst interprets → "LONG, medium confidence — MACD bullish
       crossover (hist +0.04), OBV rising, CumΔ -340 (mild sell pressure but
