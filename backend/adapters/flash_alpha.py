@@ -21,7 +21,7 @@ class FlashAlphaAdapter:
             timeout=10.0,
         )
 
-    async def fetch(self, symbol: str, expiry: str | None = None) -> InstrumentGEX:
+    async def fetch(self, symbol: str, expiry: str | None = None, source: str = "flow") -> InstrumentGEX:
         sym = symbol.upper()
         summaryResp = None
         chexResp = None
@@ -35,18 +35,19 @@ class FlashAlphaAdapter:
             resp.raise_for_status()
         else:
             if expiry and expiry == "0dte":
-                # lets check is weekend, if so pass next monday
                 today = datetime.today().date().isoformat() if datetime.today().date().isoweekday() < 6 else get_next_monday().isoformat()
-                #params = {"expiry": (datetime.today().date().isoformat())}
                 params = {"expiry": today}
             else:
                 params = {"expiry": None}
-               
-            resp = await self._client.get(f"/flow/gex/{sym}", params=params)
-            summaryResp = await self._client.get(f"/flow/summary/{sym}", params=params)
-            if sym in ["SPX","SPY","QQQ"]:
-                            chexResp = await self._client.get(f"/exposure/chex/{sym}", params=params)
-                            vexResp = await self._client.get(f"/exposure/vex/{sym}", params=params)
+
+            if source == "exposure":
+                resp = await self._client.get(f"/exposure/gex/{sym}")
+            else:
+                resp = await self._client.get(f"/flow/gex/{sym}", params=params)
+                summaryResp = await self._client.get(f"/flow/summary/{sym}", params=params)
+            if sym in ["SPX", "SPY", "QQQ"]:
+                chexResp = await self._client.get(f"/exposure/chex/{sym}", params=params)
+                vexResp = await self._client.get(f"/exposure/vex/{sym}", params=params)
             resp.raise_for_status()
 
 

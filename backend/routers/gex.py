@@ -9,14 +9,14 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["GEX"])
 
 
-async def _fetch_cached(request: Request, symbol: str, expiry: str | None = None) -> InstrumentGEX:
+async def _fetch_cached(request: Request, symbol: str, expiry: str | None = None, source: str = "flow") -> InstrumentGEX:
     from backend.services.cache import cache
-    cache_key = f"{symbol}:{expiry}" if expiry else symbol
+    cache_key = f"{symbol}:{expiry}:{source}" if expiry else f"{symbol}:{source}"
     cached = cache.get(cache_key)
     if cached:
         return cached
     adapter = request.app.state.adapter
-    data = await adapter.fetch(symbol, expiry=expiry)
+    data = await adapter.fetch(symbol, expiry=expiry, source=source)
     cache.set(cache_key, data)
     return data
 
@@ -34,13 +34,14 @@ def _filter_strikes(data: InstrumentGEX, n: int) -> InstrumentGEX:
 async def get_all_gex(
     request: Request,
     strikes: int = Query(default=50, ge=10, le=200, description="Strikes around spot"),
+    source: str = Query(default="flow", pattern=r"^(flow|exposure)$"),
 ):
     adapter = request.app.state.adapter
     symbols = await adapter.available_symbols()
     instruments = []
     for sym in symbols[:3]:  # cap at 3 for the main grid
         try:
-            data = await _fetch_cached(request, sym, expiry="0dte")
+            data = await _fetch_cached(request, sym, expiry="0dte", source=source)
             instruments.append(_filter_strikes(data, strikes))
         except Exception as e:
             logger.exception("Upstream fetch failed for %s", sym)
@@ -58,9 +59,10 @@ async def get_gex_by_symbol(
     request: Request,
     strikes: Optional[int] = Query(default=None, ge=5, le=200),
     expiry: Optional[str] = Query(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$|^0dte$"),
+    source: str = Query(default="flow", pattern=r"^(flow|exposure)$"),
 ):
     try:
-        data = await _fetch_cached(request, symbol.upper(), expiry=expiry)
+        data = await _fetch_cached(request, symbol.upper(), expiry=expiry, source=source)
     except ValueError as e:
         logger.warning("Symbol not found: %s", symbol)
         raise HTTPException(status_code=404, detail="Symbol not found")

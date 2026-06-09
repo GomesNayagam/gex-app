@@ -1,7 +1,12 @@
 const BASE = import.meta.env.VITE_API_BASE ?? "";
 
+const GEX_SOURCE_KEY = "gex_endpoint_source";
+export const getGEXSource = () => localStorage.getItem(GEX_SOURCE_KEY) ?? "flow";
+export const setGEXSource = (v) => localStorage.setItem(GEX_SOURCE_KEY, v);
+
 export async function fetchAllGEX() {
-  const res = await fetch(`${BASE}/api/gex`);
+  const params = new URLSearchParams({ source: getGEXSource() });
+  const res = await fetch(`${BASE}/api/gex?${params}`);
   if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
   return res.json();
 }
@@ -10,7 +15,7 @@ export async function fetchGEXBySymbol(
   symbol,
   { strikes = 50, expiry = null } = {},
 ) {
-  const params = new URLSearchParams({ strikes });
+  const params = new URLSearchParams({ strikes, source: getGEXSource() });
   if (expiry) params.set("expiry", expiry);
   const res = await fetch(`${BASE}/api/gex/${symbol}?${params}`);
   if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
