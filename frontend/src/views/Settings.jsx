@@ -16,81 +16,129 @@ import {
 } from "@/lib/chatSettings"
 import { useAISessions } from "@/hooks/useAISessions"
 
-const ACCENT = "bg-blue"
+// ── primitives ──────────────────────────────────────────────────────────────
 
-function InfoCard({ label, value, accent = ACCENT }) {
+function SettingLabel({ children }) {
   return (
-    <div className={cn(
-      "relative border border-[var(--border)] bg-[var(--surface-1)] rounded-sm p-3 overflow-hidden"
-    )}>
-      <div className={cn("absolute left-0 top-0 bottom-0 w-0.5", accent)} />
+    <p className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-3)] mb-1.5">
+      {children}
+    </p>
+  )
+}
+
+function InfoCard({ label, value }) {
+  return (
+    <div className="relative border border-[var(--border)] bg-[var(--surface-2)] rounded-sm p-3 overflow-hidden">
+      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[var(--blue)]" />
       <div className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-3)] mb-1">{label}</div>
       <div className="font-mono tabular-nums text-[13px] font-semibold text-[var(--text-1)]">{value}</div>
     </div>
   )
 }
 
-function ThemePicker() {
-  const { theme, setTheme, themes } = useTheme()
+function Hint({ children }) {
   return (
-    <select
-      value={theme}
-      onChange={e => setTheme(e.target.value)}
-      className="w-full font-mono text-[11px] uppercase tracking-wider bg-[var(--surface-2)] text-[var(--text-1)] border border-[var(--border)] rounded-sm px-3 py-2 focus:outline-none focus:border-[var(--blue)] cursor-pointer"
-    >
-      {themes.map(t => (
-        <option key={t.id} value={t.id}>
-          {t.label} — {t.description}
-        </option>
-      ))}
-    </select>
+    <p className="font-mono text-[9px] leading-relaxed text-[var(--text-3)] mt-2">{children}</p>
   )
 }
 
-function RefreshIntervals() {
-  const [intervals, setIntervals] = useState(() => getAllRefreshIntervals())
+// ── panel sections ───────────────────────────────────────────────────────────
 
-  function update(key, value) {
-    setRefreshInterval(key, value)
-    setIntervals((prev) => ({ ...prev, [key]: value }))
-  }
-
+function DisplayPanel() {
+  const { theme, setTheme, themes } = useTheme()
   return (
-    <div className="space-y-3">
-      {REFRESH_STREAMS.map((stream) => (
-        <div key={stream.key} className="flex items-center justify-between gap-3">
-          <label
-            htmlFor={`refresh-${stream.key}`}
-            className="font-mono text-[11px] uppercase tracking-wider text-[var(--text-2)]"
-          >
-            {stream.label}
-          </label>
-          <select
-            id={`refresh-${stream.key}`}
-            value={intervals[stream.key]}
-            onChange={(e) => update(stream.key, Number(e.target.value))}
-            className="font-mono text-[11px] uppercase tracking-wider bg-[var(--surface-2)] text-[var(--text-1)] border border-[var(--border)] rounded-sm px-3 py-2 focus:outline-none focus:border-[var(--blue)] cursor-pointer"
-          >
-            {REFRESH_PRESETS.map((p) => (
-              <option key={p.value} value={p.value}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      ))}
-      <p className="font-mono text-[9px] leading-relaxed text-[var(--text-3)]">
-        How often each view polls the API. Use the Pause button in a view to
-        stop polling entirely. Changes apply when you next open the view.
-      </p>
+    <div className="grid grid-cols-2 gap-6">
+      <div>
+        <SettingLabel>Theme</SettingLabel>
+        <select
+          value={theme}
+          onChange={e => setTheme(e.target.value)}
+          className="w-full font-mono text-[11px] uppercase tracking-wider bg-[var(--surface-2)] text-[var(--text-1)] border border-[var(--border)] rounded-sm px-3 py-2 focus:outline-none focus:border-[var(--blue)] cursor-pointer"
+        >
+          {themes.map(t => (
+            <option key={t.id} value={t.id}>
+              {t.label} — {t.description}
+            </option>
+          ))}
+        </select>
+        <Hint>Visual theme applied across all views.</Hint>
+      </div>
     </div>
   )
 }
 
-function AgentModelsSection() {
+function DataPanel() {
+  const [intervals, setIntervals] = useState(() => getAllRefreshIntervals())
+  const [source, setSource] = useState(getGEXSource)
+
+  function updateInterval(key, value) {
+    setRefreshInterval(key, value)
+    setIntervals(prev => ({ ...prev, [key]: value }))
+  }
+
+  function pickSource(v) {
+    setGEXSource(v)
+    setSource(v)
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+      {/* refresh intervals — left col */}
+      <div>
+        <SettingLabel>Refresh Intervals</SettingLabel>
+        <div className="space-y-2">
+          {REFRESH_STREAMS.map(stream => (
+            <div key={stream.key} className="flex items-center justify-between gap-3">
+              <label
+                htmlFor={`refresh-${stream.key}`}
+                className="font-mono text-[10px] text-[var(--text-2)] truncate"
+              >
+                {stream.label}
+              </label>
+              <select
+                id={`refresh-${stream.key}`}
+                value={intervals[stream.key]}
+                onChange={e => updateInterval(stream.key, Number(e.target.value))}
+                className="font-mono text-[10px] bg-[var(--surface-2)] text-[var(--text-1)] border border-[var(--border)] rounded-sm px-2 py-1 focus:outline-none focus:border-[var(--blue)] cursor-pointer shrink-0"
+              >
+                {REFRESH_PRESETS.map(p => (
+                  <option key={p.value} value={p.value}>{p.label}</option>
+                ))}
+              </select>
+            </div>
+          ))}
+        </div>
+        <Hint>Changes apply when you next open the view.</Hint>
+      </div>
+
+      {/* GEX endpoint — right col */}
+      <div>
+        <SettingLabel>GEX Endpoint</SettingLabel>
+        <div className="flex gap-2">
+          {["flow", "exposure"].map(v => (
+            <button
+              key={v}
+              onClick={() => pickSource(v)}
+              className={cn(
+                "flex-1 font-mono text-[11px] uppercase tracking-wider py-2 rounded-sm border transition-colors",
+                source === v
+                  ? "border-[var(--blue)] text-[var(--blue)] bg-[var(--blue)]/10"
+                  : "border-[var(--border)] text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--text-1)]"
+              )}
+            >
+              {v}
+            </button>
+          ))}
+        </div>
+        <Hint>Switch to <strong>exposure</strong> if the /flow endpoint is down. Takes effect on next refresh.</Hint>
+      </div>
+    </div>
+  )
+}
+
+function AgentPanel() {
   const [custom, setCustom] = useState(() => getCustomModels())
   const [draft, setDraft] = useState("")
-  // refinePersona uses sessions loaded at mount time; navigating from AgentView first ensures freshness
   const { refinePersona } = useAISessions()
   const [refining, setRefining] = useState(false)
   const [refined, setRefined] = useState(false)
@@ -122,147 +170,140 @@ function AgentModelsSection() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-1">
-        <p className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-3)]">Built-in models</p>
-        {MODELS.map(m => (
-          <div key={m} className="font-mono text-[10px] text-[var(--text-2)] px-2 py-1 bg-[var(--surface-2)] border border-[var(--border)] rounded-sm">
-            {m}
-          </div>
-        ))}
-      </div>
-
-      {custom.length > 0 && (
-        <div className="space-y-1">
-          <p className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-3)]">Custom models</p>
-          {custom.map(m => (
-            <div key={m} className="flex items-center gap-2">
-              <span className="flex-1 font-mono text-[10px] text-[var(--text-2)] px-2 py-1 bg-[var(--surface-2)] border border-[var(--border)] rounded-sm truncate">
+    <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+      {/* built-in + custom models — left col */}
+      <div className="space-y-4">
+        <div>
+          <SettingLabel>Built-in Models</SettingLabel>
+          <div className="space-y-1">
+            {MODELS.map(m => (
+              <div key={m} className="font-mono text-[10px] text-[var(--text-2)] px-2 py-1 bg-[var(--surface-2)] border border-[var(--border)] rounded-sm">
                 {m}
-              </span>
-              <button
-                onClick={() => removeModel(m)}
-                className="font-mono text-[9px] text-[var(--text-3)] hover:text-red-400 transition-colors px-1"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
+              </div>
+            ))}
+          </div>
         </div>
-      )}
 
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={draft}
-          onChange={e => setDraft(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && addModel()}
-          placeholder="openrouter model slug…"
-          className="flex-1 font-mono text-[10px] bg-[var(--surface-2)] text-[var(--text-1)] border border-[var(--border)] rounded-sm px-2 py-1.5 focus:outline-none focus:border-[var(--blue)] placeholder:text-[var(--text-3)]"
-        />
-        <button
-          onClick={addModel}
-          className="font-mono text-[9px] uppercase tracking-wider px-3 py-1.5 border border-[var(--border)] rounded-sm text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--text-1)] transition-colors"
-        >
-          Add
-        </button>
-      </div>
-
-      <button
-        onClick={handleRefine}
-        disabled={refining}
-        className={cn(
-          "w-full font-mono text-[10px] uppercase tracking-wider py-2 rounded-sm border transition-colors",
-          refined
-            ? "border-green-500/50 text-green-400"
-            : "border-[var(--border)] text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--text-1)]",
-          refining && "opacity-50 cursor-not-allowed"
+        {custom.length > 0 && (
+          <div>
+            <SettingLabel>Custom Models</SettingLabel>
+            <div className="space-y-1">
+              {custom.map(m => (
+                <div key={m} className="flex items-center gap-2">
+                  <span className="flex-1 font-mono text-[10px] text-[var(--text-2)] px-2 py-1 bg-[var(--surface-2)] border border-[var(--border)] rounded-sm truncate">
+                    {m}
+                  </span>
+                  <button
+                    onClick={() => removeModel(m)}
+                    className="font-mono text-[9px] text-[var(--text-3)] hover:text-red-400 transition-colors px-1"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
-      >
-        {refining ? "Refining…" : refined ? "Refined ✓" : "Refine Agent Now"}
-      </button>
-      <p className="font-mono text-[9px] leading-relaxed text-[var(--text-3)]">
-        Analyzes your last 5 sessions to silently tune the agent's persona toward your trading style.
-      </p>
-    </div>
-  )
-}
 
-function GEXSourceToggle() {
-  const [source, setSource] = useState(getGEXSource)
-
-  function pick(v) {
-    setGEXSource(v)
-    setSource(v)
-  }
-
-  return (
-    <div className="space-y-2">
-      <div className="flex gap-2">
-        {["flow", "exposure"].map((v) => (
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && addModel()}
+            placeholder="openrouter model slug…"
+            className="flex-1 font-mono text-[10px] bg-[var(--surface-2)] text-[var(--text-1)] border border-[var(--border)] rounded-sm px-2 py-1.5 focus:outline-none focus:border-[var(--blue)] placeholder:text-[var(--text-3)]"
+          />
           <button
-            key={v}
-            onClick={() => pick(v)}
-            className={cn(
-              "flex-1 font-mono text-[11px] uppercase tracking-wider py-2 rounded-sm border transition-colors",
-              source === v
-                ? "border-[var(--blue)] text-[var(--blue)] bg-[var(--blue)]/10"
-                : "border-[var(--border)] text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--text-1)]"
-            )}
+            onClick={addModel}
+            className="font-mono text-[9px] uppercase tracking-wider px-3 py-1.5 border border-[var(--border)] rounded-sm text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--text-1)] transition-colors"
           >
-            {v}
+            Add
           </button>
-        ))}
+        </div>
       </div>
-      <p className="font-mono text-[9px] leading-relaxed text-[var(--text-3)]">
-        Switch to <strong>exposure</strong> if the /flow endpoint is down. Takes effect on next refresh.
-      </p>
+
+      {/* persona refinement — right col */}
+      <div>
+        <SettingLabel>Persona</SettingLabel>
+        <button
+          onClick={handleRefine}
+          disabled={refining}
+          className={cn(
+            "w-full font-mono text-[10px] uppercase tracking-wider py-2 rounded-sm border transition-colors",
+            refined
+              ? "border-green-500/50 text-green-400"
+              : "border-[var(--border)] text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--text-1)]",
+            refining && "opacity-50 cursor-not-allowed"
+          )}
+        >
+          {refining ? "Refining…" : refined ? "Refined ✓" : "Refine Agent Now"}
+        </button>
+        <Hint>Analyzes your last 5 sessions to silently tune the agent's persona toward your trading style.</Hint>
+      </div>
     </div>
   )
 }
+
+function SystemPanel({ adapterSource }) {
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      <InfoCard label="Data Source" value={adapterSource} />
+      <InfoCard label="Version" value="GEX Dashboard v2.0" />
+    </div>
+  )
+}
+
+// ── nav config ───────────────────────────────────────────────────────────────
+
+const NAV = [
+  { id: "display", label: "Display", icon: "◈" },
+  { id: "data",    label: "Data",    icon: "⬡" },
+  { id: "agent",   label: "Agent",   icon: "◎" },
+  { id: "system",  label: "System",  icon: "◇" },
+]
+
+// ── root ─────────────────────────────────────────────────────────────────────
 
 export default function Settings() {
   const { data } = useGEXData()
-  const source = data?.source ?? data?.adapter ?? "—"
+  const adapterSource = data?.source ?? data?.adapter ?? "—"
+  const [active, setActive] = useState("display")
 
   return (
-    <div className="h-full overflow-y-auto p-6">
-      <div className="max-w-sm space-y-6">
-        <section>
-          <h2 className="font-mono text-[11px] uppercase tracking-widest text-[var(--text-3)] mb-4">
-            Theme
-          </h2>
-          <ThemePicker />
-        </section>
+    <div className="h-full flex overflow-hidden">
+      {/* sidebar nav */}
+      <nav className="w-36 shrink-0 border-r border-[var(--border)] bg-[var(--surface-1)] flex flex-col py-4 gap-0.5 px-2">
+        <p className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-3)] px-2 mb-3">
+          Settings
+        </p>
+        {NAV.map(item => (
+          <button
+            key={item.id}
+            onClick={() => setActive(item.id)}
+            className={cn(
+              "flex items-center gap-2.5 px-2 py-2 rounded-sm text-left transition-colors font-mono text-[11px] uppercase tracking-wider w-full",
+              active === item.id
+                ? "bg-[var(--surface-3)] text-[var(--text-1)]"
+                : "text-[var(--text-3)] hover:text-[var(--text-2)] hover:bg-[var(--surface-2)]"
+            )}
+          >
+            <span className="text-[var(--blue)] text-[12px] leading-none">{item.icon}</span>
+            {item.label}
+          </button>
+        ))}
+      </nav>
 
-        <section className="space-y-3">
-          <h2 className="font-mono text-[11px] uppercase tracking-widest text-[var(--text-3)] mb-4">
-            Refresh Intervals
-          </h2>
-          <RefreshIntervals />
-        </section>
+      {/* content area */}
+      <div className="flex-1 overflow-y-auto p-8">
+        <h1 className="font-mono text-[11px] uppercase tracking-widest text-[var(--text-3)] mb-6">
+          {NAV.find(n => n.id === active)?.label}
+        </h1>
 
-        <section className="space-y-3">
-          <h2 className="font-mono text-[11px] uppercase tracking-widest text-[var(--text-3)] mb-4">
-            Agent Models
-          </h2>
-          <AgentModelsSection />
-        </section>
-
-        <section className="space-y-3">
-          <h2 className="font-mono text-[11px] uppercase tracking-widest text-[var(--text-3)] mb-4">
-            GEX Endpoint
-          </h2>
-          <GEXSourceToggle />
-        </section>
-
-        <section className="space-y-3">
-          <h2 className="font-mono text-[11px] uppercase tracking-widest text-[var(--text-3)] mb-4">
-            System Info
-          </h2>
-          <InfoCard label="Data Source" value={source} accent="bg-blue" />
-          <InfoCard label="Version" value="GEX Dashboard v2.0" accent="bg-amber" />
-        </section>
+        {active === "display" && <DisplayPanel />}
+        {active === "data"    && <DataPanel />}
+        {active === "agent"   && <AgentPanel />}
+        {active === "system"  && <SystemPanel adapterSource={adapterSource} />}
       </div>
     </div>
   )
