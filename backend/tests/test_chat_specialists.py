@@ -178,3 +178,23 @@ async def test_bars_indicator_tool_hardcodes_window_and_enriches(monkeypatch):
     assert result["bars_count"] == 2
     assert "macd" in result and "vwap" in result
     assert "bars" not in result
+
+
+def test_technical_analyst_registered_with_one_tool():
+    spec = next(s for s in chat.SPECIALIST_REGISTRY if s["name"] == "technical_analyst")
+    assert spec["tool_names"] == ["get_stock_bars_with_indicators"]
+    agent = chat._build_specialist_agent(spec, "openai/gpt-4o-mini")
+    assert set(agent._function_toolset.tools.keys()) == {"get_stock_bars_with_indicators"}
+
+
+def test_prompt_extra_appended_to_specialist_prompt():
+    spec = next(s for s in chat.SPECIALIST_REGISTRY if s["name"] == "technical_analyst")
+    prompt = chat._specialist_system_prompt(spec)
+    assert spec["prompt_extra"] in prompt
+
+
+def test_specialists_without_prompt_extra_unchanged():
+    spec = next(s for s in chat.SPECIALIST_REGISTRY if s["name"] == "exposure")
+    prompt = chat._specialist_system_prompt(spec)
+    # base template ends here; nothing appended for specialists lacking prompt_extra
+    assert prompt.endswith("not shown directly to the end user.")

@@ -217,9 +217,11 @@ _SPECIALIST_PROMPT_TEMPLATE = (
 
 
 def _specialist_system_prompt(spec: dict) -> str:
-    return _SPECIALIST_PROMPT_TEMPLATE.format(
+    base = _SPECIALIST_PROMPT_TEMPLATE.format(
         label=spec["label"], description=spec["description"], today=date.today().isoformat()
     )
+    extra = spec.get("prompt_extra", "")
+    return f"{base} {extra}".rstrip() if extra else base
 
 
 def _orchestrator_system_prompt() -> str:
@@ -257,6 +259,26 @@ SPECIALIST_REGISTRY: list[dict] = [
             "get_stock_quote", "get_narrative", "get_zero_dte",
             "get_max_pain"
         ],
+    },
+    {
+        "name": "technical_analyst",
+        "label": "Technical Analyst Agent",
+        "description": (
+            "intraday momentum and order-flow technicals (MACD, OBV, Cumulative "
+            "Delta, VWAP) over a 60-minute window to call long/short bias"
+        ),
+        "tool_names": ["get_stock_bars_with_indicators"],
+        "prompt_extra": (
+            "After calling the tool, weigh the four signals together and output a "
+            "verdict: **LONG**, **SHORT**, or **NEUTRAL**, a confidence "
+            "(low/medium/high), then one line of evidence citing the specific "
+            "indicator values that drove it. MACD crossover = momentum direction; "
+            "OBV trend = volume confirmation; Cumulative Delta = live buy/sell "
+            "pressure; VWAP position = whether price is above/below the session's "
+            "volume-weighted fair value (above confirms long bias, below confirms "
+            "short). When the signals disagree, favor NEUTRAL and say why. If "
+            "window_short is true or data is thin, temper confidence."
+        ),
     },
 ]
 
