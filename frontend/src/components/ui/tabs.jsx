@@ -17,10 +17,7 @@ export function Tabs({ defaultValue, value, onValueChange, className, children }
 export function TabsList({ className, ...props }) {
   return (
     <div
-      className={cn(
-        "inline-flex items-center gap-1 rounded-lg bg-[var(--surface-2)] p-1",
-        className
-      )}
+      className={cn("inline-flex items-center gap-1.5", className)}
       {...props}
     />
   )
@@ -33,10 +30,10 @@ export function TabsTrigger({ value, className, ...props }) {
     <button
       onClick={() => setActive(value)}
       className={cn(
-        "rounded-md px-3 py-1.5 text-xs font-medium font-mono transition-colors",
+        "rounded-full px-3 py-1 text-[10px] font-mono transition-colors duration-150",
         isActive
-          ? "bg-[var(--surface-3)] text-text-1 shadow-sm"
-          : "text-text-2 hover:text-text-1",
+          ? "text-[var(--mint)] bg-[rgba(110,231,199,0.10)] shadow-[inset_0_0_0_1px_rgba(110,231,199,0.25)]"
+          : "text-[var(--slate-dim)] shadow-[inset_0_0_0_1px_var(--edge-soft)] hover:text-[var(--slate)]",
         className
       )}
       {...props}
