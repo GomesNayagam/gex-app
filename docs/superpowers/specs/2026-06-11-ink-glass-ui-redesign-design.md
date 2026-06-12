@@ -13,7 +13,7 @@
 | App shell | **A — Icon Rail + Header** (over Top Ribbon, Command Cockpit) |
 | Scope | **Everything** — all six views, charts, loading/empty/error states |
 | Theming | **Removed entirely** — one palette, no switcher, no `data-theme` |
-| Brand | "GED" wordmark retires; serif italic **"G."** mark (gold period) |
+| Brand | **"GED — Gamma Exposure Dashboard"** kept; rendered as serif italic **"GED."** mark (gold period) |
 
 ## 1. Design Language
 
@@ -90,7 +90,7 @@ Google Fonts import replaces the IBM Plex import in `index.css`. Numbers always 
 
 - Fixed **60px** wide, never collapses → **delete `useSidebar.js`** and all collapse logic.
 - Frosted: `rgba(255,255,255,0.025)` + blur, hairline right edge.
-- Top: serif italic "G" with gold "." (the brand mark).
+- Top: brand mark — serif italic **"GED"** with gold "." (~15px, fits the 60px rail), `title="Gamma Exposure Dashboard"`.
 - Six icon buttons (lucide icons, 17px, stroke 1.6): Ladders (LayoutGrid), Flow List (Star), Gamma Horizon (CalendarRange), Flow Signals (Flame), Agent (BotMessageSquare), Settings (Settings2) — Settings pinned to bottom via spacer.
 - States: tertiary slate default → slate + glass on hover → **active = mint icon on `rgba(110,231,199,0.10)` fill with inset mint ring + faint outer glow**, 11px radius.
 - Tooltips via `title` attr (labels live in tooltips now; no text labels).
@@ -100,7 +100,7 @@ Google Fonts import replaces the IBM Plex import in `index.css`. Numbers always 
 - 58px, frosted hairline-bottom strip.
 - Left: **page title in Instrument Serif italic ~23px** (changes per route: "Gamma Ladders", "Flow List", "Gamma Horizon", "Flow Signals", "Agent", "Settings") + mono sub-caption in `--slate-dim` (e.g., "SPX · SPY · QQQ — live dealer positioning").
 - Right: pause/resume pill button (moves here from B3Mode's toolbar — it's global refresh state), then **market clock pill**: glass pill, breathing mint dot, `MARKET OPEN · 14:32:08 ET` in mono (closed state: static `--slate-dim` dot, "MARKET CLOSED"). `MarketClock.jsx` is restyled, logic kept.
-- The UTC timestamp block and "GED / Gamma Exposure Dashboard" wordmark are removed.
+- The UTC timestamp block is removed; the brand lives in the rail (the header carries page titles, not the wordmark).
 
 ## 3. Views
 
@@ -159,7 +159,7 @@ Chat: user bubbles `--glass-2`, agent bubbles transparent with hairline left rul
 3. **`index.css`**: the three `[data-theme]` blocks (`dark`, `light`, `bloomberg`) collapse into one `:root` block with the new tokens. Legacy var names that components reference (`--bg`, `--surface-1/2/3`, `--border`, `--border-soft`, `--border-color`, `--green`, `--red`, `--blue`, `--amber`, `--*-dim`, `--text-1/2/3`, `--chart-*`, shadcn HSL vars) are **kept as aliases pointing at new palette values** so unmigrated classes degrade gracefully during the rewrite; remove aliases that end up unused at the end.
 4. **`tailwind.config.js`**: font families → Instrument Serif (`font-display`), Inter (`font-sans`), JetBrains Mono (`font-mono`); add token colors (`ink`, `glass`, `edge`, `ivory`, `slate`, `gold`, `mint`, `rose`, `flip`); keep legacy color names mapped to CSS vars (which now resolve to the new palette). Remove `darkMode: ["class"]` (no theme switching).
 5. **`Settings.jsx`**: remove the theme/appearance section and its nav entry.
-6. **`index.html`**: remove any `data-theme` bootstrap script if present; update `<title>` and theme-color meta to ink.
+6. **`index.html`**: remove any `data-theme` bootstrap script if present; `<title>` becomes "GED — Gamma Exposure Dashboard"; theme-color meta set to ink.
 7. Grep-verify: zero remaining references to `useTheme`, `useThemeColors`, `data-theme`, `gex.theme`, `THEMES`, `bloomberg`.
 
 ## 5. Explicitly Unchanged
