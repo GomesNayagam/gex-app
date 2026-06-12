@@ -12,7 +12,7 @@ import {
 import { useIntraday } from "@/hooks/useIntraday";
 import { fmtGex } from "@/lib/format";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useThemeColors } from "@/hooks/useTheme";
+import { CHART } from "@/lib/palette";
 
 function fmt(iso) {
   const d = new Date(iso);
@@ -50,7 +50,7 @@ function isMarketHours() {
 
 export default function IntradayChart({ symbol, instrument, height = 150 }) {
   const { series, loading } = useIntraday(symbol);
-  const c = useThemeColors();
+  const c = CHART;
 
   if (loading) return <Skeleton className="h-48 w-full rounded-xl" />;
 

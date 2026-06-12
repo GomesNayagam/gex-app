@@ -2,7 +2,6 @@ import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { useGEXData } from "@/hooks/useGEXData"
 import { getGEXSource, setGEXSource } from "@/api"
-import { useTheme } from "@/hooks/useTheme"
 import {
   REFRESH_STREAMS,
   REFRESH_PRESETS,
@@ -43,29 +42,6 @@ function Hint({ children }) {
 }
 
 // ── panel sections ───────────────────────────────────────────────────────────
-
-function DisplayPanel() {
-  const { theme, setTheme, themes } = useTheme()
-  return (
-    <div className="grid grid-cols-2 gap-6">
-      <div>
-        <SettingLabel>Theme</SettingLabel>
-        <select
-          value={theme}
-          onChange={e => setTheme(e.target.value)}
-          className="w-full font-mono text-[11px] uppercase tracking-wider bg-[var(--surface-2)] text-[var(--text-1)] border border-[var(--border)] rounded-sm px-3 py-2 focus:outline-none focus:border-[var(--blue)] cursor-pointer"
-        >
-          {themes.map(t => (
-            <option key={t.id} value={t.id}>
-              {t.label} — {t.description}
-            </option>
-          ))}
-        </select>
-        <Hint>Visual theme applied across all views.</Hint>
-      </div>
-    </div>
-  )
-}
 
 function DataPanel() {
   const [intervals, setIntervals] = useState(() => getAllRefreshIntervals())
@@ -257,7 +233,6 @@ function SystemPanel({ adapterSource }) {
 // ── nav config ───────────────────────────────────────────────────────────────
 
 const NAV = [
-  { id: "display", label: "Display", icon: "◈" },
   { id: "data",    label: "Data",    icon: "⬡" },
   { id: "agent",   label: "Agent",   icon: "◎" },
   { id: "system",  label: "System",  icon: "◇" },
@@ -268,7 +243,7 @@ const NAV = [
 export default function Settings() {
   const { data } = useGEXData()
   const adapterSource = data?.source ?? data?.adapter ?? "—"
-  const [active, setActive] = useState("display")
+  const [active, setActive] = useState("data")
 
   return (
     <div className="h-full flex overflow-hidden">
@@ -300,7 +275,6 @@ export default function Settings() {
           {NAV.find(n => n.id === active)?.label}
         </h1>
 
-        {active === "display" && <DisplayPanel />}
         {active === "data"    && <DataPanel />}
         {active === "agent"   && <AgentPanel />}
         {active === "system"  && <SystemPanel adapterSource={adapterSource} />}

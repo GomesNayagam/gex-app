@@ -3,7 +3,7 @@ import {
   ReferenceLine, Cell, ResponsiveContainer,
 } from "recharts"
 import { fmtGex, fmtStrike } from "@/lib/format"
-import { useThemeColors } from "@/hooks/useTheme"
+import { CHART } from "@/lib/palette"
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
@@ -20,7 +20,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 }
 
 export default function GEXProfileChart({ instrument }) {
-  const c = useThemeColors()
+  const c = CHART
   if (!instrument) return null
   const { symbol, strikes, spot } = instrument
 
