@@ -35,6 +35,10 @@
 
 Legacy CSS vars (`--surface-*`, `--border*`, `--green/red/blue/amber`, `--text-*`) are **aliased to the new palette in Task 1**, so components that still reference them pick up the new look automatically. Per-component tasks then replace *hardcoded hexes* and apply *structural* restyling (pills, serif titles, glass panels).
 
+**⚠ Two traps (from Task 1 code review — verified empirically):**
+1. **Opacity modifiers on alias colors are silent no-ops.** `bg-blue/10`, `border-amber/50`, `hover:bg-amber/15` etc. compile to NOTHING because Tailwind cannot inject alpha into a bare `var()` color. Never write `/opacity` on `green|red|blue|amber|mint|rose2|gold|flip` classes. For tinted fills use arbitrary rgba values (`bg-[rgba(110,231,199,0.10)]`) or the `--*-dim` vars — exactly as the task snippets already do.
+2. **Surface aliases are now translucent.** `--surface-*` resolve to faint white rgba over the gradient, not opaque fills. Anything that was an opaque *mask* (labels overlapping content) must be migrated to an explicit opaque or solid-token background, not left on `var(--surface*)`.
+
 ---
 
 ### Task 1: Foundation — tokens, fonts, Tailwind, index.html
@@ -1682,6 +1686,12 @@ Run:
 grep -rn "text-pink-600\|#d89a48\|#22c55e\|#3b82f6\|#ef4444\|#f43f5e\|#f59e0b\|#d97706\|amber-400\|green-400\|red-400\|blue-400\|green-500\|red-500\|blue-500" frontend/src --include="*.jsx"
 ```
 Expected: no output (every hardcoded legacy color migrated).
+
+Run:
+```bash
+grep -rnE "(green|red|blue|amber|mint|rose2|gold|flip)/[0-9]" frontend/src --include="*.jsx"
+```
+Expected: no output (opacity modifiers on CSS-var colors silently compile to nothing — any hit is a dead class that must become an explicit rgba arbitrary value).
 
 - [ ] **Step 3: Production build**
 
