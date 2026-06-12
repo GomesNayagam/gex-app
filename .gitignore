@@ -25,3 +25,4 @@ backend/data/
 .claude/settings.json
 .claude/settings.local.json
 .planning/
+.superpowers
