@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,143 +6,69 @@
 
 @layer base {
   :root {
-    --radius: 0.5rem;
-  }
+    --radius: 0.75rem;
 
-  /* ---------------- DARK (default) ---------------- */
-  :root,
-  [data-theme="dark"] {
-    /* shadcn semantic tokens */
-    --background: 222 20% 5%;
-    --foreground: 220 15% 90%;
-    --card: 222 22% 7%;
-    --card-foreground: 220 15% 90%;
-    --primary: 210 75% 60%;
-    --primary-foreground: 222 20% 5%;
-    --muted: 222 20% 10%;
-    --muted-foreground: 220 18% 45%;
-    --accent: 222 20% 13%;
-    --accent-foreground: 220 15% 90%;
-    --destructive: 0 65% 55%;
-    --destructive-foreground: 220 15% 90%;
-    --input: 222 20% 10%;
-    --ring: 210 75% 60%;
+    /* ── Ink & Glass core tokens ───────────────────────────── */
+    --ink-0: #070a14;
+    --ink-1: #0a0e1c;
+    --ink-2: #15203a;
+    --glass:      rgba(255,255,255,0.04);
+    --glass-2:    rgba(255,255,255,0.07);
+    --edge:       rgba(255,255,255,0.09);
+    --edge-soft:  rgba(255,255,255,0.05);
+    --ivory:      #f0ede6;
+    --slate:      #8fa3c8;
+    --slate-dim:  #5a6b8c;
+    --gold:       #e8c574;
+    --mint:       #6ee7c7;
+    --mint-deep:  #34d2a4;
+    --rose:       #f08a9b;
+    --rose-deep:  #e0596e;
+    --flip:       #9db8ff;
 
-    /* Design tokens */
-    --bg:          #0a0b0d;
-    --surface-1:   #0f1117;
-    --surface:     #0f1117;
-    --surface-2:   #131720;
-    --surface-3:   #181e2a;
-    --border:      rgba(255,255,255,0.08);
-    --border-soft: rgba(255,255,255,0.04);
-    --border-color: rgba(255,255,255,0.08);
-    --green:       #22c55e;
-    --red:         #ef4444;
-    --blue:        #3b82f6;
-    --amber:       #f59e0b;
-    --green-dim:   rgba(34,197,94,0.12);
-    --red-dim:     rgba(239,68,68,0.12);
-    --blue-dim:    rgba(59,130,246,0.12);
-    --amber-dim:   rgba(245,158,11,0.10);
-    --text-1:      rgba(255,255,255,0.90);
-    --text-2:      rgba(255,255,255,0.55);
-    --text-3:      rgba(255,255,255,0.30);
+    /* ── Legacy aliases — keep unmigrated classes rendering ── */
+    --bg:          var(--ink-1);
+    --surface-1:   rgba(255,255,255,0.03);
+    --surface:     rgba(255,255,255,0.03);
+    --surface-2:   rgba(255,255,255,0.05);
+    --surface-3:   rgba(255,255,255,0.08);
+    --border:      var(--edge);
+    --border-soft: var(--edge-soft);
+    --border-color: var(--edge);
+    --green:       var(--mint);
+    --red:         var(--rose);
+    --blue:        var(--flip);
+    --amber:       var(--gold);
+    --green-dim:   rgba(110,231,199,0.10);
+    --red-dim:     rgba(240,138,155,0.10);
+    --blue-dim:    rgba(157,184,255,0.10);
+    --amber-dim:   rgba(232,197,116,0.10);
+    --text-1:      var(--ivory);
+    --text-2:      var(--slate);
+    --text-3:      var(--slate-dim);
 
-    /* Chart-specific (recharts) */
-    --chart-grid:  #1e2736;
-    --chart-axis:  #7a8aa8;
-    --chart-pos:   #2dc88a;
-    --chart-neg:   #e05252;
-    --chart-flip:  #4d8fea;
-  }
+    /* Chart aliases (palette.js is the canonical source) */
+    --chart-grid:  rgba(255,255,255,0.05);
+    --chart-axis:  #5a6b8c;
+    --chart-pos:   #6ee7c7;
+    --chart-neg:   #f08a9b;
+    --chart-flip:  #9db8ff;
 
-  /* ---------------- LIGHT ---------------- */
-  [data-theme="light"] {
-    --background: 220 14% 89%;
-    --foreground: 222 20% 10%;
-    --card: 220 14% 94%;
-    --card-foreground: 222 20% 10%;
-    --primary: 210 75% 50%;
-    --primary-foreground: 0 0% 100%;
-    --muted: 220 12% 86%;
-    --muted-foreground: 220 12% 40%;
-    --accent: 220 12% 83%;
-    --accent-foreground: 222 20% 10%;
-    --destructive: 0 70% 50%;
-    --destructive-foreground: 0 0% 100%;
-    --input: 220 14% 94%;
-    --ring: 210 75% 50%;
-
-    --bg:          #e8eaed;
-    --surface-1:   #f0f2f5;
-    --surface:     #f0f2f5;
-    --surface-2:   #e4e7eb;
-    --surface-3:   #d8dce2;
-    --border:      rgba(0,0,0,0.10);
-    --border-soft: rgba(0,0,0,0.05);
-    --border-color: rgba(0,0,0,0.10);
-    --green:       #16a34a;
-    --red:         #dc2626;
-    --blue:        #2563eb;
-    --amber:       #d97706;
-    --green-dim:   rgba(22,163,74,0.14);
-    --red-dim:     rgba(220,38,38,0.14);
-    --blue-dim:    rgba(37,99,235,0.12);
-    --amber-dim:   rgba(217,119,6,0.14);
-    --text-1:      rgba(15,17,23,0.92);
-    --text-2:      rgba(15,17,23,0.60);
-    --text-3:      rgba(15,17,23,0.40);
-
-    --chart-grid:  #e2e8f0;
-    --chart-axis:  #64748b;
-    --chart-pos:   #16a34a;
-    --chart-neg:   #dc2626;
-    --chart-flip:  #2563eb;
-  }
-
-  /* ---------------- BLOOMBERG ---------------- */
-  [data-theme="bloomberg"] {
-    --background: 0 0% 0%;
-    --foreground: 40 100% 55%;
-    --card: 30 80% 3%;
-    --card-foreground: 40 100% 55%;
-    --primary: 40 100% 50%;
-    --primary-foreground: 0 0% 0%;
-    --muted: 30 50% 6%;
-    --muted-foreground: 40 60% 40%;
-    --accent: 30 60% 8%;
-    --accent-foreground: 40 100% 55%;
-    --destructive: 0 80% 55%;
-    --destructive-foreground: 0 0% 0%;
-    --input: 30 50% 6%;
-    --ring: 40 100% 50%;
-
-    --bg:          #000000;
-    --surface-1:   #0a0700;
-    --surface:     #0a0700;
-    --surface-2:   #14100a;
-    --surface-3:   #1f1a10;
-    --border:      rgba(255,176,0,0.18);
-    --border-soft: rgba(255,176,0,0.08);
-    --border-color: rgba(255,176,0,0.18);
-    --green:       #00d26a;
-    --red:         #ff4d4d;
-    --blue:        #ffb000;
-    --amber:       #ffb000;
-    --green-dim:   rgba(0,210,106,0.14);
-    --red-dim:     rgba(255,77,77,0.14);
-    --blue-dim:    rgba(255,176,0,0.14);
-    --amber-dim:   rgba(255,176,0,0.14);
-    --text-1:      rgba(255,176,0,0.95);
-    --text-2:      rgba(255,176,0,0.60);
-    --text-3:      rgba(255,176,0,0.32);
-
-    --chart-grid:  rgba(255,176,0,0.18);
-    --chart-axis:  rgba(255,176,0,0.60);
-    --chart-pos:   #00d26a;
-    --chart-neg:   #ff4d4d;
-    --chart-flip:  #ffb000;
+    /* shadcn semantic tokens (single set) */
+    --background: 225 42% 7%;
+    --foreground: 40 25% 92%;
+    --card: 225 41% 9%;
+    --card-foreground: 40 25% 92%;
+    --primary: 224 100% 81%;
+    --primary-foreground: 225 42% 7%;
+    --muted: 222 30% 12%;
+    --muted-foreground: 219 27% 57%;
+    --accent: 222 30% 15%;
+    --accent-foreground: 40 25% 92%;
+    --destructive: 350 77% 75%;
+    --destructive-foreground: 225 42% 7%;
+    --input: 222 30% 12%;
+    --ring: 224 100% 81%;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -152,22 +78,46 @@
   html { scroll-behavior: smooth; }
 
   body {
-    background: var(--bg);
-    color: var(--text-1);
-    font-family: 'IBM Plex Sans', sans-serif;
+    background: radial-gradient(120% 90% at 18% -10%, var(--ink-2) 0%, var(--ink-1) 48%, var(--ink-0) 100%) fixed;
+    color: var(--ivory);
+    font-family: 'Inter', system-ui, sans-serif;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
   }
 
-  ::-webkit-scrollbar { width: 4px; height: 4px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+  ::-webkit-scrollbar { width: 3px; height: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--edge); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--slate-dim); }
+}
+
+@layer components {
+  .glass-panel {
+    background: var(--glass);
+    border: 1px solid var(--edge);
+    border-radius: 16px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 12px 36px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .glass-strip {
+    background: rgba(255,255,255,0.018);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--edge-soft);
+  }
+  .glass-input {
+    background: var(--glass);
+    border: 1px solid var(--edge);
+    color: var(--ivory);
+    outline: none;
+  }
+  .glass-input::placeholder { color: var(--slate-dim); }
+  .glass-input:focus { border-color: rgba(232,197,116,0.55); }
 }
 
 @layer utilities {
-  .gex-positive { color: var(--chart-pos); }
-  .gex-negative { color: var(--chart-neg); }
+  .gex-positive { color: var(--mint); }
+  .gex-negative { color: var(--rose); }
+  .font-display { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; }
 }
 
 @keyframes fadeIn {
@@ -184,4 +134,7 @@
 @keyframes shimmer {
   0%   { background-position: -400px 0; }
   100% { background-position: 400px 0; }
+}
+@keyframes breathe {
+  50% { opacity: 0.45; }
 }
