@@ -1,4 +1,5 @@
 import { RefreshCw, Pause, Play } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const WINDOW_OPTIONS = [
   { label: "60m", value: 60 },
@@ -21,7 +22,7 @@ export default function UOATopBar({
   const pct = Math.round((elapsed / REFRESH_INTERVAL) * 100);
 
   return (
-    <div className="shrink-0 border-b border-[var(--border)] bg-[var(--surface-1)] px-4 py-2 flex flex-wrap items-center gap-3 font-mono text-[11px]">
+    <div className="glass-strip shrink-0 px-6 py-2.5 flex flex-wrap items-center gap-3 font-mono text-[11px]">
       {/* Window */}
       <div className="flex items-center gap-1.5">
         <span className="text-[var(--text-3)]">WINDOW</span>
@@ -29,16 +30,12 @@ export default function UOATopBar({
           <button
             key={value}
             onClick={() => setFilters({ windowMinutes: value })}
-            className="px-2 py-0.5 rounded-sm border transition-colors"
-            style={
+            className={cn(
+              "px-2.5 py-[3px] rounded-full transition-colors duration-150",
               filters.windowMinutes === value
-                ? {
-                    borderColor: "#3b82f6",
-                    background: "#3b82f6",
-                    color: "#fff",
-                  }
-                : { borderColor: "var(--border)", color: "var(--text-2)" }
-            }
+                ? "text-[var(--flip)] bg-[rgba(157,184,255,0.10)] shadow-[inset_0_0_0_1px_rgba(157,184,255,0.28)]"
+                : "text-[var(--slate-dim)] shadow-[inset_0_0_0_1px_var(--edge-soft)] hover:text-[var(--slate)]",
+            )}
           >
             {label}
           </button>
@@ -57,7 +54,7 @@ export default function UOATopBar({
           step={5}
           value={filters.minScore}
           onChange={(e) => setFilters({ minScore: Number(e.target.value) })}
-          className="w-20 h-1 accent-blue-500"
+          className="w-20 h-1 accent-[#9db8ff]"
         />
         <span className="text-[var(--text-1)] tabular-nums w-5">
           {filters.minScore}
@@ -73,31 +70,19 @@ export default function UOATopBar({
             v === "all" ? filters.intent === null : filters.intent === v;
           const activeStyle =
             v === "bullish"
-              ? {
-                  background: "#14532d",
-                  color: "#22c55e",
-                  borderColor: "#14532d",
-                }
+              ? { background: "rgba(110,231,199,0.12)", color: "#6ee7c7", boxShadow: "inset 0 0 0 1px rgba(110,231,199,0.3)" }
               : v === "bearish"
-                ? {
-                    background: "#4c0519",
-                    color: "#f43f5e",
-                    borderColor: "#4c0519",
-                  }
-                : {
-                    background: "#16161f",
-                    color: "#e2e2e8",
-                    borderColor: "#333348",
-                  };
+                ? { background: "rgba(240,138,155,0.12)", color: "#f08a9b", boxShadow: "inset 0 0 0 1px rgba(240,138,155,0.3)" }
+                : { background: "var(--glass-2)", color: "var(--ivory)", boxShadow: "inset 0 0 0 1px var(--edge)" };
           return (
             <button
               key={v}
               onClick={() => setFilters({ intent: v === "all" ? null : v })}
-              className="px-1.5 py-0.5 rounded-sm border transition-colors uppercase tracking-wide"
+              className="px-1.5 py-0.5 rounded-full transition-colors uppercase tracking-wide"
               style={
                 isActive
                   ? activeStyle
-                  : { borderColor: "var(--border)", color: "var(--text-2)" }
+                  : { color: "var(--slate-dim)", boxShadow: "inset 0 0 0 1px var(--edge-soft)" }
               }
             >
               {v === "all" ? "ALL" : v === "bullish" ? "▲BULL" : "▼BEAR"}
@@ -113,25 +98,17 @@ export default function UOATopBar({
             v === "all" ? filters.structure === null : filters.structure === v;
           const activeStyle =
             v === "sweep"
-              ? {
-                  background: "#1e3a5f",
-                  color: "#3b82f6",
-                  borderColor: "#1e3a5f",
-                }
-              : {
-                  background: "#16161f",
-                  color: "#e2e2e8",
-                  borderColor: "#333348",
-                };
+              ? { background: "rgba(157,184,255,0.12)", color: "#9db8ff", boxShadow: "inset 0 0 0 1px rgba(157,184,255,0.3)" }
+              : { background: "var(--glass-2)", color: "var(--ivory)", boxShadow: "inset 0 0 0 1px var(--edge)" };
           return (
             <button
               key={v}
               onClick={() => setFilters({ structure: v === "all" ? null : v })}
-              className="px-1.5 py-0.5 rounded-sm border transition-colors uppercase tracking-wide"
+              className="px-1.5 py-0.5 rounded-full transition-colors uppercase tracking-wide"
               style={
                 isActive
                   ? activeStyle
-                  : { borderColor: "var(--border)", color: "var(--text-2)" }
+                  : { color: "var(--slate-dim)", boxShadow: "inset 0 0 0 1px var(--edge-soft)" }
               }
             >
               {v.toUpperCase()}
@@ -145,15 +122,11 @@ export default function UOATopBar({
         onClick={() =>
           setFilters((f) => ({ zeroDte: !f.zeroDte, expiry: null }))
         }
-        className="px-2 py-0.5 rounded-sm border transition-colors uppercase tracking-wide font-bold"
+        className="px-2 py-0.5 rounded-full transition-colors uppercase tracking-wide font-bold"
         style={
           filters.zeroDte
-            ? {
-                background: "#2d1b4e",
-                color: "#c084fc",
-                borderColor: "#4a2080",
-              }
-            : { borderColor: "var(--border)", color: "var(--text-2)" }
+            ? { background: "rgba(201,167,240,0.12)", color: "#c9a7f0", boxShadow: "inset 0 0 0 1px rgba(201,167,240,0.35)" }
+            : { color: "var(--slate-dim)", boxShadow: "inset 0 0 0 1px var(--edge-soft)" }
         }
       >
         0DTE
@@ -169,7 +142,7 @@ export default function UOATopBar({
                 cy="10"
                 r="8"
                 fill="none"
-                stroke="var(--border)"
+                stroke="var(--edge)"
                 strokeWidth="2"
               />
               <circle
@@ -177,7 +150,7 @@ export default function UOATopBar({
                 cy="10"
                 r="8"
                 fill="none"
-                stroke="var(--text-3)"
+                stroke="var(--mint)"
                 strokeWidth="2"
                 strokeDasharray={`${(50.27 * pct) / 100} 50.27`}
               />
@@ -194,11 +167,12 @@ export default function UOATopBar({
         </button>
         <button
           onClick={togglePause}
-          className={`flex items-center gap-1.5 px-3 py-1 rounded border transition-colors font-mono text-[11px] ${
+          className={cn(
+            "flex items-center gap-1.5 font-mono text-[10px] tracking-[0.06em] px-3.5 py-[5px] rounded-full transition-colors duration-150",
             paused
-              ? "border-amber-400/60 bg-amber-400/15 text-amber-400"
-              : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text-2)] hover:border-blue/40 hover:text-blue"
-          }`}
+              ? "text-[var(--gold)] bg-[rgba(232,197,116,0.10)] shadow-[inset_0_0_0_1px_rgba(232,197,116,0.35)]"
+              : "text-[var(--slate)] bg-[var(--glass)] shadow-[inset_0_0_0_1px_var(--edge)] hover:text-[var(--ivory)]",
+          )}
           title={paused ? "Resume auto-refresh" : "Pause auto-refresh"}
         >
           {paused ? <Play size={12} /> : <Pause size={12} />}

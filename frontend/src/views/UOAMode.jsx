@@ -92,13 +92,13 @@ export default function UOAMode() {
 
 <div className="flex flex-1 overflow-hidden relative">
         {loading && !signalsData && (
-          <div className="flex-1 flex items-center justify-center font-mono text-[12px] text-[var(--text-3)]">
-            Loading flow signals…
+          <div className="flex-1 flex items-center justify-center">
+            <p className="font-display text-[17px] text-[var(--slate)]">Loading flow signals…</p>
           </div>
         )}
 
         {error && (
-          <div className="flex-1 flex items-center justify-center font-mono text-[12px] text-red-400">
+          <div className="flex-1 flex items-center justify-center font-mono text-[12px] text-[var(--rose)]">
             Error: {error}
           </div>
         )}

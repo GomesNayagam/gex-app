@@ -2,7 +2,7 @@ export default function UOATabsRow({ watchlist, activeSymbol, allData, onSelect 
   return (
     <div
       className="shrink-0 flex items-stretch overflow-x-auto"
-      style={{ background: "#0a0a0f", borderBottom: "1px solid #1e1e2a" }}
+      style={{ background: "rgba(255,255,255,0.015)", borderBottom: "1px solid var(--edge-soft)" }}
     >
       {watchlist.map((sym) => {
         const entry = allData[sym]
@@ -17,16 +17,16 @@ export default function UOATabsRow({ watchlist, activeSymbol, allData, onSelect 
             style={{
               paddingTop: "6px",
               paddingBottom: "6px",
-              borderRight: "1px solid #1e1e2a",
-              borderBottom: isActive ? "2px solid #3b82f6" : "2px solid transparent",
-              background: isActive ? "#1a1a2a" : "transparent",
-              color: isActive ? "#e2e2e8" : "#6b6b80",
+              borderRight: "1px solid var(--edge-soft)",
+              borderBottom: isActive ? "2px solid var(--mint)" : "2px solid transparent",
+              background: isActive ? "var(--glass-2)" : "transparent",
+              color: isActive ? "var(--ivory)" : "var(--slate-dim)",
             }}
           >
             <span
               style={{
                 width: 6, height: 6, borderRadius: "50%",
-                background: isActive ? "#3b82f6" : "#3d3d50",
+                background: isActive ? "var(--mint)" : "var(--slate-dim)",
                 display: "inline-block", flexShrink: 0,
               }}
             />
@@ -34,8 +34,8 @@ export default function UOATabsRow({ watchlist, activeSymbol, allData, onSelect 
             <span
               className="text-[9px] font-bold px-1 rounded-full"
               style={{
-                background: isActive ? "rgba(59,130,246,.2)" : "#1e1e2a",
-                color: isActive ? "#3b82f6" : "#6b6b80",
+                background: isActive ? "rgba(110,231,199,0.15)" : "var(--glass)",
+                color: isActive ? "var(--mint)" : "var(--slate-dim)",
               }}
             >
               {count}
