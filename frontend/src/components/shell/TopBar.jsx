@@ -1,29 +1,34 @@
+import { useLocation } from "react-router-dom"
 import MarketClock from "./MarketClock"
+import { HeaderActionsSlot } from "./HeaderActions"
+
+const PAGES = {
+  "/b3":       { title: "Gamma Ladders", sub: "SPX · SPY · QQQ — live dealer positioning" },
+  "/watch":    { title: "Flow List", sub: "custom tickers — pinned ladders" },
+  "/expiry":   { title: "Gamma Horizon", sub: "single-expiry deep dive" },
+  "/uoa":      { title: "Flow Signals", sub: "unusual options activity — scored tape" },
+  "/agent":    { title: "Agent", sub: "market structure copilot" },
+  "/settings": { title: "Settings", sub: "configuration" },
+}
 
 export default function TopBar() {
-  const now = new Date()
-  const tsLabel = now.toISOString().slice(0, 10) + " · " + now.toISOString().slice(11, 19) + " UTC"
+  const { pathname } = useLocation()
+  const page = PAGES[pathname] ?? PAGES["/b3"]
 
   return (
-    <div className="relative h-12 border-b border-[var(--border)] bg-[var(--surface-1)] px-4 flex items-center gap-3 shrink-0">
-      <div className="flex items-center gap-2.5 shrink-0">
-        <span className="text-xl font-black tracking-tight leading-none" style={{ letterSpacing: "-0.08em" }}>
-          <span className="text-[#38bdf8]">G</span><span className="text-[var(--text-1)]">ED</span>
-        </span>
-        <div className="hidden sm:block w-px h-4 bg-[var(--border)]" />
-        <span className="hidden sm:block text-[9px] font-medium tracking-[0.2em] uppercase text-[var(--text-3)]">
-          Gamma Exposure Dashboard
-        </span>
-      </div>
+    <div className="glass-strip relative h-[58px] px-6 flex items-center gap-3.5 shrink-0">
+      <span className="font-display text-[23px] leading-none tracking-[0.01em] text-[var(--ivory)]">
+        {page.title}
+      </span>
+      <span className="hidden md:block font-mono text-[10px] tracking-[0.08em] text-[var(--slate-dim)]">
+        {page.sub}
+      </span>
 
       <div className="flex-1" />
 
-      <MarketClock />
+      <HeaderActionsSlot />
 
-      <div className="font-mono text-[9px] text-[var(--text-3)] text-right hidden md:block">
-        <div>{tsLabel}</div>
-        <div className="opacity-60 mt-0.5">options market structure</div>
-      </div>
+      <MarketClock />
     </div>
   )
 }

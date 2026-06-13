@@ -4,74 +4,57 @@ import {
   Star,
   CalendarRange,
   Settings2,
-  ChevronLeft,
-  ChevronRight,
   Flame,
   BotMessageSquare,
 } from "lucide-react";
-import { useSidebar } from "@/hooks/useSidebar";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { to: "/b3", icon: LayoutGrid, label: "B3 Mode" },
+  { to: "/b3", icon: LayoutGrid, label: "Gamma Ladders" },
   { to: "/watch", icon: Star, label: "Flow List" },
   { to: "/expiry", icon: CalendarRange, label: "Gamma Horizon" },
   { to: "/uoa", icon: Flame, label: "Flow Signals" },
   { to: "/agent", icon: BotMessageSquare, label: "Agent" },
-  { to: "/settings", icon: Settings2, label: "Settings" },
 ];
 
-export default function Sidebar() {
-  const [collapsed, toggle] = useSidebar();
-
+function RailLink({ to, icon: Icon, label }) {
   return (
-    <div
-      className={cn(
-        "flex flex-col shrink-0 bg-[var(--surface-1)] border-r border-[var(--border)] transition-[width] duration-200 overflow-hidden",
-        collapsed ? "w-14" : "w-56",
-      )}
+    <NavLink
+      to={to}
+      title={label}
+      className={({ isActive }) =>
+        cn(
+          "flex items-center justify-center w-[38px] h-[38px] rounded-[11px] transition-all duration-150",
+          isActive
+            ? "text-[var(--mint)] bg-[rgba(110,231,199,0.10)] shadow-[inset_0_0_0_1px_rgba(110,231,199,0.22),0_0_18px_rgba(110,231,199,0.07)]"
+            : "text-[var(--slate-dim)] hover:text-[var(--slate)] hover:bg-[var(--glass)]",
+        )
+      }
     >
-      {/* Logo area + collapse toggle */}
-      <div className="h-12 flex items-center justify-between px-3 border-b border-[var(--border)] shrink-0">
-        {!collapsed && (
-          <span className="font-mono text-[11px] font-semibold tracking-widest text-[var(--text-2)] uppercase truncate">
-            GEX · Dashboard
-          </span>
-        )}
-        <button
-          onClick={toggle}
-          className={cn(
-            "flex items-center justify-center w-7 h-7 rounded-sm text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--surface-3)] transition-colors",
-            collapsed && "mx-auto",
-          )}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
-        </button>
-      </div>
+      <Icon size={17} strokeWidth={1.6} />
+    </NavLink>
+  );
+}
 
-      {/* Nav items */}
-      <nav className="flex-1 flex flex-col gap-0.5 p-2 overflow-y-auto">
-        {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            title={collapsed ? label : undefined}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-3 px-3 py-2.5 font-mono text-[11px] tracking-wide transition-colors rounded-sm",
-                collapsed && "justify-center px-0",
-                isActive
-                  ? "border-l-2 border-blue bg-[var(--blue-dim)] text-[var(--text-1)]"
-                  : "text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--surface-3)]",
-              )
-            }
-          >
-            <Icon size={16} className="shrink-0" />
-            {!collapsed && <span className="truncate">{label}</span>}
-          </NavLink>
+export default function Sidebar() {
+  return (
+    <div className="flex flex-col items-center shrink-0 w-[60px] py-3.5 gap-1.5 bg-[rgba(255,255,255,0.025)] border-r border-[var(--edge-soft)] backdrop-blur-xl">
+      <span
+        className="font-display text-[15px] leading-none text-[var(--ivory)] mb-4 select-none"
+        title="Gamma Exposure Dashboard"
+      >
+        GED<span className="text-[var(--gold)]">.</span>
+      </span>
+
+      <nav className="flex flex-col items-center gap-1.5">
+        {NAV_ITEMS.map((item) => (
+          <RailLink key={item.to} {...item} />
         ))}
       </nav>
+
+      <div className="flex-1" />
+
+      <RailLink to="/settings" icon={Settings2} label="Settings" />
     </div>
   );
 }
