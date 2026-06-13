@@ -383,7 +383,7 @@ export default function UOALeaderboard({
             onMouseEnter={(e) =>
               (e.currentTarget.style.borderColor = paused
                 ? "var(--mint)"
-                : "var(--gold)")
+                : "var(--flip)")
             }
             onMouseLeave={(e) =>
               (e.currentTarget.style.borderColor = "var(--edge)")

@@ -62,8 +62,10 @@ export const CHART = {
 
 ### Color discipline
 
-- **Gold appears only on**: spot price values, the spot hairline + pill in ladders, the brand period, and the gamma-flip reference line on charts. Nowhere else. It is the signature.
-- **Mint/rose only on data** (bars, values, regime pills, chart series). Chrome (nav, borders, headers) stays neutral ink/slate.
+- **Gold = the signature + genuine attention states.** Primary, reserved use: spot price values, the spot hairline + pill in ladders, the brand period, the gamma-flip reference line on charts, and input focus rings. Gold is *also* the single sanctioned signal color for true "attention/alert" states where it carries meaning, not decoration — specifically the **paused auto-refresh** state (the pause pill turns gold + the UOA "PAUSED" badge) and the **0DTE risk filter** toggle. It is never used as a generic hover affordance or as chrome decoration. (Resolves the earlier spec/plan contradiction where the plan's migration table mapped legacy amber→gold for "warning states.")
+- **Flip (`#9db8ff`) = info / interactive accent.** Generic hover affordances, the score-window/structure filter pills' active state, and links use flip — not gold.
+- **Mint = positive / active-navigation; rose = negative.** Mint also marks the active nav-rail item, active tabs, and the market-open dot (semantically "live/go"). Rose marks negative GEX, errors, and destructive hovers.
+- **Categorical data-viz colors are a separate, sanctioned set.** Score tiers (`palette.js` `SCORE_TIERS`) and score-breakdown segments (`SEGMENT_COLORS`) draw from a fixed categorical palette (mint / flip / gold / purple `#c9a7f0` / slate) chosen for *distinguishability*, not brand semantics. Gold appearing as one tier/segment color here is intentional and does not dilute its signature role.
 - **Glow only on live data**: net bars, chart lines, market-open dot. Never on buttons, borders, or panels.
 
 ### Typography (replaces IBM Plex everywhere)
