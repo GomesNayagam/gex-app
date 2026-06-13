@@ -32,9 +32,9 @@ export function ChatInput({ onSend, disabled }) {
         disabled={disabled}
         placeholder="Ask about GEX, levels, vol…"
         className={cn(
-          "flex-1 resize-none rounded-lg border border-[var(--border)] bg-[var(--surface-2)]",
+          "flex-1 resize-none rounded-2xl glass-input",
           "px-3 py-2 font-mono text-[13px] text-[var(--text-1)] placeholder:text-[var(--text-3)]",
-          "focus:outline-none focus:border-[var(--blue)] max-h-[120px] overflow-y-auto",
+          "max-h-[120px] overflow-y-auto",
           "disabled:opacity-50"
         )}
         style={{ height: "72px", minHeight: "72px" }}
@@ -47,9 +47,9 @@ export function ChatInput({ onSend, disabled }) {
         onClick={submit}
         disabled={disabled || !value.trim()}
         className={cn(
-          "h-9 w-9 flex items-center justify-center rounded-lg shrink-0",
-          "bg-[var(--blue)] text-white font-mono text-[13px]",
-          "disabled:opacity-40 hover:opacity-80 transition-opacity"
+          "h-9 w-9 flex items-center justify-center rounded-full shrink-0",
+          "bg-[rgba(110,231,199,0.14)] text-[var(--mint)] shadow-[inset_0_0_0_1px_rgba(110,231,199,0.35)] font-mono text-[13px]",
+          "disabled:opacity-40 hover:bg-[rgba(110,231,199,0.22)] transition-colors"
         )}
         aria-label="Send"
       >

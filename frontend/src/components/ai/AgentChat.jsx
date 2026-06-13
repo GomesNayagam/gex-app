@@ -33,8 +33,8 @@ export function AgentChat({
 
   if (!session) {
     return (
-      <div className="flex-1 flex items-center justify-center text-[var(--text-3)] font-mono text-[11px]">
-        No session selected
+      <div className="flex-1 flex items-center justify-center">
+        <span className="font-display text-[17px] text-[var(--slate)]">No session selected</span>
       </div>
     );
   }
@@ -42,8 +42,8 @@ export function AgentChat({
   return (
     <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--border)] shrink-0 gap-3">
-        <span className="font-mono text-[11px] text-[var(--text-1)] truncate font-semibold">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-[var(--edge-soft)] shrink-0 gap-3">
+        <span className="font-display text-[15px] text-[var(--ivory)] truncate">
           {session.title}
         </span>
         <div className="flex items-center gap-2 shrink-0">
@@ -54,8 +54,8 @@ export function AgentChat({
               onChange={(e) => onModelChange(session.id, e.target.value)}
               className={cn(
                 "appearance-none font-mono text-[9px] uppercase tracking-wider pr-5 pl-2 py-1",
-                "bg-[var(--surface-2)] border border-[var(--border)] rounded-sm",
-                "text-[var(--text-2)] focus:outline-none focus:border-[var(--blue)] cursor-pointer",
+                "bg-[var(--glass)] shadow-[inset_0_0_0_1px_var(--edge)] rounded-full border-0",
+                "text-[var(--text-2)] focus:outline-none focus:shadow-[inset_0_0_0_1px_rgba(232,197,116,0.55)] cursor-pointer",
               )}
             >
               {allModels.map((m) => (
@@ -88,8 +88,8 @@ export function AgentChat({
         {session.messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-3">
             <div className="w-full max-w-3xl mx-auto px-6 flex flex-col items-center gap-3">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-3)] text-center">
-                Ask about GEX, key levels, volatility, and more
+              <p className="font-display text-[19px] text-[var(--slate)] text-center">
+                Ask about gamma, key levels, and volatility
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
                 {SUGGESTED.map((s) => (
@@ -97,9 +97,9 @@ export function AgentChat({
                     key={s}
                     onClick={() => onSend(s)}
                     className={cn(
-                      "font-mono text-[10px] px-2.5 py-1.5 rounded-sm",
-                      "border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-2)]",
-                      "hover:border-[var(--blue)] hover:text-[var(--text-1)] transition-colors",
+                      "font-mono text-[10px] px-3 py-1.5 rounded-full",
+                      "bg-[var(--glass)] text-[var(--slate)] shadow-[inset_0_0_0_1px_var(--edge)]",
+                      "hover:text-[var(--ivory)] hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)] transition-colors",
                     )}
                   >
                     {s}

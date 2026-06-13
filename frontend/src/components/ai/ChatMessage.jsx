@@ -34,7 +34,7 @@ const mdComponents = {
     <strong className="font-semibold text-[var(--text-1)]">{children}</strong>
   ),
   em: ({ children }) => <em className="text-[var(--text-2)]">{children}</em>,
-  hr: () => <hr className="border-[var(--border)] my-2" />,
+  hr: () => <hr className="border-[var(--edge-soft)] my-2" />,
   ul: ({ children }) => (
     <ul className="list-disc list-inside space-y-0.5 mb-1.5 pl-1">
       {children}
@@ -48,11 +48,11 @@ const mdComponents = {
   li: ({ children }) => <li className="text-[var(--text-1)]">{children}</li>,
   code: ({ inline, children }) =>
     inline ? (
-      <code className="bg-[var(--surface-3)] text-[var(--blue)] px-1 rounded-sm text-[12px]">
+      <code className="bg-[var(--glass-2)] text-[var(--flip)] px-1 rounded-sm text-[12px]">
         {children}
       </code>
     ) : (
-      <pre className="bg-[var(--surface-3)] border border-[var(--border)] rounded-sm p-2 overflow-x-auto text-[12px] my-1.5">
+      <pre className="bg-[var(--glass)] border border-[var(--edge-soft)] rounded-lg p-2 overflow-x-auto text-[12px] my-1.5">
         <code>{children}</code>
       </pre>
     ),
@@ -64,15 +64,15 @@ const mdComponents = {
   thead: ({ children }) => <thead>{children}</thead>,
   tbody: ({ children }) => <tbody>{children}</tbody>,
   tr: ({ children }) => (
-    <tr className="border-b border-[var(--border)]">{children}</tr>
+    <tr className="border-b border-[var(--edge-soft)]">{children}</tr>
   ),
   th: ({ children }) => (
-    <th className="text-left px-2 py-1 text-[var(--text-2)] font-semibold border border-[var(--border)] bg-[var(--surface-2)]">
+    <th className="text-left px-2 py-1 text-[var(--text-2)] font-semibold border border-[var(--edge-soft)] bg-[var(--glass)]">
       {children}
     </th>
   ),
   td: ({ children }) => (
-    <td className="px-2 py-1 border border-[var(--border)] text-[var(--text-1)]">
+    <td className="px-2 py-1 border border-[var(--edge-soft)] text-[var(--text-1)]">
       {children}
     </td>
   ),
@@ -83,7 +83,7 @@ function AgentTrace({ subAgents }) {
   if (!subAgents || subAgents.length === 0) return null;
 
   return (
-    <div className="mt-1.5 border border-[var(--border)] rounded-sm">
+    <div className="mt-1.5 border border-[var(--edge-soft)] rounded-sm">
       <button
         onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center gap-1.5 px-2 py-1.5 text-[10px] font-mono uppercase tracking-wider text-[var(--text-3)] hover:text-[var(--text-2)] transition-colors"
@@ -96,17 +96,17 @@ function AgentTrace({ subAgents }) {
         </span>
       </button>
       {open && (
-        <div className="border-t border-[var(--border)] divide-y divide-[var(--border)]">
+        <div className="border-t border-[var(--edge-soft)] divide-y divide-[var(--edge-soft)]">
           {subAgents.map((agent) => (
             <div key={agent.name} className="px-2 py-1.5 text-[11px] font-mono">
               <div className="flex items-center gap-1.5">
                 {agent.status === "running" ? (
                   <Loader2
                     size={11}
-                    className="animate-spin text-[var(--blue)]"
+                    className="animate-spin text-[var(--mint)]"
                   />
                 ) : (
-                  <span className="w-[11px] h-[11px] rounded-full bg-green-500/60 inline-block" />
+                  <span className="w-[11px] h-[11px] rounded-full bg-[rgba(110,231,199,0.6)] inline-block" />
                 )}
                 <span className="text-[var(--text-1)] font-semibold">
                   {agent.label || agent.name}
@@ -120,7 +120,7 @@ function AgentTrace({ subAgents }) {
                   {agent.toolNames.map((name, i) => (
                     <span
                       key={`${name}-${i}`}
-                      className="px-1.5 py-0.5 rounded-sm bg-[var(--surface-3)] text-[var(--text-2)] text-[9px]"
+                      className="px-1.5 py-0.5 rounded-full bg-[var(--glass-2)] text-[var(--text-2)] text-[9px]"
                     >
                       {name}
                     </span>
@@ -162,11 +162,11 @@ export function ChatMessage({ message, isStreaming, onCopy, onFeedback, onRegene
       <div className="max-w-[88%]">
         <div
           className={cn(
-            "rounded-sm px-3 py-2.5 font-mono leading-relaxed break-words",
+            "rounded-none px-3 py-2.5 font-mono leading-relaxed break-words",
             isUser
-              ? "bg-[var(--blue-dim)] text-[var(--text-1)] text-[13px] ml-8"
-              : "text-[var(--text-1)] text-[13px]",
-            message.error && "border-red-500/50 text-red-400",
+              ? "bg-[var(--glass-2)] shadow-[inset_0_0_0_1px_var(--edge-soft)] rounded-2xl text-[var(--ivory)] text-[13px] ml-8"
+              : "text-[var(--ivory)] text-[13px] border-l border-[var(--edge)] pl-3",
+            message.error && "text-[var(--rose)]",
           )}
         >
           {isUser ? (
@@ -184,7 +184,7 @@ export function ChatMessage({ message, isStreaming, onCopy, onFeedback, onRegene
             <span className="text-[var(--text-3)]">…</span>
           )}
           {isStreaming && (
-            <span className="inline-block w-1.5 h-3 bg-[var(--blue)] ml-0.5 animate-pulse align-middle" />
+            <span className="inline-block w-1.5 h-3 bg-[var(--mint)] ml-0.5 animate-pulse align-middle" />
           )}
         </div>
         {!isUser && <AgentTrace subAgents={message.subAgents} />}
@@ -203,10 +203,10 @@ export function ChatMessage({ message, isStreaming, onCopy, onFeedback, onRegene
                   )
                 }
                 className={cn(
-                  "flex items-center gap-1 px-2 py-1 rounded-sm border text-[9px] font-mono uppercase tracking-wider transition-colors",
+                  "flex items-center gap-1 px-2 py-1 rounded-full border text-[9px] font-mono uppercase tracking-wider transition-colors",
                   message.feedback === "positive"
-                    ? "border-green-500/50 text-green-400 bg-green-500/10"
-                    : "border-[var(--border)] text-[var(--text-3)] hover:border-green-500/50 hover:text-green-400",
+                    ? "border-[rgba(110,231,199,0.4)] text-[var(--mint)] bg-[rgba(110,231,199,0.1)]"
+                    : "border-[var(--border)] text-[var(--text-3)] hover:border-[rgba(110,231,199,0.4)] hover:text-[var(--mint)]",
                 )}
                 title="Good response"
               >
@@ -220,10 +220,10 @@ export function ChatMessage({ message, isStreaming, onCopy, onFeedback, onRegene
                   )
                 }
                 className={cn(
-                  "flex items-center gap-1 px-2 py-1 rounded-sm border text-[9px] font-mono uppercase tracking-wider transition-colors",
+                  "flex items-center gap-1 px-2 py-1 rounded-full border text-[9px] font-mono uppercase tracking-wider transition-colors",
                   message.feedback === "negative"
-                    ? "border-red-500/50 text-red-400 bg-red-500/10"
-                    : "border-[var(--border)] text-[var(--text-3)] hover:border-red-500/50 hover:text-red-400",
+                    ? "border-[rgba(240,138,155,0.4)] text-[var(--rose)] bg-[rgba(240,138,155,0.1)]"
+                    : "border-[var(--border)] text-[var(--text-3)] hover:border-[rgba(240,138,155,0.4)] hover:text-[var(--rose)]",
                 )}
                 title="Bad response"
               >
@@ -235,10 +235,10 @@ export function ChatMessage({ message, isStreaming, onCopy, onFeedback, onRegene
             <button
               onClick={handleCopy}
               className={cn(
-                "flex items-center gap-1 px-2 py-1 rounded-sm border text-[9px] font-mono uppercase tracking-wider transition-colors",
+                "flex items-center gap-1 px-2 py-1 rounded-full border text-[9px] font-mono uppercase tracking-wider transition-colors",
                 copied
-                  ? "border-[var(--blue)]/50 text-[var(--blue)] bg-[var(--blue-dim)]"
-                  : "border-[var(--border)] text-[var(--text-3)] hover:border-[var(--blue)]/50 hover:text-[var(--text-1)]",
+                  ? "border-[rgba(157,184,255,0.4)] text-[var(--flip)] bg-[rgba(157,184,255,0.1)]"
+                  : "border-[var(--border)] text-[var(--text-3)] hover:border-[rgba(157,184,255,0.4)] hover:text-[var(--text-1)]",
               )}
               title="Copy"
             >
@@ -248,7 +248,7 @@ export function ChatMessage({ message, isStreaming, onCopy, onFeedback, onRegene
           {onRegenerate && (
             <button
               onClick={onRegenerate}
-              className="flex items-center gap-1 px-2 py-1 rounded-sm border border-[var(--border)] text-[9px] font-mono uppercase tracking-wider text-[var(--text-3)] hover:border-[var(--blue)]/50 hover:text-[var(--text-1)] transition-colors"
+              className="flex items-center gap-1 px-2 py-1 rounded-full border border-[var(--border)] text-[9px] font-mono uppercase tracking-wider text-[var(--text-3)] hover:border-[rgba(157,184,255,0.4)] hover:text-[var(--text-1)] transition-colors"
               title="Regenerate"
             >
               <RotateCcw size={10} />
