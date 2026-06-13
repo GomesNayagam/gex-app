@@ -113,15 +113,6 @@ export default function SignalRow({ signal, onClick, isActive }) {
               {aggressorGlyph(signal.aggressor)}
             </span>
           </div>
-          {/* <div className="text-[var(--text-2)] mt-0.5 flex items-center gap-1">
-            <span style={{ color: signal.open_close_bias === "opening_bias" ? "#22c55e" : "#f43f5e" }} className="font-bold">
-              {signal.open_close_bias === "opening_bias" ? "Open" :"Close"}
-            </span>
-            <span>{signal.open_close_confidence?.toFixed(2)}</span>
-            <span style={{ color: (signal.contract_net_oi_delta ?? 0) >= 0 ? "#22c55e" : "#f43f5e" }}>
-              {(signal.contract_net_oi_delta ?? 0) >= 0 ? "+" : ""}{Math.round(signal.contract_net_oi_delta ?? 0)} OI
-            </span>
-          </div> */}
         </div>
 
         {/* Breakdown */}
