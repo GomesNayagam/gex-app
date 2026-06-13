@@ -2,7 +2,6 @@ import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { useGEXData } from "@/hooks/useGEXData"
 import { getGEXSource, setGEXSource } from "@/api"
-import { useTheme } from "@/hooks/useTheme"
 import {
   REFRESH_STREAMS,
   REFRESH_PRESETS,
@@ -20,7 +19,7 @@ import { useAISessions } from "@/hooks/useAISessions"
 
 function SettingLabel({ children }) {
   return (
-    <p className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-3)] mb-1.5">
+    <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--slate-dim)] mb-1.5">
       {children}
     </p>
   )
@@ -28,44 +27,21 @@ function SettingLabel({ children }) {
 
 function InfoCard({ label, value }) {
   return (
-    <div className="relative border border-[var(--border)] bg-[var(--surface-2)] rounded-sm p-3 overflow-hidden">
-      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[var(--blue)]" />
-      <div className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-3)] mb-1">{label}</div>
-      <div className="font-mono tabular-nums text-[13px] font-semibold text-[var(--text-1)]">{value}</div>
+    <div className="glass-panel relative p-3.5 overflow-hidden">
+      <div className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full bg-[var(--mint)]" />
+      <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-[var(--slate-dim)] mb-1 pl-2">{label}</div>
+      <div className="font-mono tabular-nums text-[13px] font-semibold text-[var(--ivory)] pl-2">{value}</div>
     </div>
   )
 }
 
 function Hint({ children }) {
   return (
-    <p className="font-mono text-[9px] leading-relaxed text-[var(--text-3)] mt-2">{children}</p>
+    <p className="font-mono text-[9px] leading-relaxed text-[var(--slate-dim)] mt-2">{children}</p>
   )
 }
 
 // ── panel sections ───────────────────────────────────────────────────────────
-
-function DisplayPanel() {
-  const { theme, setTheme, themes } = useTheme()
-  return (
-    <div className="grid grid-cols-2 gap-6">
-      <div>
-        <SettingLabel>Theme</SettingLabel>
-        <select
-          value={theme}
-          onChange={e => setTheme(e.target.value)}
-          className="w-full font-mono text-[11px] uppercase tracking-wider bg-[var(--surface-2)] text-[var(--text-1)] border border-[var(--border)] rounded-sm px-3 py-2 focus:outline-none focus:border-[var(--blue)] cursor-pointer"
-        >
-          {themes.map(t => (
-            <option key={t.id} value={t.id}>
-              {t.label} — {t.description}
-            </option>
-          ))}
-        </select>
-        <Hint>Visual theme applied across all views.</Hint>
-      </div>
-    </div>
-  )
-}
 
 function DataPanel() {
   const [intervals, setIntervals] = useState(() => getAllRefreshIntervals())
@@ -99,7 +75,7 @@ function DataPanel() {
                 id={`refresh-${stream.key}`}
                 value={intervals[stream.key]}
                 onChange={e => updateInterval(stream.key, Number(e.target.value))}
-                className="font-mono text-[10px] bg-[var(--surface-2)] text-[var(--text-1)] border border-[var(--border)] rounded-sm px-2 py-1 focus:outline-none focus:border-[var(--blue)] cursor-pointer shrink-0"
+                className="font-mono text-[10px] bg-[var(--glass)] text-[var(--ivory)] shadow-[inset_0_0_0_1px_var(--edge)] rounded-full border-0 px-3 py-1 focus:outline-none focus:shadow-[inset_0_0_0_1px_rgba(232,197,116,0.55)] cursor-pointer shrink-0"
               >
                 {REFRESH_PRESETS.map(p => (
                   <option key={p.value} value={p.value}>{p.label}</option>
@@ -120,10 +96,10 @@ function DataPanel() {
               key={v}
               onClick={() => pickSource(v)}
               className={cn(
-                "flex-1 font-mono text-[11px] uppercase tracking-wider py-2 rounded-sm border transition-colors",
+                "flex-1 font-mono text-[11px] uppercase tracking-wider py-2 rounded-full transition-colors",
                 source === v
-                  ? "border-[var(--blue)] text-[var(--blue)] bg-[var(--blue)]/10"
-                  : "border-[var(--border)] text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--text-1)]"
+                  ? "text-[var(--mint)] bg-[rgba(110,231,199,0.10)] shadow-[inset_0_0_0_1px_rgba(110,231,199,0.3)]"
+                  : "text-[var(--slate-dim)] shadow-[inset_0_0_0_1px_var(--edge-soft)] hover:text-[var(--slate)]"
               )}
             >
               {v}
@@ -177,7 +153,7 @@ function AgentPanel() {
           <SettingLabel>Built-in Models</SettingLabel>
           <div className="space-y-1">
             {MODELS.map(m => (
-              <div key={m} className="font-mono text-[10px] text-[var(--text-2)] px-2 py-1 bg-[var(--surface-2)] border border-[var(--border)] rounded-sm">
+              <div key={m} className="font-mono text-[10px] text-[var(--text-2)] px-3 py-1 bg-[var(--glass)] shadow-[inset_0_0_0_1px_var(--edge-soft)] rounded-full">
                 {m}
               </div>
             ))}
@@ -190,12 +166,12 @@ function AgentPanel() {
             <div className="space-y-1">
               {custom.map(m => (
                 <div key={m} className="flex items-center gap-2">
-                  <span className="flex-1 font-mono text-[10px] text-[var(--text-2)] px-2 py-1 bg-[var(--surface-2)] border border-[var(--border)] rounded-sm truncate">
+                  <span className="flex-1 font-mono text-[10px] text-[var(--text-2)] px-3 py-1 bg-[var(--glass)] shadow-[inset_0_0_0_1px_var(--edge-soft)] rounded-full truncate">
                     {m}
                   </span>
                   <button
                     onClick={() => removeModel(m)}
-                    className="font-mono text-[9px] text-[var(--text-3)] hover:text-red-400 transition-colors px-1"
+                    className="font-mono text-[9px] text-[var(--slate-dim)] hover:text-[var(--rose)] transition-colors px-1"
                   >
                     ✕
                   </button>
@@ -212,11 +188,11 @@ function AgentPanel() {
             onChange={e => setDraft(e.target.value)}
             onKeyDown={e => e.key === "Enter" && addModel()}
             placeholder="openrouter model slug…"
-            className="flex-1 font-mono text-[10px] bg-[var(--surface-2)] text-[var(--text-1)] border border-[var(--border)] rounded-sm px-2 py-1.5 focus:outline-none focus:border-[var(--blue)] placeholder:text-[var(--text-3)]"
+            className="glass-input flex-1 font-mono text-[10px] px-3 py-1.5 rounded-full"
           />
           <button
             onClick={addModel}
-            className="font-mono text-[9px] uppercase tracking-wider px-3 py-1.5 border border-[var(--border)] rounded-sm text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--text-1)] transition-colors"
+            className="font-mono text-[9px] uppercase tracking-wider px-3.5 py-1.5 rounded-full text-[var(--slate)] bg-[var(--glass)] shadow-[inset_0_0_0_1px_var(--edge)] hover:text-[var(--ivory)] transition-colors"
           >
             Add
           </button>
@@ -230,10 +206,10 @@ function AgentPanel() {
           onClick={handleRefine}
           disabled={refining}
           className={cn(
-            "w-full font-mono text-[10px] uppercase tracking-wider py-2 rounded-sm border transition-colors",
+            "w-full font-mono text-[10px] uppercase tracking-wider py-2 rounded-full transition-colors",
             refined
-              ? "border-green-500/50 text-green-400"
-              : "border-[var(--border)] text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--text-1)]",
+              ? "text-[var(--mint)] shadow-[inset_0_0_0_1px_rgba(110,231,199,0.4)]"
+              : "text-[var(--slate)] shadow-[inset_0_0_0_1px_var(--edge)] hover:text-[var(--ivory)]",
             refining && "opacity-50 cursor-not-allowed"
           )}
         >
@@ -257,7 +233,6 @@ function SystemPanel({ adapterSource }) {
 // ── nav config ───────────────────────────────────────────────────────────────
 
 const NAV = [
-  { id: "display", label: "Display", icon: "◈" },
   { id: "data",    label: "Data",    icon: "⬡" },
   { id: "agent",   label: "Agent",   icon: "◎" },
   { id: "system",  label: "System",  icon: "◇" },
@@ -268,27 +243,24 @@ const NAV = [
 export default function Settings() {
   const { data } = useGEXData()
   const adapterSource = data?.source ?? data?.adapter ?? "—"
-  const [active, setActive] = useState("display")
+  const [active, setActive] = useState("data")
 
   return (
     <div className="h-full flex overflow-hidden">
       {/* sidebar nav */}
-      <nav className="w-36 shrink-0 border-r border-[var(--border)] bg-[var(--surface-1)] flex flex-col py-4 gap-0.5 px-2">
-        <p className="font-mono text-[9px] uppercase tracking-widest text-[var(--text-3)] px-2 mb-3">
-          Settings
-        </p>
+      <nav className="w-40 shrink-0 border-r border-[var(--edge-soft)] bg-[rgba(255,255,255,0.02)] backdrop-blur-xl flex flex-col py-4 gap-1 px-2.5">
         {NAV.map(item => (
           <button
             key={item.id}
             onClick={() => setActive(item.id)}
             className={cn(
-              "flex items-center gap-2.5 px-2 py-2 rounded-sm text-left transition-colors font-mono text-[11px] uppercase tracking-wider w-full",
+              "flex items-center gap-2.5 px-2 py-2 rounded-full text-left transition-colors font-mono text-[11px] uppercase tracking-wider w-full",
               active === item.id
-                ? "bg-[var(--surface-3)] text-[var(--text-1)]"
-                : "text-[var(--text-3)] hover:text-[var(--text-2)] hover:bg-[var(--surface-2)]"
+                ? "text-[var(--mint)] bg-[rgba(110,231,199,0.10)] shadow-[inset_0_0_0_1px_rgba(110,231,199,0.22)]"
+                : "text-[var(--text-3)] hover:text-[var(--text-2)] hover:bg-[var(--glass)]"
             )}
           >
-            <span className="text-[var(--blue)] text-[12px] leading-none">{item.icon}</span>
+            <span className="text-[var(--slate-dim)] text-[12px] leading-none">{item.icon}</span>
             {item.label}
           </button>
         ))}
@@ -296,11 +268,10 @@ export default function Settings() {
 
       {/* content area */}
       <div className="flex-1 overflow-y-auto p-8">
-        <h1 className="font-mono text-[11px] uppercase tracking-widest text-[var(--text-3)] mb-6">
+        <h1 className="font-display text-[19px] text-[var(--ivory)] mb-6">
           {NAV.find(n => n.id === active)?.label}
         </h1>
 
-        {active === "display" && <DisplayPanel />}
         {active === "data"    && <DataPanel />}
         {active === "agent"   && <AgentPanel />}
         {active === "system"  && <SystemPanel adapterSource={adapterSource} />}

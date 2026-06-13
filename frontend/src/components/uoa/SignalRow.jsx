@@ -1,21 +1,11 @@
 import { cn } from "@/lib/utils";
 import { fmtPremium } from "@/lib/format";
 import ScoreBreakdownBar from "./ScoreBreakdownBar";
-
-const SCORE_TIERS = [
-  { min: 90, color: "#22c55e" }, // elite — green
-  { min: 80, color: "#3b82f6" }, // high  — blue
-  { min: 60, color: "#d97706" }, // mid   — amber
-  { min: 0, color: "#3d3d50" }, // low   — dim
-];
-
-function scoreColor(score) {
-  return SCORE_TIERS.find((t) => score >= t.min)?.color ?? "#3d3d50";
-}
+import { scoreColor } from "@/lib/palette";
 
 function intentGlyph(intent) {
-  if (intent === "bullish") return { glyph: "▲", cls: "text-[#22c55e]" };
-  if (intent === "bearish") return { glyph: "▼", cls: "text-[#f43f5e]" };
+  if (intent === "bullish") return { glyph: "▲", cls: "text-[var(--mint)]" };
+  if (intent === "bearish") return { glyph: "▼", cls: "text-[var(--rose)]" };
   return { glyph: "●", cls: "text-[var(--text-3)]" };
 }
 
@@ -31,12 +21,12 @@ function aggressorGlyph(agg) {
 }
 
 const TAG_STYLE = {
-  whale: { border: "1px solid #d4a017", color: "#d4a017" },
-  golden: { background: "#f59e0b", color: "#000" },
-  sweep: { border: "1px solid #3b82f6", color: "#3b82f6" },
-  block: { border: "1px solid #4b5563", color: "#6b7280" },
-  opening: { border: "1px solid #2d4a2d", color: "#4ade80" },
-  closing: { border: "1px solid #4a2d2d", color: "#f87171" },
+  whale:   { boxShadow: "inset 0 0 0 1px rgba(232,197,116,0.45)", color: "#e8c574" },
+  golden:  { background: "#e8c574", color: "#0a0e1c", fontWeight: 600 },
+  sweep:   { boxShadow: "inset 0 0 0 1px rgba(157,184,255,0.35)", color: "#9db8ff" },
+  block:   { boxShadow: "inset 0 0 0 1px var(--edge)", color: "var(--slate-dim)" },
+  opening: { boxShadow: "inset 0 0 0 1px rgba(110,231,199,0.3)", color: "#6ee7c7" },
+  closing: { boxShadow: "inset 0 0 0 1px rgba(240,138,155,0.3)", color: "#f08a9b" },
 };
 
 function formatTime(ts) {
@@ -62,8 +52,8 @@ export default function SignalRow({ signal, onClick, isActive }) {
     <div
       onClick={() => onClick(signal)}
       className={cn(
-        "border-b border-[var(--border)] px-3 py-2 cursor-pointer transition-colors hover:bg-[var(--surface-3)]",
-        isActive && "bg-[var(--surface-3)] border-l-2 border-l-blue-500",
+        "border-b border-[var(--edge-soft)] px-6 py-2 cursor-pointer transition-colors hover:bg-[rgba(255,255,255,0.03)]",
+        isActive && "bg-[var(--glass-2)] border-l-2 border-l-[var(--mint)]",
       )}
     >
       <div className="flex items-start gap-3 font-mono text-[11px]">
@@ -112,7 +102,7 @@ export default function SignalRow({ signal, onClick, isActive }) {
               className={cn(
                 "uppercase font-semibold",
                 signal.structure === "sweep"
-                  ? "text-blue-400"
+                  ? "text-[var(--flip)]"
                   : "text-[var(--text-2)]",
               )}
             >
@@ -123,15 +113,6 @@ export default function SignalRow({ signal, onClick, isActive }) {
               {aggressorGlyph(signal.aggressor)}
             </span>
           </div>
-          {/* <div className="text-[var(--text-2)] mt-0.5 flex items-center gap-1">
-            <span style={{ color: signal.open_close_bias === "opening_bias" ? "#22c55e" : "#f43f5e" }} className="font-bold">
-              {signal.open_close_bias === "opening_bias" ? "Open" :"Close"}
-            </span>
-            <span>{signal.open_close_confidence?.toFixed(2)}</span>
-            <span style={{ color: (signal.contract_net_oi_delta ?? 0) >= 0 ? "#22c55e" : "#f43f5e" }}>
-              {(signal.contract_net_oi_delta ?? 0) >= 0 ? "+" : ""}{Math.round(signal.contract_net_oi_delta ?? 0)} OI
-            </span>
-          </div> */}
         </div>
 
         {/* Breakdown */}
@@ -149,11 +130,11 @@ export default function SignalRow({ signal, onClick, isActive }) {
           {signal.tags.map((tag) => (
             <span
               key={tag}
-              className="px-1.5 py-0.5 rounded-sm text-[9px] font-mono uppercase tracking-wide"
+              className="px-2 py-0.5 rounded-full text-[9px] font-mono uppercase tracking-wide"
               style={
                 TAG_STYLE[tag] || {
-                  border: "1px solid #374151",
-                  color: "#6b7280",
+                  boxShadow: "inset 0 0 0 1px var(--edge)",
+                  color: "var(--slate-dim)",
                 }
               }
             >

@@ -24,44 +24,44 @@ export default function UOALeaderboardRow({ rank, entry, side, inWatchlist, onAc
       style={{
         gridTemplateColumns: "16px 42px 72px 1fr 32px",
         padding: "4px 12px",
-        borderBottom: "1px solid var(--border-soft)",
+        borderBottom: "1px solid var(--edge-soft)",
         background: "transparent",
         transition: "background 0.1s",
       }}
-      onMouseEnter={(e) => e.currentTarget.style.background = "var(--surface-2)"}
+      onMouseEnter={(e) => e.currentTarget.style.background = "var(--glass-2)"}
       onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
       onClick={() => onActivate(entry.symbol)}
       title={inWatchlist ? `Activate ${entry.symbol}` : `Add ${entry.symbol} to watchlist`}
     >
-      <span style={{ color: "var(--text-3)", fontWeight: 600 }}>{rank}</span>
+      <span style={{ color: "var(--slate-dim)", fontWeight: 600 }}>{rank}</span>
 
-      <span style={{ fontWeight: 700, color: "var(--text-1)", display: "flex", alignItems: "center", gap: 3 }}>
+      <span style={{ fontWeight: 700, color: "var(--ivory)", display: "flex", alignItems: "center", gap: 3 }}>
         {inWatchlist && (
-          <span style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--blue)", flexShrink: 0, display: "inline-block" }} />
+          <span style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--mint)", flexShrink: 0, display: "inline-block" }} />
         )}
         {entry.symbol}
       </span>
 
-      <span style={{ fontWeight: 700, color: isBull ? "var(--green)" : "var(--red)", fontVariantNumeric: "tabular-nums" }}>
+      <span style={{ fontWeight: 700, color: isBull ? "var(--mint)" : "var(--rose)", fontVariantNumeric: "tabular-nums" }}>
         {netFmt}
       </span>
 
       {/* B/S volume bar with inline labels */}
       <div style={{
-        height: 14, borderRadius: 3, overflow: "hidden",
-        display: "flex", background: "var(--surface-3)",
+        height: 14, borderRadius: 7, overflow: "hidden",
+        display: "flex", background: "var(--glass-2)",
       }}>
         {/* Buy segment */}
         <div style={{
           width: `${Math.round(buyPct * 100)}%`,
-          background: "var(--blue-dim)",
-          borderRight: "1px solid var(--border)",
+          background: "rgba(110,231,199,0.12)",
+          borderRight: "1px solid var(--edge)",
           display: "flex", alignItems: "center", justifyContent: "center",
           overflow: "hidden",
           transition: "width 0.3s ease",
         }}>
           {showBuyLabel && (
-            <span style={{ fontSize: 9, color: "var(--blue)", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", padding: "0 3px" }}>
+            <span style={{ fontSize: 9, color: "var(--mint)", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", padding: "0 3px" }}>
               {buyLabel}
             </span>
           )}
@@ -74,14 +74,14 @@ export default function UOALeaderboardRow({ rank, entry, side, inWatchlist, onAc
           overflow: "hidden",
         }}>
           {showSellLabel && (
-            <span style={{ fontSize: 9, color: "var(--red)", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", padding: "0 3px" }}>
+            <span style={{ fontSize: 9, color: "var(--rose)", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", padding: "0 3px" }}>
               {sellLabel}
             </span>
           )}
         </div>
       </div>
 
-      <span style={{ textAlign: "right", color: "var(--text-3)", fontVariantNumeric: "tabular-nums" }}>
+      <span style={{ textAlign: "right", color: "var(--slate-dim)", fontVariantNumeric: "tabular-nums" }}>
         {relTime(entry.lastTradeUtc)}
       </span>
     </div>

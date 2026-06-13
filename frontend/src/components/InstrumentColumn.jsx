@@ -5,9 +5,9 @@ import { fmtGex, fmtSpot, fmtStrike } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const TAG_COLOR = {
-  call: "#22c55e",
-  flip: "#3b82f6",
-  put: "#ef4444",
+  call: "#6ee7c7",
+  flip: "#9db8ff",
+  put: "#f08a9b",
 };
 
 const DEFAULT_HEIGHT = 420;
@@ -153,87 +153,87 @@ export default function InstrumentColumn({
       )}
     >
       {/* Ladder card */}
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] overflow-hidden flex flex-col">
+      <div className="glass-panel overflow-hidden flex flex-col">
         {/* Frozen header rows */}
         <div className="flex-none">
           {/* Header */}
           <div
             className={cn(
-              "flex items-center justify-between bg-[var(--surface-2)] border-b border-[var(--border)]",
-              compact ? "px-3 py-1.5" : "px-4 py-2.5",
+              "flex items-baseline gap-2.5",
+              compact ? "px-3 pt-2 pb-1" : "px-4 pt-3.5 pb-2",
             )}
           >
-            <div className="flex items-center gap-2">
-              <span
-                className={cn(
-                  "font-mono font-semibold tracking-widest text-text-1",
-                  compact ? "text-xs" : "text-sm",
-                )}
-              >
-                {symbol}
-              </span>
-              <Badge variant={isPos == "positive" ? "positive" : "negative"}>
-                {isPos == "positive" ? "+GEX" : "−GEX"}
-              </Badge>
-            </div>
-            <Badge variant="amber">{fmtSpot(symbol, spot)}</Badge>
+            <span
+              className={cn(
+                "font-display leading-none text-[var(--ivory)]",
+                compact ? "text-base" : "text-[22px]",
+              )}
+            >
+              {symbol}
+            </span>
+            <Badge variant={isPos == "positive" ? "mint" : "rose"}>
+              {isPos == "positive" ? "+GEX · LONG γ" : "−GEX · SHORT γ"}
+            </Badge>
+            <span className="ml-auto font-mono text-[12px] font-bold tracking-[0.02em] text-[var(--gold)]">
+              {fmtSpot(symbol, spot)}
+            </span>
           </div>
 
           {/* Sub-header */}
-          <div className="flex items-center justify-between px-4 py-1.5 bg-[var(--surface-2)] border-b border-[var(--border)]">
-            <span className="font-mono text-[8px] uppercase tracking-widest text-text-2">
-              {strikes.length} strikes
-            </span>
-            <span className="font-mono text-[9px] text-text-2">
+          <div className="flex items-center gap-3.5 px-4 pb-3">
+            <span className="font-mono text-[9px] text-[var(--slate-dim)]">
               Gex:{" "}
               <span
                 className={cn(
                   "font-semibold",
-                  isPos == "positive" ? "text-green" : "text-red",
+                  isPos == "positive" ? "text-[var(--mint-deep)]" : "text-[var(--rose-deep)]",
                 )}
               >
                 {fmtGex(net_gex)}{" "}
               </span>
             </span>
-            <span className="font-mono text-[9px] text-text-2">
+            <span className="font-mono text-[9px] text-[var(--slate-dim)]">
               Vex:{" "}
               <span
                 className={cn(
                   "font-semibold",
-                  net_vex > 0.0 ? "text-green" : "text-red",
+                  net_vex > 0.0 ? "text-[var(--mint-deep)]" : "text-[var(--rose-deep)]",
                 )}
               >
                 {fmtGex(net_vex)}{" "}
               </span>
             </span>
-            <span className="font-mono text-[9px] text-text-2">
+            <span className="font-mono text-[9px] text-[var(--slate-dim)]">
               Chex:{" "}
               <span
                 className={cn(
                   "font-semibold",
-                  net_chex > 0.0 ? "text-green" : "text-red",
+                  net_chex > 0.0 ? "text-[var(--mint-deep)]" : "text-[var(--rose-deep)]",
                 )}
               >
                 {fmtGex(net_chex)}{" "}
               </span>
             </span>
-            <span className="font-semibold uppercase text-[10px] text-pink-600">
+            <span className="font-semibold uppercase text-[10px] text-[var(--slate)]">
               {flow_direction}
+            </span>
+            <span className="font-mono text-[8px] uppercase tracking-widest text-[var(--slate-dim)] ml-auto">
+              {strikes.length} strikes
             </span>
           </div>
 
           {/* Column headers */}
-          <div className="grid grid-cols-[minmax(80px,auto)_1fr_48px] px-3 py-1.5 bg-[var(--surface-2)] border-b border-[var(--border)]">
-            <span className="font-mono text-[8px] uppercase tracking-widest text-text-2">
+          <div className="grid grid-cols-[minmax(80px,auto)_1fr_56px] px-4 py-1.5 bg-[rgba(255,255,255,0.015)] border-y border-[var(--edge-soft)]">
+            <span className="font-mono text-[8px] uppercase tracking-[0.18em] text-[var(--slate-dim)]">
               Strike
             </span>
-            <span className="font-mono text-[8px] uppercase tracking-widest text-text-2 text-center">
+            <span className="font-mono text-[8px] uppercase tracking-[0.18em] text-[var(--slate-dim)] text-center">
               ← Put · Net GEX · Call →
             </span>
             <button
               onClick={cycleNetGexSort}
-              className="font-mono text-[8px] uppercase tracking-widest text-right flex items-center justify-end gap-0.5 cursor-pointer select-none"
-              style={{ color: netGexSort ? "var(--amber)" : "var(--text-2)" }}
+              className="font-mono text-[8px] uppercase tracking-[0.18em] text-right flex items-center justify-end gap-0.5 cursor-pointer select-none"
+              style={{ color: netGexSort ? "var(--mint)" : "var(--slate-dim)" }}
               title="Sort by Net GEX"
             >
               Net GEX
@@ -268,8 +268,11 @@ export default function InstrumentColumn({
                   ref={spotRef}
                   className="relative h-px z-10 overflow-visible"
                 >
-                  <div className="absolute inset-0 bg-amber opacity-60" />
-                  <div className="absolute right-3 -top-[9px] font-mono text-[8px] text-amber bg-[var(--surface)] border border-amber/50 rounded px-1.5 py-px whitespace-nowrap tracking-wide">
+                  <div
+                    className="absolute inset-0 opacity-75"
+                    style={{ background: "linear-gradient(90deg, transparent, var(--gold) 18%, var(--gold) 82%, transparent)" }}
+                  />
+                  <div className="absolute right-3 -top-[9px] font-mono text-[8.5px] font-bold text-[#0a0e1c] bg-[var(--gold)] rounded-full px-2 py-[2px] whitespace-nowrap tracking-[0.04em] shadow-[0_0_14px_rgba(232,197,116,0.35)]">
                     SPOT {fmtSpot(symbol, spot)}
                   </div>
                 </div>
@@ -281,12 +284,12 @@ export default function InstrumentColumn({
         {resizable && !compact && (
           <div
             onMouseDown={handleDragMouseDown}
-            className="flex-none flex items-center justify-center h-3 border-t border-[var(--border)] cursor-ns-resize select-none group"
-            style={{ background: "var(--surface-2)" }}
+            className="flex-none flex items-center justify-center h-3 border-t border-[var(--edge-soft)] cursor-ns-resize select-none group"
+            style={{ background: "rgba(255,255,255,0.015)" }}
             title="Drag to resize"
           >
             <span
-              className="font-mono text-[10px] tracking-widest text-[var(--border)] group-hover:text-[var(--text-3)] transition-colors leading-none"
+              className="font-mono text-[10px] tracking-widest text-[var(--slate-dim)] opacity-40 group-hover:opacity-100 transition-colors leading-none"
               style={{ letterSpacing: "0.25em" }}
             >
               ⋯

@@ -15,7 +15,7 @@ function LeaderboardColumn({ side, rows, watchlist, onActivate }) {
       style={{
         display: "flex",
         flexDirection: "column",
-        borderLeft: isBull ? "none" : "1px solid var(--border)",
+        borderLeft: isBull ? "none" : "1px solid var(--edge-soft)",
       }}
     >
       {/* Column header */}
@@ -24,8 +24,8 @@ function LeaderboardColumn({ side, rows, watchlist, onActivate }) {
           display: "flex",
           alignItems: "center",
           padding: "3px 12px",
-          background: "var(--surface-2)",
-          borderBottom: "1px solid var(--border)",
+          background: "rgba(255,255,255,0.015)",
+          borderBottom: "1px solid var(--edge-soft)",
           fontFamily: "inherit",
           fontSize: 9,
           letterSpacing: "0.08em",
@@ -35,7 +35,7 @@ function LeaderboardColumn({ side, rows, watchlist, onActivate }) {
         <span
           style={{
             fontWeight: 700,
-            color: isBull ? "var(--green)" : "var(--red)",
+            color: isBull ? "var(--mint)" : "var(--rose)",
           }}
         >
           {label}
@@ -43,7 +43,7 @@ function LeaderboardColumn({ side, rows, watchlist, onActivate }) {
         <span
           style={{
             marginLeft: "auto",
-            color: "var(--text-3)",
+            color: "var(--slate-dim)",
             letterSpacing: "0.06em",
           }}
         >
@@ -56,7 +56,7 @@ function LeaderboardColumn({ side, rows, watchlist, onActivate }) {
           style={{
             padding: "8px 12px",
             fontSize: 11,
-            color: "var(--text-3)",
+            color: "var(--slate-dim)",
             textAlign: "center",
             fontFamily: "inherit",
           }}
@@ -86,10 +86,10 @@ function ExcludeChip({ symbol, onRemove }) {
         display: "inline-flex",
         alignItems: "center",
         gap: 3,
-        padding: "1px 5px",
-        background: "var(--surface-2)",
-        border: "1px solid var(--border)",
-        borderRadius: 2,
+        padding: "1px 7px",
+        background: "var(--glass)",
+        boxShadow: "inset 0 0 0 1px var(--edge-soft)",
+        borderRadius: 99,
         fontSize: 9,
         fontFamily: "inherit",
         color: "var(--text-2)",
@@ -107,7 +107,7 @@ function ExcludeChip({ symbol, onRemove }) {
           padding: 0,
           fontSize: 11,
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--red)")}
+        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--rose)")}
         onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-3)")}
         title={`Un-exclude ${symbol}`}
       >
@@ -142,23 +142,23 @@ function ExcludeInput({ onAdd }) {
         style={{
           width: 44,
           background: "transparent",
-          border: "1px solid var(--border)",
-          borderRadius: 2,
-          padding: "1px 4px",
+          border: "1px solid var(--edge)",
+          borderRadius: 99,
+          padding: "1px 7px",
           fontFamily: "inherit",
           fontSize: 9,
           color: "var(--text-1)",
           outline: "none",
         }}
-        onFocus={(e) => (e.target.style.borderColor = "var(--blue)")}
-        onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
+        onFocus={(e) => (e.target.style.borderColor = "rgba(232,197,116,0.55)")}
+        onBlur={(e) => (e.target.style.borderColor = "var(--edge)")}
       />
       {val && (
         <button
           onClick={commit}
           style={{
             fontSize: 9,
-            color: "var(--blue)",
+            color: "var(--mint)",
             background: "none",
             border: "none",
             cursor: "pointer",
@@ -243,9 +243,10 @@ export default function UOALeaderboard({
 
   const baseStyle = {
     flexShrink: 0,
-    borderBottom: "1px solid var(--border)",
-    background: "var(--surface-1)",
-    fontFamily: "'IBM Plex Mono', monospace",
+    borderBottom: "1px solid var(--edge-soft)",
+    background: "var(--glass)",
+    backdropFilter: "blur(14px)",
+    fontFamily: "'JetBrains Mono', monospace",
   };
 
   if (loading && !data) {
@@ -300,28 +301,30 @@ export default function UOALeaderboard({
           flexWrap: "wrap",
           gap: "6px 8px",
           padding: "4px 12px",
-          background: "var(--bg)",
-          borderBottom: "1px solid var(--border)",
+          background: "rgba(255,255,255,0.015)",
+          borderBottom: "1px solid var(--edge-soft)",
           fontSize: 9,
           fontFamily: "inherit",
         }}
       >
         <span
           style={{
-            fontWeight: 700,
-            letterSpacing: "0.10em",
-            textTransform: "uppercase",
-            color: "var(--text-1)",
+            fontFamily: "'Instrument Serif', serif",
+            fontStyle: "italic",
+            fontSize: 13,
+            textTransform: "none",
+            letterSpacing: "0.01em",
+            color: "var(--ivory)",
           }}
         >
           Top Movers
         </span>
         <span
           style={{
-            padding: "1px 5px",
-            border: "1px solid var(--border)",
-            borderRadius: 2,
-            color: "var(--text-3)",
+            padding: "1px 7px",
+            boxShadow: "inset 0 0 0 1px var(--edge)",
+            borderRadius: 99,
+            color: "var(--slate-dim)",
             fontFamily: "inherit",
           }}
         >
@@ -344,10 +347,11 @@ export default function UOALeaderboard({
             <>
               <span
                 style={{
-                  padding: "1px 5px",
-                  borderRadius: 2,
-                  background: "var(--amber, #b45309)",
-                  color: "#fff",
+                  padding: "1px 7px",
+                  borderRadius: 99,
+                  background: "rgba(232,197,116,0.15)",
+                  color: "var(--gold)",
+                  boxShadow: "inset 0 0 0 1px rgba(232,197,116,0.4)",
                   fontSize: 9,
                   fontWeight: 700,
                   letterSpacing: "0.08em",
@@ -367,22 +371,22 @@ export default function UOALeaderboard({
             title={paused ? "Resume auto-refresh" : "Pause auto-refresh"}
             style={{
               background: "none",
-              border: "1px solid var(--border)",
-              borderRadius: 2,
-              color: paused ? "var(--green, #16a34a)" : "var(--text-2)",
+              border: "1px solid var(--edge)",
+              borderRadius: 99,
+              color: paused ? "var(--mint)" : "var(--text-2)",
               cursor: "pointer",
               fontSize: 11,
               lineHeight: 1,
-              padding: "1px 5px",
+              padding: "1px 8px",
               fontFamily: "inherit",
             }}
             onMouseEnter={(e) =>
               (e.currentTarget.style.borderColor = paused
-                ? "var(--green, #16a34a)"
-                : "var(--amber, #b45309)")
+                ? "var(--mint)"
+                : "var(--flip)")
             }
             onMouseLeave={(e) =>
-              (e.currentTarget.style.borderColor = "var(--border)")
+              (e.currentTarget.style.borderColor = "var(--edge)")
             }
           >
             {paused ? "▶ resume" : "⏸ pause"}
@@ -422,15 +426,15 @@ export default function UOALeaderboard({
           flexShrink: 0,
           height: 6,
           cursor: "ns-resize",
-          background: "var(--surface-2)",
-          borderTop: "1px solid var(--border)",
+          background: "rgba(255,255,255,0.015)",
+          borderTop: "1px solid var(--edge-soft)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--blue)")}
+        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--mint)")}
         onMouseLeave={(e) =>
-          (e.currentTarget.style.background = "var(--surface-2)")
+          (e.currentTarget.style.background = "rgba(255,255,255,0.015)")
         }
       >
         <span
@@ -438,7 +442,7 @@ export default function UOALeaderboard({
             width: 24,
             height: 2,
             borderRadius: 2,
-            background: "var(--text-3)",
+            background: "var(--slate-dim)",
             opacity: 0.6,
           }}
         />

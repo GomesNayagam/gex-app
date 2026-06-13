@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { fmtPremium } from "@/lib/format";
 import ScoreBreakdownBar from "./ScoreBreakdownBar";
 import { fetchFlowSummary } from "@/api";
+import { scoreColor, SEGMENT_COLORS } from "@/lib/palette";
 
 const LS_PINNED = "uoa-drawer-pinned";
 const LS_WIDTH = "uoa-drawer-width";
@@ -13,37 +14,27 @@ const MAX_WIDTH = 900;
 const DEFAULT_WIDTH = 384; // matches the previous w-96
 
 const BREAKDOWN_SEGMENTS = [
-  { key: "premium", label: "premium", color: "#3b82f6" },
-  { key: "size_vs_oi", label: "size/OI", color: "#22c55e" },
-  { key: "aggressor", label: "aggressor", color: "#f59e0b" },
-  { key: "sweep", label: "sweep", color: "#a78bfa" },
-  { key: "opening_bias", label: "open bias", color: "#34d399" },
-  { key: "tenor", label: "tenor", color: "#94a3b8" },
+  { key: "premium", label: "premium", color: SEGMENT_COLORS.premium },
+  { key: "size_vs_oi", label: "size/OI", color: SEGMENT_COLORS.size_vs_oi },
+  { key: "aggressor", label: "aggressor", color: SEGMENT_COLORS.aggressor },
+  { key: "sweep", label: "sweep", color: SEGMENT_COLORS.sweep },
+  { key: "opening_bias", label: "open bias", color: SEGMENT_COLORS.opening_bias },
+  { key: "tenor", label: "tenor", color: SEGMENT_COLORS.tenor },
 ];
 
 const TAG_STYLE = {
-  whale: { border: "1px solid #d4a017", color: "#d4a017" },
-  golden: { background: "#f59e0b", color: "#000" },
-  sweep: { border: "1px solid #3b82f6", color: "#3b82f6" },
-  block: { border: "1px solid #4b5563", color: "#6b7280" },
-  opening: { border: "1px solid #2d4a2d", color: "#4ade80" },
-  closing: { border: "1px solid #4a2d2d", color: "#f87171" },
+  whale:   { boxShadow: "inset 0 0 0 1px rgba(232,197,116,0.45)", color: "#e8c574" },
+  golden:  { background: "#e8c574", color: "#0a0e1c", fontWeight: 600 },
+  sweep:   { boxShadow: "inset 0 0 0 1px rgba(157,184,255,0.35)", color: "#9db8ff" },
+  block:   { boxShadow: "inset 0 0 0 1px var(--edge)", color: "var(--slate-dim)" },
+  opening: { boxShadow: "inset 0 0 0 1px rgba(110,231,199,0.3)", color: "#6ee7c7" },
+  closing: { boxShadow: "inset 0 0 0 1px rgba(240,138,155,0.3)", color: "#f08a9b" },
 };
 
-const SCORE_COLORS = [
-  { min: 90, color: "#22c55e" },
-  { min: 80, color: "#3b82f6" },
-  { min: 60, color: "#d97706" },
-  { min: 0, color: "#3d3d50" },
-];
-function scoreColor(s) {
-  return SCORE_COLORS.find((t) => s >= t.min)?.color ?? "#3d3d50";
-}
-
 const CONVICTION_STYLE = {
-  high: { background: "#14532d", color: "#22c55e" },
-  medium: { background: "#1e3a5f", color: "#3b82f6" },
-  low: { background: "#2d2d10", color: "#d97706" },
+  high:   { background: "rgba(110,231,199,0.12)", color: "#6ee7c7", boxShadow: "inset 0 0 0 1px rgba(110,231,199,0.3)" },
+  medium: { background: "rgba(157,184,255,0.12)", color: "#9db8ff", boxShadow: "inset 0 0 0 1px rgba(157,184,255,0.3)" },
+  low:    { background: "rgba(232,197,116,0.12)", color: "#e8c574", boxShadow: "inset 0 0 0 1px rgba(232,197,116,0.35)" },
 };
 
 function Row({ label, value, cls }) {
@@ -143,14 +134,13 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain, win
   const ch = chain || {};
 
   const drawerCls = cn(
-    "relative flex flex-col bg-[var(--surface-1)] border-l border-[var(--border)] overflow-y-auto font-mono text-[11px]",
-    pinned
-      ? "shrink-0"
-      : "fixed right-0 top-0 bottom-0 z-50 shadow-2xl",
+    "relative flex flex-col overflow-y-auto font-mono text-[11px] border-l border-[var(--edge)]",
+    "bg-[rgba(21,32,58,0.55)] backdrop-blur-[20px] shadow-[-16px_0_48px_rgba(0,0,0,0.5)]",
+    pinned ? "shrink-0" : "fixed right-0 top-0 bottom-0 z-50",
   );
 
   const overlay = !pinned ? (
-    <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose} />
+    <div className="fixed inset-0 z-40 bg-[rgba(7,10,20,0.5)] backdrop-blur-[2px]" onClick={onClose} />
   ) : null;
 
   const relativeToSpot = (strike) => {
@@ -170,15 +160,15 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain, win
         <div
           onMouseDown={onResizeStart}
           title="Drag to resize"
-          className="group absolute left-0 top-0 bottom-0 z-10 flex w-1.5 cursor-ew-resize items-center justify-center hover:bg-[var(--blue)]"
+          className="group absolute left-0 top-0 bottom-0 z-10 flex w-1.5 cursor-ew-resize items-center justify-center hover:bg-[var(--mint)]"
         >
           <span className="h-6 w-0.5 rounded bg-[var(--text-3)] opacity-60 group-hover:opacity-0" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] shrink-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--edge-soft)] shrink-0">
           <div className="flex flex-col gap-0.5 min-w-0">
-            <span className="text-[var(--text-1)] font-semibold font-mono">
+            <span className="font-display text-[16px] text-[var(--ivory)]">
               {signal.strike?.toLocaleString()} {signal.right}{" "}
               {signal.expiry?.slice(5)} ({signal.dte}d)
             </span>
@@ -208,7 +198,7 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain, win
                 } catch {}
                 navigate("/expiry");
               }}
-              className="text-left text-[10px] text-blue-400 hover:text-blue-300 transition-colors"
+              className="text-left text-[10px] text-[var(--flip)] hover:text-[var(--ivory)] transition-colors"
             >
               View {symbol} {signal.expiry} in GEX ladder →
             </button>
@@ -219,7 +209,7 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain, win
               className={cn(
                 "p-1 rounded-sm transition-colors",
                 pinned
-                  ? "text-blue-400"
+                  ? "text-[var(--mint)]"
                   : "text-[var(--text-2)] hover:text-[var(--text-1)]",
               )}
               title={pinned ? "Unpin drawer" : "Pin alongside tape"}
@@ -244,21 +234,21 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain, win
               </span>
               {summaryLoading ? (
                 <div className="flex flex-col gap-1">
-                  <div className="h-3 w-3/4 rounded bg-[var(--surface-2)] animate-pulse" />
-                  <div className="h-3 w-1/2 rounded bg-[var(--surface-2)] animate-pulse" />
+                  <div className="h-3 w-3/4 rounded bg-[var(--glass-2)] animate-pulse" />
+                  <div className="h-3 w-1/2 rounded bg-[var(--glass-2)] animate-pulse" />
                 </div>
               ) : summaryError ? (
                 <span className="text-[10px] text-[var(--text-3)]">failed to load</span>
               ) : summary ? (
                 <div className="flex flex-col gap-1">
                   <Row label="signals" value={summary.signal_count != null ? summary.signal_count : "—"} />
-                  <Row label="bull premium" value={summary.bullish_premium != null ? `$${(summary.bullish_premium / 1e6).toFixed(1)}M` : null} cls="text-green-400" />
-                  <Row label="bear premium" value={summary.bearish_premium != null ? `$${(summary.bearish_premium / 1e6).toFixed(1)}M` : null} cls="text-red-400" />
+                  <Row label="bull premium" value={summary.bullish_premium != null ? `$${(summary.bullish_premium / 1e6).toFixed(1)}M` : null} cls="text-[var(--mint)]" />
+                  <Row label="bear premium" value={summary.bearish_premium != null ? `$${(summary.bearish_premium / 1e6).toFixed(1)}M` : null} cls="text-[var(--rose)]" />
                   {summary.net_premium != null && (
                     <Row
                       label="net premium"
                       value={`$${(summary.net_premium / 1e6).toFixed(1)}M`}
-                      cls={summary.net_premium >= 0 ? "text-green-400" : "text-red-400"}
+                      cls={summary.net_premium >= 0 ? "text-[var(--mint)]" : "text-[var(--rose)]"}
                     />
                   )}
                 </div>
@@ -289,7 +279,7 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain, win
                 Conviction
               </span>
               <span
-                className="px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wide"
+                className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide"
                 style={
                   CONVICTION_STYLE[signal.conviction] || CONVICTION_STYLE.low
                 }
@@ -319,7 +309,7 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain, win
             </div>
           </div>
 
-          <hr className="border-[var(--border)]" />
+          <hr className="border-[var(--edge-soft)]" />
 
           {/* Greeks / Enrichment */}
           <div>
@@ -368,7 +358,7 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain, win
             </div>
           </div>
 
-          <hr className="border-[var(--border)]" />
+          <hr className="border-[var(--edge-soft)]" />
 
           {/* Chain context */}
           <div>
@@ -379,19 +369,19 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain, win
               <Row
                 label="Call wall"
                 value={ch.call_wall?.toLocaleString()}
-                cls={signal.strike === ch.call_wall ? "text-amber-400" : ""}
+                cls={signal.strike === ch.call_wall ? "text-[var(--gold)]" : ""}
               />
               <Row
                 label="Put wall"
                 value={ch.put_wall?.toLocaleString()}
-                cls={signal.strike === ch.put_wall ? "text-amber-400" : ""}
+                cls={signal.strike === ch.put_wall ? "text-[var(--gold)]" : ""}
               />
               <Row label="γ flip" value={ch.gamma_flip?.toLocaleString()} />
               <Row label="Max pain" value={ch.max_pain?.toLocaleString()} />
             </div>
           </div>
 
-          <hr className="border-[var(--border)]" />
+          <hr className="border-[var(--edge-soft)]" />
 
           {/* Raw JSON toggle */}
           <div>
@@ -402,7 +392,7 @@ export default function SignalDetailDrawer({ signal, symbol, onClose, chain, win
               {showJson ? "▲ Hide raw JSON" : "▾ Show raw JSON"}
             </button>
             {showJson && (
-              <pre className="mt-2 text-[9px] text-[var(--text-2)] bg-[var(--surface-2)] rounded p-2 overflow-x-auto whitespace-pre-wrap break-all">
+              <pre className="mt-2 text-[9px] text-[var(--text-2)] bg-[var(--glass)] rounded p-2 overflow-x-auto whitespace-pre-wrap break-all">
                 {JSON.stringify(signal, null, 2)}
               </pre>
             )}

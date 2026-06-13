@@ -33,23 +33,23 @@ function ExpiryPanel({ id, symbol, date, pinned, onClose, onTogglePin, refreshKe
   return (
     <div
       className={cn(
-        "flex flex-col border rounded-sm bg-[var(--surface-1)] min-w-[320px] flex-shrink-0",
-        pinned ? "border-blue/40" : "border-[var(--border)]"
+        "glass-panel flex flex-col min-w-[320px] flex-shrink-0",
+        pinned && "shadow-[inset_0_0_0_1px_rgba(110,231,199,0.3),0_12px_36px_rgba(0,0,0,0.35)]"
       )}
       style={{ width: "360px" }}
     >
       {/* Panel header */}
-      <div className="flex items-center gap-2 px-3 py-1.5 border-b border-[var(--border)] flex-none">
-        <span className="font-mono text-[10px] font-semibold text-[var(--text-1)]">{symbol}</span>
-        <span className="font-mono text-[9px] text-[var(--text-3)]">{date}</span>
-        {pinned && <span className="font-mono text-[8px] uppercase tracking-widest text-blue ml-0.5">pinned</span>}
+      <div className="flex items-center gap-2 px-3.5 py-2 border-b border-[var(--edge-soft)] flex-none">
+        <span className="font-display text-[15px] leading-none text-[var(--ivory)]">{symbol}</span>
+        <span className="font-mono text-[9px] text-[var(--slate-dim)]">{date}</span>
+        {pinned && <span className="font-mono text-[8px] uppercase tracking-widest text-[var(--mint)] ml-0.5">pinned</span>}
         <div className="flex items-center gap-1 ml-auto">
           {loading && <RefreshCw size={10} className="animate-spin text-[var(--text-3)]" />}
           <button
             onClick={() => onTogglePin(id)}
             className={cn(
               "p-0.5 rounded transition-colors",
-              pinned ? "text-blue" : "text-[var(--text-3)] hover:text-[var(--text-2)]"
+              pinned ? "text-[var(--mint)]" : "text-[var(--text-3)] hover:text-[var(--text-2)]"
             )}
             title={pinned ? "Unpin" : "Pin panel"}
           >
@@ -57,7 +57,7 @@ function ExpiryPanel({ id, symbol, date, pinned, onClose, onTogglePin, refreshKe
           </button>
           <button
             onClick={() => onClose(id)}
-            className="p-0.5 rounded text-[var(--text-3)] hover:text-[var(--red)] transition-colors"
+            className="p-0.5 rounded text-[var(--text-3)] hover:text-[var(--rose)] transition-colors"
             title="Close"
           >
             <X size={11} />
@@ -69,7 +69,7 @@ function ExpiryPanel({ id, symbol, date, pinned, onClose, onTogglePin, refreshKe
       <div className="flex-1 overflow-y-auto">
         {error && (
           <div className="p-3">
-            <span className="font-mono text-[10px] text-[var(--red)]">{error}</span>
+            <span className="font-mono text-[10px] text-[var(--rose)]">{error}</span>
           </div>
         )}
         {!error && !data && !loading && (
@@ -152,7 +152,7 @@ export default function ExpiryMode() {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Top toolbar */}
-      <div className="flex-none border-b border-[var(--border)] px-4 py-2">
+      <div className="glass-strip flex-none px-6 py-2.5">
         <div className="flex flex-wrap items-center gap-2">
           {/* Symbol input */}
           <input
@@ -161,7 +161,7 @@ export default function ExpiryMode() {
             onChange={(e) => setSymbol(e.target.value.toUpperCase())}
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             placeholder="Symbol"
-            className="bg-transparent border border-[var(--border)] rounded px-2 py-1 font-mono text-[10px] text-[var(--text-1)] w-20 uppercase"
+            className="glass-input font-mono text-[11px] px-3 py-1 rounded-full w-24 uppercase"
           />
 
           {/* Watchlist quick-pick */}
@@ -172,10 +172,10 @@ export default function ExpiryMode() {
                   key={sym}
                   onClick={() => setSymbol(sym)}
                   className={cn(
-                    "font-mono text-[10px] px-2 py-0.5 rounded border transition-colors",
+                    "font-mono text-[10px] px-2.5 py-[3px] rounded-full transition-colors duration-150",
                     symbol === sym
-                      ? "border-blue/40 bg-blue/10 text-blue"
-                      : "border-[var(--border)] text-[var(--text-3)] hover:text-[var(--text-2)]"
+                      ? "text-[var(--mint)] bg-[rgba(110,231,199,0.10)] shadow-[inset_0_0_0_1px_rgba(110,231,199,0.25)]"
+                      : "text-[var(--slate-dim)] shadow-[inset_0_0_0_1px_var(--edge-soft)] hover:text-[var(--slate)]"
                   )}
                 >
                   {sym}
@@ -189,20 +189,15 @@ export default function ExpiryMode() {
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="rounded px-2 py-1 font-mono text-[10px] border outline-none focus:border-blue/60 transition-colors"
-            style={{
-              background: "var(--surface-1)",
-              border: "1px solid var(--border)",
-              color: "var(--text-1)",
-              colorScheme: "dark",
-            }}
+            className="glass-input font-mono text-[10px] px-3 py-1 rounded-full"
+            style={{ colorScheme: "dark" }}
           />
 
           {/* Add button */}
           <button
             onClick={handleAdd}
             disabled={!symbol.trim() || !date}
-            className="font-mono text-[10px] px-3 py-1 rounded border border-[var(--border)] text-[var(--text-2)] hover:text-[var(--text-1)] hover:border-blue/40 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="font-mono text-[10px] px-3 py-1 rounded-full text-[var(--slate)] bg-[var(--glass)] shadow-[inset_0_0_0_1px_var(--edge)] hover:text-[var(--ivory)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             + Add Panel
           </button>
@@ -211,7 +206,7 @@ export default function ExpiryMode() {
             {panels.length > 0 && (
               <button
                 onClick={() => setPanels(prev => prev.filter(p => p.pinned))}
-                className="font-mono text-[10px] px-2 py-1 rounded border border-[var(--border)] text-[var(--text-3)] hover:text-[var(--red)] transition-colors"
+                className="font-mono text-[10px] px-2.5 py-1 rounded-full text-[var(--slate-dim)] shadow-[inset_0_0_0_1px_var(--edge-soft)] hover:text-[var(--rose)] transition-colors"
               >
                 Close unpinned
               </button>
@@ -219,10 +214,10 @@ export default function ExpiryMode() {
             <button
               onClick={togglePause}
               className={cn(
-                "flex items-center gap-1.5 font-mono text-[11px] px-3 py-1 rounded border transition-colors",
+                "flex items-center gap-1.5 font-mono text-[10px] tracking-[0.06em] px-3.5 py-[5px] rounded-full transition-colors duration-150",
                 paused
-                  ? "border-amber/60 bg-amber/15 text-amber"
-                  : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text-2)] hover:border-blue/40 hover:text-blue"
+                  ? "text-[var(--gold)] bg-[rgba(232,197,116,0.10)] shadow-[inset_0_0_0_1px_rgba(232,197,116,0.35)]"
+                  : "text-[var(--slate)] bg-[var(--glass)] shadow-[inset_0_0_0_1px_var(--edge)] hover:text-[var(--ivory)]",
               )}
               title={paused ? "Resume auto-refresh" : "Pause auto-refresh"}
             >
@@ -237,9 +232,14 @@ export default function ExpiryMode() {
       <div className="flex-1 overflow-auto p-4">
         {sorted.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <span className="font-mono text-[10px] text-[var(--text-3)]">
-              Pick a symbol + date and click <strong className="text-[var(--text-2)]">+ Add Panel</strong>
-            </span>
+            <div className="text-center">
+              <p className="font-display text-[17px] text-[var(--slate)]">
+                Pick a symbol and expiration date
+              </p>
+              <p className="font-mono text-[9px] tracking-[0.08em] text-[var(--slate-dim)] mt-1.5">
+                PANELS PIN TO THIS VIEW
+              </p>
+            </div>
           </div>
         ) : (
           <div className="flex flex-wrap gap-4 items-start">

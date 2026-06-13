@@ -35,8 +35,8 @@ function SessionRow({ session, isActive, onSelect, onRename, onDelete }) {
       className={cn(
         "group relative flex flex-col px-3 py-2.5 cursor-pointer rounded-sm transition-colors",
         isActive
-          ? "border-l-2 border-[var(--blue)] bg-[var(--blue-dim)] text-[var(--text-1)]"
-          : "border-l-2 border-transparent text-[var(--text-2)] hover:bg-[var(--surface-3)] hover:text-[var(--text-1)]"
+          ? "border-l-2 border-[var(--mint)] bg-[rgba(110,231,199,0.07)] text-[var(--ivory)]"
+          : "border-l-2 border-transparent text-[var(--text-2)] hover:bg-[var(--glass)] hover:text-[var(--text-1)]"
       )}
     >
       {editing ? (
@@ -49,9 +49,9 @@ function SessionRow({ session, isActive, onSelect, onRename, onDelete }) {
               if (e.key === "Enter") commitRename()
               if (e.key === "Escape") cancelRename()
             }}
-            className="flex-1 min-w-0 font-mono text-[10px] bg-[var(--surface-2)] border border-[var(--blue)] rounded-sm px-1.5 py-0.5 text-[var(--text-1)] focus:outline-none"
+            className="flex-1 min-w-0 font-mono text-[10px] bg-[var(--glass-2)] border border-[rgba(110,231,199,0.4)] rounded-sm px-1.5 py-0.5 text-[var(--text-1)] focus:outline-none"
           />
-          <button onClick={commitRename} className="text-[var(--blue)] hover:opacity-70">
+          <button onClick={commitRename} className="text-[var(--mint)] hover:opacity-70">
             <Check size={12} />
           </button>
           <button onClick={cancelRename} className="text-[var(--text-3)] hover:opacity-70">
@@ -76,7 +76,7 @@ function SessionRow({ session, isActive, onSelect, onRename, onDelete }) {
             </button>
             <button
               onClick={e => { e.stopPropagation(); onDelete(session.id) }}
-              className="p-1 text-[var(--text-3)] hover:text-red-400 transition-colors"
+              className="p-1 text-[var(--text-3)] hover:text-[var(--rose)] transition-colors"
               title="Delete"
             >
               <Trash2 size={11} />
@@ -107,17 +107,17 @@ export function AgentSidebar({ sessions, activeId, onSelect, onNew, onRename, on
 
   if (collapsed) {
     return (
-      <div className="flex flex-col w-12 shrink-0 border-r border-[var(--border)] bg-[var(--surface-1)] overflow-hidden items-center py-3 gap-2">
+      <div className="flex flex-col w-12 shrink-0 border-r border-[var(--edge-soft)] bg-[rgba(255,255,255,0.02)] backdrop-blur-xl overflow-hidden items-center py-3 gap-2">
         <button
           onClick={toggleCollapsed}
-          className="p-1.5 rounded-sm text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--surface-3)] transition-colors"
+          className="p-1.5 rounded-sm text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--glass)] transition-colors"
           title="Expand sidebar"
         >
           <PanelLeftOpen size={14} />
         </button>
         <button
           onClick={onNew}
-          className="p-1.5 rounded-sm border border-[var(--border)] text-[var(--text-2)] hover:border-[var(--blue)] hover:text-[var(--text-1)] transition-colors"
+          className="p-1.5 rounded-full shadow-[inset_0_0_0_1px_var(--edge)] text-[var(--text-2)] hover:shadow-[inset_0_0_0_1px_rgba(110,231,199,0.35)] hover:text-[var(--mint)] transition-colors"
           title="New Chat"
         >
           <Plus size={14} />
@@ -131,8 +131,8 @@ export function AgentSidebar({ sessions, activeId, onSelect, onNew, onRename, on
               className={cn(
                 "p-1.5 rounded-sm border-l-2 transition-colors",
                 session.id === activeId
-                  ? "border-[var(--blue)] bg-[var(--blue-dim)] text-[var(--text-1)]"
-                  : "border-transparent text-[var(--text-3)] hover:bg-[var(--surface-3)] hover:text-[var(--text-1)]"
+                  ? "border-[var(--mint)] bg-[rgba(110,231,199,0.07)] text-[var(--ivory)]"
+                  : "border-transparent text-[var(--text-3)] hover:bg-[var(--glass)] hover:text-[var(--text-1)]"
               )}
             >
               <MessageSquare size={14} />
@@ -144,22 +144,22 @@ export function AgentSidebar({ sessions, activeId, onSelect, onNew, onRename, on
   }
 
   return (
-    <div className="flex flex-col w-60 shrink-0 border-r border-[var(--border)] bg-[var(--surface-1)] overflow-hidden">
-      <div className="p-3 border-b border-[var(--border)] shrink-0 flex items-center gap-2">
+    <div className="flex flex-col w-60 shrink-0 border-r border-[var(--edge-soft)] bg-[rgba(255,255,255,0.02)] backdrop-blur-xl overflow-hidden">
+      <div className="p-3 border-b border-[var(--edge-soft)] shrink-0 flex items-center gap-2">
         <button
           onClick={onNew}
           className={cn(
-            "flex-1 flex items-center justify-center gap-2 py-2 rounded-sm",
+            "flex-1 flex items-center justify-center gap-2 py-2 rounded-full",
             "font-mono text-[10px] uppercase tracking-wider",
-            "border border-[var(--border)] text-[var(--text-2)]",
-            "hover:border-[var(--blue)] hover:text-[var(--text-1)] transition-colors"
+            "shadow-[inset_0_0_0_1px_var(--edge)] text-[var(--text-2)]",
+            "hover:shadow-[inset_0_0_0_1px_rgba(110,231,199,0.35)] hover:text-[var(--mint)] transition-colors"
           )}
         >
           <Plus size={12} /> New Chat
         </button>
         <button
           onClick={toggleCollapsed}
-          className="p-2 rounded-sm text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--surface-3)] transition-colors shrink-0"
+          className="p-2 rounded-sm text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--glass)] transition-colors shrink-0"
           title="Collapse sidebar"
         >
           <PanelLeftClose size={14} />

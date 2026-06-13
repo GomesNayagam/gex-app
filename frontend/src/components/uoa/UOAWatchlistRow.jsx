@@ -21,12 +21,10 @@ export default function UOAWatchlistRow({
 
   return (
     <div
-      className="shrink-0 border-b font-mono text-[11px] flex flex-wrap items-center gap-1.5 px-4 py-1.5"
-      style={{ background: "#0f0f18", borderColor: "#1e1e2a" }}
+      className="glass-strip shrink-0 font-mono text-[11px] flex flex-wrap items-center gap-1.5 px-6 py-2"
     >
       <span
-        className="text-[10px] uppercase tracking-widest mr-1"
-        style={{ color: "#6b6b80" }}
+        className="text-[10px] uppercase tracking-widest mr-1 text-[var(--slate-dim)]"
       >
         Watch
       </span>
@@ -35,14 +33,14 @@ export default function UOAWatchlistRow({
         <button
           key={sym}
           onClick={() => onSelect(sym)}
-          className="flex items-center gap-1 px-2 py-0.5 rounded-sm border font-bold transition-colors"
+          className="flex items-center gap-1 px-2 py-0.5 rounded-full font-bold transition-colors"
           style={
             sym === activeSymbol
-              ? { background: "#3b82f6", borderColor: "#3b82f6", color: "#fff" }
+              ? { background: "rgba(110,231,199,0.10)", color: "#6ee7c7", boxShadow: "inset 0 0 0 1px rgba(110,231,199,0.3)" }
               : {
-                  background: "#16161f",
-                  borderColor: "#1e1e2a",
-                  color: "#e2e2e8",
+                  background: "var(--glass)",
+                  color: "var(--slate)",
+                  boxShadow: "inset 0 0 0 1px var(--edge-soft)",
                 }
           }
         >
@@ -54,7 +52,7 @@ export default function UOAWatchlistRow({
             }}
             className="ml-0.5 leading-none cursor-pointer"
             style={{
-              color: sym === activeSymbol ? "rgba(255,255,255,.6)" : "#6b6b80",
+              color: sym === activeSymbol ? "rgba(110,231,199,0.6)" : "var(--slate-dim)",
               fontSize: "10px",
             }}
           >
@@ -70,14 +68,8 @@ export default function UOAWatchlistRow({
         onKeyDown={handleKeyDown}
         placeholder="+ TICKER"
         maxLength={8}
-        className="px-2 py-0.5 rounded-sm font-mono uppercase outline-none"
-        style={{
-          background: "transparent",
-          border: "1px dashed #333348",
-          color: "#6b6b80",
-          fontSize: "11px",
-          width: "72px",
-        }}
+        className="glass-input font-mono text-[11px] uppercase px-2.5 py-[3px] rounded-full w-[80px]"
+        style={{ borderStyle: "dashed" }}
       />
     </div>
   );

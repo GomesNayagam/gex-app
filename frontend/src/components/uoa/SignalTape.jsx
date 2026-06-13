@@ -3,8 +3,9 @@ import SignalRow from "./SignalRow"
 export default function SignalTape({ signals, onSelect, activeSignal }) {
   if (!signals || signals.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center font-mono text-[12px] text-[var(--text-3)]">
-        No signals match — lower minScore or widen window.
+      <div className="flex-1 flex flex-col items-center justify-center gap-1.5">
+        <p className="font-display text-[17px] text-[var(--slate)]">No signals match</p>
+        <p className="font-mono text-[9px] tracking-[0.08em] text-[var(--slate-dim)]">LOWER MIN SCORE OR WIDEN THE WINDOW</p>
       </div>
     )
   }
@@ -15,11 +16,12 @@ export default function SignalTape({ signals, onSelect, activeSignal }) {
         className="shrink-0 grid font-mono uppercase tracking-widest"
         style={{
           gridTemplateColumns: "52px 64px 1fr 150px 110px",
-          padding: "4px 12px",
-          background: "#111118",
-          borderBottom: "1px solid #1e1e2a",
+          padding: "4px 24px",
+          background: "rgba(255,255,255,0.015)",
+          borderBottom: "1px solid var(--edge-soft)",
           fontSize: "9px",
-          color: "#3d3d50",
+          color: "var(--slate-dim)",
+          letterSpacing: "0.18em",
         }}
       >
         <div>SCORE</div>

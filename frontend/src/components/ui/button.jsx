@@ -1,9 +1,9 @@
 import { cn } from "@/lib/utils"
 
 const variants = {
-  default: "bg-blue/20 text-blue border border-blue/30 hover:bg-blue/30",
-  ghost: "text-text-2 hover:text-text-1 hover:bg-surface-2",
-  destructive: "bg-red/20 text-red border border-red/30 hover:bg-red/30",
+  default: "bg-[var(--glass)] text-[var(--slate)] shadow-[inset_0_0_0_1px_var(--edge)] hover:text-[var(--ivory)] hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)]",
+  ghost: "text-[var(--slate)] hover:text-[var(--ivory)] hover:bg-[var(--glass)]",
+  destructive: "bg-[rgba(240,138,155,0.10)] text-[var(--rose)] shadow-[inset_0_0_0_1px_rgba(240,138,155,0.28)] hover:bg-[rgba(240,138,155,0.16)]",
 }
 
 const sizes = {
@@ -17,7 +17,7 @@ export function Button({ className, variant = "default", size = "default", ...pr
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-1.5 rounded-md font-medium font-mono transition-colors disabled:pointer-events-none disabled:opacity-40",
+        "inline-flex items-center justify-center gap-1.5 rounded-full font-medium font-mono transition-colors duration-150 disabled:pointer-events-none disabled:opacity-40",
         variants[variant],
         sizes[size],
         className

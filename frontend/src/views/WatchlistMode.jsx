@@ -36,23 +36,23 @@ function WatchPanel({ id, symbol, zeroDTE, pinned, onClose, onTogglePin, refresh
   return (
     <div
       className={cn(
-        "flex flex-col border rounded-sm bg-[var(--surface-1)] min-w-[320px] flex-shrink-0",
-        pinned ? "border-blue/40" : "border-[var(--border)]"
+        "glass-panel flex flex-col min-w-[320px] flex-shrink-0",
+        pinned && "shadow-[inset_0_0_0_1px_rgba(110,231,199,0.3),0_12px_36px_rgba(0,0,0,0.35)]"
       )}
       style={{ width: "360px" }}
     >
       {/* Panel header */}
-      <div className="flex items-center gap-2 px-3 py-1.5 border-b border-[var(--border)] flex-none">
-        <span className="font-mono text-[10px] font-semibold text-[var(--text-1)]">{symbol}</span>
-        {zeroDTE && <span className="font-mono text-[8px] uppercase tracking-widest text-amber">0DTE</span>}
-        {pinned && <span className="font-mono text-[8px] uppercase tracking-widest text-blue ml-0.5">pinned</span>}
+      <div className="flex items-center gap-2 px-3.5 py-2 border-b border-[var(--edge-soft)] flex-none">
+        <span className="font-display text-[15px] leading-none text-[var(--ivory)]">{symbol}</span>
+        {zeroDTE && <span className="font-mono text-[8px] uppercase tracking-widest px-1.5 py-px rounded-full text-[var(--gold)] shadow-[inset_0_0_0_1px_rgba(232,197,116,0.35)]">0DTE</span>}
+        {pinned && <span className="font-mono text-[8px] uppercase tracking-widest text-[var(--mint)] ml-0.5">pinned</span>}
         <div className="flex items-center gap-1 ml-auto">
           {loading && <RefreshCw size={10} className="animate-spin text-[var(--text-3)]" />}
           <button
             onClick={() => onTogglePin(id)}
             className={cn(
               "p-0.5 rounded transition-colors",
-              pinned ? "text-blue" : "text-[var(--text-3)] hover:text-[var(--text-2)]"
+              pinned ? "text-[var(--mint)]" : "text-[var(--text-3)] hover:text-[var(--text-2)]"
             )}
             title={pinned ? "Unpin" : "Pin panel"}
           >
@@ -60,7 +60,7 @@ function WatchPanel({ id, symbol, zeroDTE, pinned, onClose, onTogglePin, refresh
           </button>
           <button
             onClick={() => onClose(id)}
-            className="p-0.5 rounded text-[var(--text-3)] hover:text-[var(--red)] transition-colors"
+            className="p-0.5 rounded text-[var(--text-3)] hover:text-[var(--rose)] transition-colors"
             title="Close"
           >
             <X size={11} />
@@ -72,7 +72,7 @@ function WatchPanel({ id, symbol, zeroDTE, pinned, onClose, onTogglePin, refresh
       <div className="flex-1 overflow-y-auto">
         {error && (
           <div className="p-3">
-            <span className="font-mono text-[10px] text-[var(--red)]">
+            <span className="font-mono text-[10px] text-[var(--rose)]">
               {error.includes("404")
                 ? `${symbol} not found — symbol may not be available in this adapter.`
                 : error}
@@ -167,10 +167,7 @@ export default function WatchlistMode() {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Top bar */}
-      <div
-        className="flex-none flex flex-wrap items-center gap-2 px-4 py-2 border-b"
-        style={{ borderColor: "var(--border)" }}
-      >
+      <div className="glass-strip flex-none flex flex-wrap items-center gap-2 px-6 py-2.5">
         {/* Input + add button */}
         <div className="flex items-center gap-1">
           <input
@@ -179,17 +176,11 @@ export default function WatchlistMode() {
             onChange={(e) => setInput(e.target.value.toUpperCase())}
             onKeyDown={(e) => e.key === "Enter" && handleAddTicker()}
             placeholder="Add ticker…"
-            className="font-mono text-xs px-2 py-1 rounded border bg-transparent outline-none focus:border-blue-400 w-28"
-            style={{
-              borderColor: "var(--border)",
-              color: "var(--text-1)",
-              background: "var(--surface-1)",
-            }}
+            className="glass-input font-mono text-[11px] px-3 py-1 rounded-full w-28"
           />
           <button
             onClick={handleAddTicker}
-            className="p-1 rounded border hover:opacity-80 transition-opacity"
-            style={{ borderColor: "var(--border)", color: "var(--text-2)" }}
+            className="p-1.5 rounded-full text-[var(--slate)] bg-[var(--glass)] shadow-[inset_0_0_0_1px_var(--edge)] hover:text-[var(--ivory)] transition-colors"
             title="Add ticker"
           >
             <Plus size={14} />
@@ -205,12 +196,11 @@ export default function WatchlistMode() {
                 key={sym}
                 onClick={() => openPanel(sym)}
                 className={cn(
-                  "font-mono text-[10px] px-2 py-0.5 rounded border flex items-center gap-1 transition-colors",
+                  "font-mono text-[10px] px-2.5 py-[3px] rounded-full flex items-center gap-1 transition-colors duration-150",
                   isOpen
-                    ? "border-blue-400/40 bg-blue-400/10 text-blue-400"
-                    : "hover:opacity-80",
+                    ? "text-[var(--mint)] bg-[rgba(110,231,199,0.10)] shadow-[inset_0_0_0_1px_rgba(110,231,199,0.25)]"
+                    : "text-[var(--slate-dim)] shadow-[inset_0_0_0_1px_var(--edge-soft)] hover:text-[var(--slate)]",
                 )}
-                style={isOpen ? {} : { borderColor: "var(--border)", color: "var(--text-3)" }}
               >
                 {sym}
                 <span
@@ -232,12 +222,11 @@ export default function WatchlistMode() {
         <button
           onClick={() => setZeroDTE((v) => !v)}
           className={cn(
-            "flex items-center gap-1 font-mono text-[10px] px-2 py-0.5 rounded border transition-colors",
+            "flex items-center gap-1 font-mono text-[10px] px-2.5 py-[3px] rounded-full transition-colors duration-150",
             zeroDTE
-              ? "border-amber-400/50 bg-amber-400/10 text-amber-400"
-              : "hover:opacity-80",
+              ? "text-[var(--gold)] bg-[rgba(232,197,116,0.10)] shadow-[inset_0_0_0_1px_rgba(232,197,116,0.35)]"
+              : "text-[var(--slate-dim)] shadow-[inset_0_0_0_1px_var(--edge-soft)] hover:text-[var(--slate)]",
           )}
-          style={zeroDTE ? {} : { borderColor: "var(--border)", color: "var(--text-3)" }}
           title="Filter to 0DTE expiration"
         >
           <Zap size={11} />
@@ -248,7 +237,7 @@ export default function WatchlistMode() {
           {panels.length > 0 && (
             <button
               onClick={() => setPanels(prev => prev.filter(p => p.pinned))}
-              className="font-mono text-[10px] px-2 py-1 rounded border border-[var(--border)] text-[var(--text-3)] hover:text-[var(--red)] transition-colors"
+              className="font-mono text-[10px] px-2.5 py-1 rounded-full text-[var(--slate-dim)] shadow-[inset_0_0_0_1px_var(--edge-soft)] hover:text-[var(--rose)] transition-colors"
             >
               Close unpinned
             </button>
@@ -256,10 +245,10 @@ export default function WatchlistMode() {
           <button
             onClick={togglePause}
             className={cn(
-              "flex items-center gap-1.5 font-mono text-[11px] px-3 py-1 rounded border transition-colors",
+              "flex items-center gap-1.5 font-mono text-[10px] tracking-[0.06em] px-3.5 py-[5px] rounded-full transition-colors duration-150",
               paused
-                ? "border-amber/60 bg-amber/15 text-amber"
-                : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text-2)] hover:border-blue/40 hover:text-blue"
+                ? "text-[var(--gold)] bg-[rgba(232,197,116,0.10)] shadow-[inset_0_0_0_1px_rgba(232,197,116,0.35)]"
+                : "text-[var(--slate)] bg-[var(--glass)] shadow-[inset_0_0_0_1px_var(--edge)] hover:text-[var(--ivory)]",
             )}
             title={paused ? "Resume auto-refresh" : "Pause auto-refresh"}
           >
@@ -273,11 +262,14 @@ export default function WatchlistMode() {
       <div className="flex-1 overflow-auto p-4">
         {sorted.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <span className="font-mono text-[10px] text-[var(--text-3)]">
-              {watchlist.length === 0
-                ? "Add a ticker to get started"
-                : "Click a ticker chip to open a panel"}
-            </span>
+            <div className="text-center">
+              <p className="font-display text-[17px] text-[var(--slate)]">
+                {watchlist.length === 0 ? "Add a ticker to get started" : "Click a ticker chip to open a panel"}
+              </p>
+              <p className="font-mono text-[9px] tracking-[0.08em] text-[var(--slate-dim)] mt-1.5">
+                LADDERS OPEN AS PINNED PANELS
+              </p>
+            </div>
           </div>
         ) : (
           <div className="flex flex-wrap gap-4 items-start">

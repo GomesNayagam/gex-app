@@ -1,6 +1,5 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
@@ -13,7 +12,18 @@ export default {
         sm:    "15px",
       },
       colors: {
-        // Map CSS vars to Tailwind tokens (theme-aware via [data-theme])
+        // Ink & Glass tokens
+        ink:    { 0: "var(--ink-0)", 1: "var(--ink-1)", 2: "var(--ink-2)" },
+        ivory:  "var(--ivory)",
+        slate2: "var(--slate)",
+        "slate-dim": "var(--slate-dim)",
+        gold:   "var(--gold)",
+        mint:   { DEFAULT: "var(--mint)", deep: "var(--mint-deep)" },
+        rose2:  { DEFAULT: "var(--rose)", deep: "var(--rose-deep)" },
+        flip:   "var(--flip)",
+        glass:  { DEFAULT: "var(--glass)", 2: "var(--glass-2)" },
+        edge:   { DEFAULT: "var(--edge)", soft: "var(--edge-soft)" },
+        // Legacy names (resolve to new palette via CSS vars)
         bg:          "var(--bg)",
         surface:     "var(--surface-1)",
         "surface-1": "var(--surface-1)",
@@ -26,7 +36,7 @@ export default {
         "text-1":    "var(--text-1)",
         "text-2":    "var(--text-2)",
         "text-3":    "var(--text-3)",
-        // shadcn semantic tokens (CSS var–driven)
+        // shadcn semantic tokens
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -59,8 +69,9 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        mono: ["IBM Plex Mono", "monospace"],
-        sans: ["IBM Plex Sans", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "ui-monospace", "monospace"],
+        sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["Instrument Serif", "Georgia", "serif"],
       },
       keyframes: {
         shimmer: {
@@ -75,11 +86,15 @@ export default {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.4" },
         },
+        breathe: {
+          "50%": { opacity: "0.45" },
+        },
       },
       animation: {
         shimmer: "shimmer 1.6s linear infinite",
         "fade-in": "fadeIn 0.3s ease-out",
         pulse2: "pulse2 2s ease-in-out infinite",
+        breathe: "breathe 2.4s ease-in-out infinite",
       },
     },
   },
