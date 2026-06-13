@@ -1710,6 +1710,7 @@ Start the app from repo root: `./start.sh`. Then verify each route against the a
 6. `/settings` — pill nav (no Display/theme section anywhere), glass selects, serif section titles.
 7. Kill the backend (`Ctrl+C` the uvicorn process) and reload `/b3` — error panel renders as glass with rose ring.
 8. Restart backend; confirm 30s auto-refresh still works and the market clock ticks.
+9. **Contrast check (from Task 5 review):** at the `lg` 3-column breakpoint, confirm the `--slate-dim` chrome labels (GEX/VEX/CHEX prefixes, column headers, "N strikes") read acceptably on the glass panels, and the sub-header doesn't clip "N strikes" in a narrow column. If too dim, bump those specific labels to `--slate`.
 
 - [ ] **Step 5: Commit cleanup**
 
