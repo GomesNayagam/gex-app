@@ -4,8 +4,8 @@ import { useGEXData } from "@/hooks/useGEXData";
 import InstrumentColumn from "@/components/InstrumentColumn";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import IntradayChart from "@/components/IntradayChart";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { HeaderActions } from "@/components/shell/HeaderActions";
 
 export default function B3Mode() {
   const { data, loading, error, paused, togglePause } = useGEXData();
@@ -17,7 +17,7 @@ export default function B3Mode() {
 
   if (loading && !data) {
     return (
-      <div className="p-4">
+      <div className="p-6">
         <LoadingSkeleton />
       </div>
     );
@@ -25,37 +25,36 @@ export default function B3Mode() {
 
   if (error && !data) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="max-w-md rounded-lg border border-red/25 bg-red/5 p-4">
-          <p className="font-mono text-xs font-semibold text-red mb-1">
+      <div className="flex items-center justify-center p-8 h-full">
+        <div className="glass-panel max-w-md p-5 shadow-[inset_0_0_0_1px_rgba(240,138,155,0.25)]">
+          <p className="font-mono text-xs font-semibold text-[var(--rose)] mb-1">
             API Error
           </p>
-          <p className="font-mono text-[10px] text-red/80">{error}</p>
+          <p className="font-mono text-[10px] text-[var(--slate)]">{error}</p>
         </div>
       </div>
     );
   }
   if (!data) return null;
   return (
-    <div className="p-4 overflow-y-auto h-full">
-      {/* View toolbar */}
-      <div className="flex items-center justify-end mb-3">
+    <div className="p-6 overflow-y-auto h-full">
+      <HeaderActions>
         <button
           onClick={togglePause}
           className={cn(
-            "flex items-center gap-1.5 font-mono text-[11px] px-3 py-1 rounded border transition-colors",
+            "flex items-center gap-1.5 font-mono text-[10px] tracking-[0.06em] px-3.5 py-[5px] rounded-full transition-colors duration-150",
             paused
-              ? "border-amber/60 bg-amber/15 text-amber"
-              : "border-[var(--border)] bg-[var(--surface-1)] text-[var(--text-2)] hover:border-blue/40 hover:text-blue",
+              ? "text-[var(--gold)] bg-[rgba(232,197,116,0.10)] shadow-[inset_0_0_0_1px_rgba(232,197,116,0.35)]"
+              : "text-[var(--slate)] bg-[var(--glass)] shadow-[inset_0_0_0_1px_var(--edge)] hover:text-[var(--ivory)]",
           )}
           title={paused ? "Resume auto-refresh" : "Pause auto-refresh"}
         >
           {paused ? <Play size={12} /> : <Pause size={12} />}
           {paused ? "resume" : "pause"}
         </button>
-      </div>
+      </HeaderActions>
       {/* 3-column grid — no horizontal scroll */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 min-w-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[18px] min-w-0">
         {instruments.map((inst) => (
           <div key={inst.symbol} className="min-w-0">
             <InstrumentColumn inst={inst} resizable />
@@ -66,21 +65,23 @@ export default function B3Mode() {
       {/* Intraday chart section */}
       {activeInst && (
         <div className="mt-3">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-2)]">
-              Intraday GEX Evolution
+          <div className="flex items-center gap-2.5 mb-3 px-1">
+            <span className="font-display text-[17px] text-[var(--ivory)]">
+              Intraday Evolution
             </span>
-            <Badge variant="muted">{activeInst.symbol}</Badge>
-            <div className="flex gap-1 ml-auto">
+            <span className="font-mono text-[9px] tracking-[0.1em] text-[var(--slate-dim)]">
+              NET GEX · SESSION
+            </span>
+            <div className="flex gap-1.5 ml-auto">
               {instruments.map((i) => (
                 <button
                   key={i.symbol}
                   onClick={() => setActiveSymbol(i.symbol)}
                   className={cn(
-                    "font-mono text-[9px] px-2 py-0.5 rounded border transition-colors",
+                    "font-mono text-[9px] px-2.5 py-[3px] rounded-full transition-colors duration-150",
                     effectiveSymbol === i.symbol
-                      ? "border-blue/40 text-blue bg-blue/10"
-                      : "border-[var(--border)] text-[var(--text-3)] hover:text-[var(--text-2)]",
+                      ? "text-[var(--mint)] bg-[rgba(110,231,199,0.10)] shadow-[inset_0_0_0_1px_rgba(110,231,199,0.25)]"
+                      : "text-[var(--slate-dim)] shadow-[inset_0_0_0_1px_var(--edge-soft)] hover:text-[var(--slate)]",
                   )}
                 >
                   {i.symbol}
